@@ -5,7 +5,7 @@ Google Meridian MMM framework adapter.
 from typing import Dict, Any, Optional
 import pandas as pd
 import numpy as np
-from .base_adapter import BaseAdapter
+from .base import BaseAdapter
 
 
 class MeridianAdapter(BaseAdapter):
@@ -92,6 +92,7 @@ class MeridianAdapter(BaseAdapter):
         # In real implementation:
         # return self.model.predict(data)
 
-    def get_framework_name(self) -> str:
-        """Return framework name."""
-        return "meridian"
+    def get_channel_roi(self) -> Dict[str, float]:
+        """Return ROI by channel."""
+        # TODO: Implement actual ROI calculation
+        return {}

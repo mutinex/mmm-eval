@@ -5,7 +5,7 @@ PyMC MMM framework adapter.
 from typing import Dict, Any, Optional
 import pandas as pd
 import numpy as np
-from .base_adapter import BaseAdapter
+from .base import BaseAdapter
 
 
 class PyMCAdapter(BaseAdapter):
@@ -104,6 +104,7 @@ class PyMCAdapter(BaseAdapter):
         # In real implementation:
         # return pm.sample_posterior_predictive(self.model["trace"], model=self.model["pymc_model"])
 
-    def get_framework_name(self) -> str:
-        """Return framework name."""
-        return "pymc"
+    def get_channel_roi(self) -> Dict[str, float]:
+        """Return ROI by channel."""
+        # TODO: Implement actual ROI calculation
+        return {}
