@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "mmm-eval"
 version = "0.1.0"
-description = "Media Mix Modeling Evaluation"
-authors = ["Your Name <your.email@example.com>"]
+description = "Open-source evaluation of marketing mix model (MMM) performance"
+authors = ["Joseph Kang <joseph.kang@mutinex.co>",
+           "Phil Clark <phil.clark@mutinex.co>",
+           "Sam McCormick <samuel.mccormick@mutinex.co>",
+           "Benjamin Dobrin <ben.dobrin@mutinex.co>"]
 readme = "README.md"
 packages = [{include = "mmm_eval"}]
 
@@ -26,12 +29,14 @@ jupyter = "^1.0.0"
 name = "mmm-eval"
 version = "0.1.0"
 description = "Media Mix Modeling Evaluation"
-requires-python = ">=3.9"
+requires-python = ">=3.11,<3.13"
 dependencies = [
-    "numpy>=1.24.0",
+    "numpy>=2.0.2",
     "pandas>=2.0.0",
-    "google-meridian>=0.1.0",
-    "pymc>=5.7.0",
+    "google-meridian>=1.1.0",
+    "pymc-marketing>=0.14.0",
+    "scipy>=1.13.1,<2.0.0",
+    "pytensor>=2.18.0",
 ]
 
 [project.optional-dependencies]
