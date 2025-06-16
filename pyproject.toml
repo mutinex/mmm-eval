@@ -7,12 +7,12 @@ readme = "README.md"
 packages = [{include = "mmm_eval"}]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-numpy = {version = "^1.24.0", extras = ["mkl"]}
+python = ">=3.11,<3.13"
+numpy = "^2.0.2"
 pandas = "^2.0.0"
-google-meridian = "^1.0.0"
-pymc = "^5.7.0"
-scipy = "^1.11.0"
+google-meridian = "^1.1.0"
+pymc-marketing = "^0.14.0"
+scipy = ">=1.13.1,<2.0.0"
 pytensor = "^2.18.0"
 
 [tool.poetry.group.dev.dependencies]
