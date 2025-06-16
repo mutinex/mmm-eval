@@ -9,6 +9,13 @@ __author__ = "King Kang and the Jungle Boys"
 __email__ = "your.email@example.com"
 
 # Core functionality
+from .core.evaluator import Evaluator
+from .core.validation_test_results import ValidationResult
+from .core.base_validation_test import BaseAdapter
+
+# Metrics
+from .metrics.accuracy_functions import mape, rmse, mae, r_squared, symmetric_mape
+
 # Adapters
 from .adapters import get_adapter
 from .adapters.experimental.pymc import PyMCAdapter
