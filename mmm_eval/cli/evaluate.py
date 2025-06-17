@@ -14,7 +14,7 @@ from mmm_eval import evaluate_framework
 logger = logging.getLogger(__name__)
 
 
-def evaluate_framework_parser() -> argparse.ArgumentParser:
+def cli_parser() -> argparse.ArgumentParser:
     """Get run experiment cli arguments parser.
 
     Returns: Run experiment parser
@@ -28,7 +28,7 @@ def evaluate_framework_parser() -> argparse.ArgumentParser:
         help="Path to framework-specific config JSON file",
     )
     parser.add_argument(
-        "--input-data-path", type=str, required=True, help="Path to input data"
+        "--input-data-path", type=str, required=True, help="Path to input data CSV file"
     )
     parser.add_argument(
         "--target-column",
@@ -47,7 +47,7 @@ def evaluate_framework_parser() -> argparse.ArgumentParser:
         "--framework",
         type=str,
         required=True,
-        choices=["meridian", "pymc"],
+        choices=["meridian", "pymc", "pymc3"],
         help="Framework to evaluate",
     )
     parser.add_argument(
@@ -61,7 +61,6 @@ def evaluate_framework_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
-
     return parser
 
 
@@ -94,26 +93,30 @@ def main(argv=None):
     Args:
         argv: Command line arguments
     """
-    parser = evaluate_framework_parser()
+    parser = cli_parser()
     args = parser.parse_args(argv)
 
     # Configure logging
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(level=log_level)
 
-    # check paths exist
-    output_path = validate_path(args.output_path)
-
     # Load input data
     data_path = validate_path(args.input_data_path)
     logger.info(f"Loading input data from {data_path}")
     data = pd.read_csv(data_path)
 
-    # Load config and kwargs
-    config_path = validate_path(args.config_path)
-    config = load_config(config_path)
+    config = None
+    if args.config_path:
+        config_path = validate_path(args.config_path)
+        config = load_config(config_path)
 
     kwargs = load_kwargs(args.kwargs)
+
+    # Save results if output path provided
+    output_path = None
+    if args.output_path:
+        output_path = validate_path(args.output_path)
+        output_path.mkdir(parents=True, exist_ok=True)
 
     # Run evaluation
     logger.info(f"Running evaluation suite for {args.framework} framework...")
@@ -123,16 +126,9 @@ def main(argv=None):
         config=config,
         target_column=args.target_column,
         metrics=args.metrics,
+        output_path=output_path,
         **kwargs if kwargs else {},
     )
-
-    # Save results if output path provided
-    if args.output_path:
-        output_path = Path(args.output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, "w") as f:
-            json.dump(results.to_dict(), f, indent=2)
-        logger.info(f"Results saved to {args.output_path}")
 
     return results
 

@@ -4,6 +4,7 @@ Main evaluator for MMM frameworks.
 
 from typing import Dict, List, Any, Optional
 import pandas as pd
+from pathlib import Path
 from .results import EvaluationResults
 
 
@@ -43,6 +44,7 @@ def evaluate_framework(
     config: Optional[Dict[str, Any]] = None,
     target_column: str = "kpi",
     metrics: Optional[List[str]] = None,
+    output_path: Optional[Path] = None,
     **kwargs,
 ) -> EvaluationResults:
     """
@@ -86,9 +88,15 @@ def evaluate_framework(
     # Get the appropriate adapter for the framework
     adapter = get_adapter(framework, config)
 
-    # Use the adapter to fit and evaluate
-    results = adapter.fit_and_evaluate(
-        data=data, target_column=target_column, metrics=metrics, **kwargs
-    )
+    return 0
 
-    return results
+    # TODO: implement fit and evaluate
+
+    # Use the adapter to fit and evaluate
+    # results = adapter.fit_and_evaluate(
+    #     data=data, target_column=target_column, metrics=metrics, **kwargs
+    # )
+
+    # save result to output_path
+
+    # return results
