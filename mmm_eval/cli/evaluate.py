@@ -28,12 +28,12 @@ def evaluate_framework_parser() -> argparse.ArgumentParser:
         help="Path to framework-specific config JSON file",
     )
     parser.add_argument(
-        "--input-data-path", type=str, required=True, help="Path to input data CSV file"
+        "--input-data-path", type=str, required=True, help="Path to input data"
     )
     parser.add_argument(
         "--target-column",
         type=str,
-        required=True,
+        default="kpi",
         help="Name of target/KPI column in input data",
     )
     parser.add_argument(
@@ -88,7 +88,7 @@ def validate_path(path: str) -> Path:
     return path
 
 
-def run_evaluate_framework(argv=None):
+def main(argv=None):
     """Run framework evaluation.
 
     Args:
@@ -138,4 +138,4 @@ def run_evaluate_framework(argv=None):
 
 
 if __name__ == "__main__":
-    run_evaluate_framework()
+    main()

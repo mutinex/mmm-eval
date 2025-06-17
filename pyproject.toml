@@ -21,6 +21,9 @@ pandera = "^0.18"
 pydantic = "^2.5"
 click = "^8.1.7"
 
+[tool.poetry.scripts]
+mmm-eval = "mmm_eval.cli.evaluate:main"
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
 black = "^24.3.0"
