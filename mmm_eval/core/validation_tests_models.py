@@ -1,4 +1,6 @@
+# This file contains the models for the validation tests
 
+# todo(): Possibly move to the constants file
 
 from enum import Enum
 

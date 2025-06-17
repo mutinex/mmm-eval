@@ -10,9 +10,6 @@ from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import r2_score
 
 
-
-#todo(): Can we use Phils metrics here instead?
-
 def calculate_mape(
     actual: pd.Series, predicted: pd.Series
 ) -> float:

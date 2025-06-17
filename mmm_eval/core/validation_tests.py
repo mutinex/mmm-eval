@@ -5,7 +5,7 @@ import pandas as pd
 from typing import Any, Dict, Union
 from mmm_eval.core.base_validation_test import BaseValidationTest
 from mmm_eval.core.dataframe_constants import ValidationDataframeConstants
-from mmm_eval.core.validation_test_constants import ValidationTestConstants
+from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
@@ -25,6 +25,7 @@ from mmm_eval.metrics.metric_models import (
     RefreshStabilityMetricNames,
     RefreshStabilityMetricResults,
 )
+from mmm_eval.metrics.refresh_stability_functions import aggregate_via_media_channel, calculate_absolute_percentage_change_between_series, filter_to_common_dates
 from mmm_eval.metrics.threshold_constants import (
     AccuracyThresholdConstants,
     CrossValidationThresholdConstants,
@@ -86,35 +87,31 @@ class StabilityTest(BaseValidationTest):
             refresh_data = data.iloc[refresh_idx] + train_data
 
             # Train model and get coefficients
-            current_model = model.fit(train_data)
-            refreshed_model = model.fit(refresh_data)
+            current_model = model.fit(train_data).df # todo(): Update these names when Sam finishes the adapter
+            refreshed_model = model.fit(refresh_data).df
 
-            train_data, refresh_data = self.filter_to_common_dates(current_model, refreshed_model)
+            # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
+            train_data, refresh_data = filter_to_common_dates(
+                baseline_data=current_model,
+                comparison_data=refreshed_model,
+            )
 
-            train_data_grpd = (
-                train_data.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL, dropna=False)
-                .sum(numeric_only=True)
-                .reset_index()
-            )
-            refresh_data_grpd = (
-                refresh_data.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL, dropna=False)
-                .sum(numeric_only=True)
-                .reset_index()
-            )
+            train_data_grpd = aggregate_via_media_channel(train_data)
+            refresh_data_grpd = aggregate_via_media_channel(refresh_data)
 
             # merge the composition dfs
             merged = train_data_grpd.merge(
                 refresh_data_grpd,
-                on=[InputDataframeConstants.DATE_COL, InputDataframeConstants.MEDIA_CHANNEL_COL],
+                on=[InputDataframeConstants.MEDIA_CHANNEL_COL],
                 suffixes=("_train", "_refresh"),
                 how="inner",
             )
 
             # calculate the pct change in volume
-            merged[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL] = (
-                (merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_refresh"] - merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_train"])
-                / merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_train"]
-            ).abs()
+            merged[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL] = calculate_absolute_percentage_change_between_series(
+                baseline_series=merged[InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_train"],
+                comparison_series=merged[InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"],
+            )
 
             fold_metrics.append(
                 RefreshStabilityMetricResults(
