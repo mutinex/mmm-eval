@@ -17,3 +17,11 @@ class CrossValidationThresholdConstants:
     MEAN_MAPE = 0.15
     STD_MAPE = 0.03
     MEAN_R_SQUARED = 0.8
+
+class RefreshStabilityThresholdConstants:
+    """
+    Constants for the refresh stability threshold
+    """
+
+    MEAN_PERCENTAGE_CHANGE = 0.15
+    STD_PERCENTAGE_CHANGE = 0.03

@@ -20,6 +20,8 @@ from mmm_eval.metrics.metric_models import (
     AccuracyMetricResults,
     CrossValidationMetricNames,
     CrossValidationMetricResults,
+    RefreshStabilityMetricNames,
+    RefreshStabilityMetricResults,
 )
 from mmm_eval.metrics.threshold_constants import (
     AccuracyThresholdConstants,
@@ -35,7 +37,8 @@ class AccuracyTest(BaseValidationTest):
             test_size=ValidationTestConstants.TRAIN_TEST_SPLIT_RATIO,
             random_state=ValidationTestConstants.RANDOM_STATE,
         )
-        predictions = model.predict(test)
+        trained_model = model.fit(train)
+        predictions = trained_model.predict(test)
 
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
@@ -75,31 +78,65 @@ class StabilityTest(BaseValidationTest):
         fold_metrics = []
 
         # Run cross-validation
-        for train_idx, test_idx in cv.split(data):
+        for train_idx, refresh_idx in cv.split(data):
             # Get train/test data
-            train = data.iloc[train_idx]
-            test = data.iloc[test_idx]
-            combined_data = pd.concat([train, test])
+            train_data = data.iloc[train_idx]
+            refresh_data = data.iloc[refresh_idx] + train_data
 
             # Train model and get coefficients
-            current_model = model.fit(train)
-            refreshed_model = model.fit(combined_data)
+            current_model = model.fit(train_data)
+            refreshed_model = model.fit(refresh_data)
 
-            ## Get coefficients for current model and refreshed model
-            current_coefficients = current_model.coef_
-            refreshed_coefficients = refreshed_model.coef_
+            train_data, refresh_data = self.filter_to_common_dates(current_model, refreshed_model)
 
-            ## Calculate the difference between the coefficients
-            coefficient_difference = np.abs(current_coefficients - refreshed_coefficients)
-            
-            
+            train_data_grpd = (
+                train_data.groupby(MEDIA_COL, dropna=False)
+                .sum(numeric_only=True)
+                .reset_index()
+            )
+            refresh_data_grpd = (
+                refresh_data.groupby(MEDIA_COL, dropna=False)
+                .sum(numeric_only=True)
+                .reset_index()
+            )
 
-        pass  # TODO: Implement the stability test
+            # merge the composition dfs
+            merged = train_data_grpd.merge(
+                refresh_data_grpd,
+                on=[DATE_COL, MEDIA_COL],
+                suffixes=("_train", "_refresh"),
+                how="inner",
+            )
 
-        # return TestResult(
-        #     passed=mape < 0.15,
-        #     metrics={'mape': mape}
-        # )
+            # calculate the pct change in volume
+            merged["mean_percentage_change"] = (
+                (merged[MEDIA_COL + "_refresh"] - merged[MEDIA_COL + "_train"])
+                / merged[MEDIA_COL + "_train"]
+            ).abs()
+
+            fold_metrics.append(
+                RefreshStabilityMetricResults(
+                    mean_percentage_change=merged["mean_percentage_change"].mean(),
+                    std_percentage_change=merged["mean_percentage_change"].std(),
+                )
+            )
+
+        # Question: Does it make sense to calculate the mean of the mean percentage change?
+        test_scores = RefreshStabilityMetricResults(
+            mean_percentage_change=calculate_mean_for_cross_validation_folds(
+                fold_metrics, RefreshStabilityMetricNames.MEAN_PERCENTAGE_CHANGE
+            ),
+            std_percentage_change=calculate_std_for_cross_validation_folds(
+                fold_metrics, RefreshStabilityMetricNames.STD_PERCENTAGE_CHANGE
+            ),
+        )
+
+        return TestResult(
+            test_name=ValidationTestNames.REFRESH_STABILITY,
+            passed=test_scores.check_test_passed(),
+            metric_names=RefreshStabilityMetricNames.metrics_to_list(),
+            test_scores=test_scores,
+        )
 
 
 class CrossValidationTest(BaseValidationTest):
@@ -131,7 +168,8 @@ class CrossValidationTest(BaseValidationTest):
             test = data.iloc[test_idx]
 
             # Get predictions
-            predictions = model.predict(test)
+            trained_model = model.fit(train)
+            predictions = trained_model.predict(test)
 
             # Add in fold results
             fold_metrics.append(

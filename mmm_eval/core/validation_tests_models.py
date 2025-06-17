@@ -8,7 +8,7 @@ class ValidationTestNames(Enum):
     """Define the names of the validation tests"""
 
     ACCURACY = "accuracy"
-    STABILITY = "stability"
+    REFRESH_STABILITY = "refresh_stability"
     CROSS_VALIDATION = "cross_validation"
     PERTUBATION = "perturbation"
 

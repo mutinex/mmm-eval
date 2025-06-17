@@ -5,7 +5,7 @@ Accuracy metrics for MMM evaluation.
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Union
-from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults
+from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults, RefreshStabilityMetricNames, RefreshStabilityMetricResults
 from sklearn.metrics import mean_absolute_percentage_error
 from sklearn.metrics import r2_score
 
@@ -52,8 +52,8 @@ def calculate_r_squared(
     return float(r2_score(actual, predicted))
 
 def calculate_mean_for_cross_validation_folds(
-    fold_metrics: List[AccuracyMetricResults], 
-    metric_name: AccuracyMetricNames,
+    fold_metrics: List[Union[AccuracyMetricResults, RefreshStabilityMetricResults]], 
+    metric_name: Union[AccuracyMetricNames, RefreshStabilityMetricNames],
 ) -> float:
     """
     Calculate the mean of the fold metrics.
@@ -62,8 +62,8 @@ def calculate_mean_for_cross_validation_folds(
     return np.mean([getattr(fold_metric, metric_name) for fold_metric in fold_metrics])
 
 def calculate_std_for_cross_validation_folds(
-    fold_metrics: List[AccuracyMetricResults], 
-    metric_name: AccuracyMetricNames,
+    fold_metrics: List[Union[AccuracyMetricResults, RefreshStabilityMetricResults]], 
+    metric_name: Union[AccuracyMetricNames, RefreshStabilityMetricNames],
 ) -> float:
     """
     Calculate the standard deviation of the fold metrics.

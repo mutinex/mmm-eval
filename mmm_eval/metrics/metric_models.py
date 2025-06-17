@@ -5,7 +5,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants
+from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants, RefreshStabilityThresholdConstants
 
 
 class MetricNamesBase(Enum):
@@ -30,9 +30,10 @@ class CrossValidationMetricNames(MetricNamesBase):
     MEAN_R_SQUARED = "mean_r_squared"
     STD_R_SQUARED = "std_r_squared"
 
-class StabilityMetricNames(MetricNamesBase):
+class RefreshStabilityMetricNames(MetricNamesBase):
     """Define the names of the stability metrics"""
-    pass
+    MEAN_PERCENTAGE_CHANGE = "mean_percentage_change"
+    STD_PERCENTAGE_CHANGE = "std_percentage_change"
 
 class MetricResults(BaseModel):
     """Define the results of the metrics"""
@@ -79,3 +80,14 @@ class CrossValidationMetricResults(MetricResults):
             and self.std_mape <= CrossValidationThresholdConstants.STD_MAPE
             and self.mean_r_squared >= CrossValidationThresholdConstants.MEAN_R_SQUARED
         )
+    
+class RefreshStabilityMetricResults(MetricResults):
+    """Define the results of the refresh stability metrics"""
+    mean_percentage_change: float
+    std_percentage_change: float
+
+    def check_test_passed(self) -> bool:
+        """
+        Check if the tests passed.
+        """
+        return self.mean_percentage_change <= RefreshStabilityThresholdConstants.MEAN_PERCENTAGE_CHANGE
