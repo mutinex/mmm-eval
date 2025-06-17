@@ -10,7 +10,7 @@ from mmm_eval.core.base_validation_test import BaseValidationTest
 from .validation_test_results import TestResult, ValidationResult
 
 # Import standard tests
-from mmm_eval.core.validation_tests import AccuracyTest, StabilityTest, CrossValidationTest
+from mmm_eval.core.validation_tests import AccuracyTest, RefreshStabilityTest, CrossValidationTest
 
 
 class ValidationTestOrchestrator:
@@ -25,7 +25,7 @@ class ValidationTestOrchestrator:
         """Initialize the validator with standard tests pre-registered."""
         self.tests: Dict[ValidationTestNames, BaseValidationTest] = {
             ValidationTestNames.ACCURACY: AccuracyTest,
-            ValidationTestNames.STABILITY: StabilityTest,
+            ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
             ValidationTestNames.PERTUBATION: PerturbationTest,
         }
