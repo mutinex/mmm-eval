@@ -6,44 +6,48 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
-from mmm_eval.core.constants import ValidationTestConstants
+from mmm_eval.core.constants import ValidationDataframeConstants, ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 import pandas as pd
+
+from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
+
+
 class BaseValidationTest(ABC):
     """
     Abstract base class for validation tests.
-    
+
     All validation tests must inherit from this class and implement
     the required methods to provide a unified testing interface.
     """
 
-    
     @abstractmethod
-    def run(self, model: Any, data: pd.DataFrame) -> 'TestResult':
+    def run(self, model: Any, data: pd.DataFrame) -> "TestResult":
         """
         Run the validation test.
-        
+
         Args:
             model: The model to validate
             data: Input data for validation
-            
+
         Returns:
             TestResult object containing test resultsTestResult
         """
         pass
-    
+
     @abstractmethod
     def get_test_name(self) -> str:
         """
         Return the name of the test.
-        
+
         Returns:
             Test name (e.g., 'accuracy', 'stability')
         """
         pass
 
-    def _split_data_holdout(self, data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-
+    def _split_data_holdout(
+        self, data: pd.DataFrame
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Split the data into train and test sets.
 
@@ -62,9 +66,10 @@ class BaseValidationTest(ABC):
         )
 
         return train, test
-    
-    def _split_data_time_series_cv(self, data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
+    def _split_data_time_series_cv(
+        self, data: pd.DataFrame
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Split the data into train and test sets using time series cross-validation.
 
@@ -82,3 +87,36 @@ class BaseValidationTest(ABC):
         )
 
         return cv.split(data)
+    
+    def _add_calculated_roi_column(self, data: pd.DataFrame, spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL, return_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL) -> pd.DataFrame:
+        """Calculate the ROI for the data."""
+        data[ValidationDataframeConstants.CALCULATED_ROI_COL] = (data[return_col] - data[spend_col]) / data[spend_col]
+        return data
+
+    def _aggregate_by_channel_and_sum(
+        self,
+        data: pd.DataFrame,
+        channel_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_COL,
+        return_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+        spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL,
+    ) -> pd.DataFrame:
+        """Aggregate the data to the media spend per channel."""
+        return data.groupby(channel_col, dropna=False)[[spend_col, return_col]].sum().reset_index()
+
+    def _combine_dataframes_by_channel(
+        self,
+        baseline_df: pd.DataFrame,
+        comparison_df: pd.DataFrame,
+        suffixes: tuple[str, str] = ("_current", "_refresh"),
+    ) -> pd.DataFrame:
+        """Combine the current and refresh data."""
+        return baseline_df.merge(
+            comparison_df,
+            on=[InputDataframeConstants.MEDIA_CHANNEL_COL],
+            suffixes=suffixes,
+            how="inner",
+        )
+    
+    def _get_mean_aggregate_channel_roi_pct_change(self, df: pd.DataFrame) -> float:
+        """Get the mean aggregate channel ROI pct change."""
+        return df[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL].mean()

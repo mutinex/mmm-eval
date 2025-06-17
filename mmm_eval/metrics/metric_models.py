@@ -5,7 +5,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants, RefreshStabilityThresholdConstants
+from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants, PerturbationThresholdConstants, RefreshStabilityThresholdConstants
 
 
 class MetricNamesBase(Enum):
@@ -34,6 +34,11 @@ class RefreshStabilityMetricNames(MetricNamesBase):
     """Define the names of the stability metrics"""
     MEAN_PERCENTAGE_CHANGE = "mean_percentage_change"
     STD_PERCENTAGE_CHANGE = "std_percentage_change"
+
+class PerturbationMetricNames(RefreshStabilityMetricNames):
+    """Define the names of the perturbation metrics"""
+
+    pass
 
 class MetricResults(BaseModel):
     """Define the results of the metrics"""
@@ -91,3 +96,22 @@ class RefreshStabilityMetricResults(MetricResults):
         Check if the tests passed.
         """
         return self.mean_percentage_change <= RefreshStabilityThresholdConstants.MEAN_PERCENTAGE_CHANGE
+    
+class PerturbationMetricResults(MetricResults):
+
+    """Define the results of the perturbation metrics"""
+
+    mean_aggregate_channel_roi_pct_change: float #todo(): Does it make sense to aggregate rois?
+    individual_channel_roi_pct_change: dict[str, float]
+
+    def check_test_passed(self) -> bool:
+        """
+        Check if the tests passed.
+        """
+        return (
+            self.mean_aggregate_channel_roi_pct_change <= PerturbationThresholdConstants.MEAN_AGGREGATE_CHANNEL_ROI_PCT_CHANGE
+            and all(
+                self.individual_channel_roi_pct_change[channel] <= PerturbationThresholdConstants.INDIVIDUAL_CHANNEL_ROI_PCT_CHANGE
+                for channel in self.individual_channel_roi_pct_change
+            )
+        )

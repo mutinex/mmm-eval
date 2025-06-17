@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from typing import Any, Dict, Union
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.dataframe_constants import ValidationDataframeConstants
+from mmm_eval.core.constants import ValidationDataframeConstants
 from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
@@ -23,17 +23,10 @@ from mmm_eval.metrics.metric_models import (
     AccuracyMetricResults,
     CrossValidationMetricNames,
     CrossValidationMetricResults,
+    PerturbationMetricNames,
+    PerturbationMetricResults,
     RefreshStabilityMetricNames,
     RefreshStabilityMetricResults,
-)
-from mmm_eval.metrics.refresh_stability_functions import (
-    aggregate_via_media_channel,
-    calculate_absolute_percentage_change_between_series,
-    filter_to_common_dates,
-)
-from mmm_eval.metrics.threshold_constants import (
-    AccuracyThresholdConstants,
-    CrossValidationThresholdConstants,
 )
 
 
@@ -47,10 +40,10 @@ class AccuracyTest(BaseValidationTest):
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
             mape=calculate_mape(
-                actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
+                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], predicted=predictions
             ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
             r_squared=calculate_r_squared(
-                actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
+                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], predicted=predictions
             ),
         )
 
@@ -97,11 +90,11 @@ class CrossValidationTest(BaseValidationTest):
             fold_metrics.append(
                 AccuracyMetricResults(
                     mape=calculate_mape(
-                        actual=test[InputDataframeConstants.REVENUE_COL],
+                        actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
                         predicted=predictions,
                     ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
                     r_squared=calculate_r_squared(
-                        actual=test[InputDataframeConstants.REVENUE_COL],
+                        actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
                         predicted=predictions,
                     ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
                 )
@@ -162,24 +155,6 @@ class StabilityTest(BaseValidationTest):
 
         return baseline_data_fil, comparison_data_fil
 
-    def _aggregate_via_media_channel(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Aggregate the data to the media spend per channel."""
-        return (
-            data.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL, dropna=False)
-            .sum(numeric_only=True)
-            .reset_index()
-        )
-
-    def _combine_current_and_refresh_data(
-        self, current_data: pd.DataFrame, refresh_data: pd.DataFrame
-    ) -> pd.DataFrame:
-        """Combine the current and refresh data."""
-        return current_data.merge(
-            refresh_data,
-            on=[InputDataframeConstants.MEDIA_CHANNEL_COL],
-            suffixes=("_current", "_refresh"),
-            how="inner",
-        )
 
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         """
@@ -212,13 +187,19 @@ class StabilityTest(BaseValidationTest):
                 comparison_data=refreshed_model,
             )
 
-            current_model_grpd = self._aggregate_via_media_channel(current_model)
-            refresh_model_grpd = self._aggregate_via_media_channel(refresh_model)
+            # Get sum spend and return by channel
+            current_model_grpd = self._aggregate_by_channel_and_sum(current_model)
+            refresh_model_grpd = self._aggregate_by_channel_and_sum(refresh_model)
 
-            # merge the composition dfs
-            merged = self._combine_current_and_refresh_data(
-                current_data=current_model_grpd,
-                refresh_data=refresh_model_grpd,
+            # Add calculated ROI column
+            current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(current_model_grpd)
+            refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(refresh_model_grpd)
+
+            # merge the composition dfs by channel
+            merged = self._combine_dataframes_by_channel(
+                baseline_df=current_model_grpd,
+                comparison_df=refresh_model_grpd,
+                suffixes=("_current", "_refresh"),
             )
 
             # calculate the pct change in volume
@@ -226,10 +207,10 @@ class StabilityTest(BaseValidationTest):
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
             ] = calculate_absolute_percentage_change(
                 baseline_series=merged[
-                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_current"
+                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
                 ],
                 comparison_series=merged[
-                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"
+                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
                 ],
             )
 
@@ -266,20 +247,69 @@ class StabilityTest(BaseValidationTest):
         Validation test for the perturbation of the MMM framework.
         """
 
-        def _get_5_percent_gaussian_noise(self, data: pd.DataFrame) -> pd.DataFrame:
+        def _get_5_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
             """Get the gaussian noise for the perturbation test."""
-            return np.random.normal(0, 0.05, size=len(data))
+            return np.random.normal(0, 0.05, size=len(df))
         
-        def _add_gaussian_noise_to_spend(self, data: pd.DataFrame, spend_col: InputDataframeConstants = InputDataframeConstants.SPEND_COL) -> pd.DataFrame:
+        def _add_gaussian_noise_to_spend(self, df: pd.DataFrame, spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL) -> pd.DataFrame:
             """Add the gaussian noise to the spend."""
-            df = data.copy()
-            noise = self._get_5_percent_gaussian_noise(df[spend_col])
-            df[ValidationDataframeConstants.SPEND_PLUS_GAUSSIAN_NOISE_COL] = df[spend_col] * (1 + noise) #todo(): Does this mean its only positive noise?
+            df_copy = df.copy()
+            noise = self._get_5_percent_gaussian_noise(df_copy[spend_col])
+            df_copy[spend_col] = df_copy[spend_col] * (1 + noise) #todo(): Does this mean its only positive noise?
             return df
+        
+        def _collate_channel_and_corresponding_roi_pct_change(self, df: pd.DataFrame) -> dict[str, float]:
+            """Collate the channel and corresponding ROI pct change."""
+            return df.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL)[ValidationDataframeConstants.CALCULATED_ROI_COL].mean().to_dict()
 
         def run(self, model: Any, data: pd.DataFrame) -> TestResult:
             """
             Run the perturbation test.
             """
 
-            pass
+            df_original = data.copy()
+            df_with_noise = self._add_gaussian_noise_to_spend(df_original)
+
+            # Train model and get coefficients
+            trained_model_original_spends = model.fit(df_original).df # todo(): Update these names when Sam finishes the adapter
+            trained_model_perturbed_spends = model.fit(df_with_noise).df # todo(): Update these names when Sam finishes the adapter
+
+            # Get sum spend and return by channel
+            original_spends_grpd = self._aggregate_by_channel_and_sum(trained_model_original_spends)
+            perturbed_spends_grpd = self._aggregate_by_channel_and_sum(trained_model_perturbed_spends)
+
+            # Add calculated ROI column
+            original_spends_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(original_spends_grpd)
+            perturbed_spends_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(perturbed_spends_grpd)
+
+            original_and_perturbed_spends = self._combine_dataframes_by_channel(
+                baseline_df=original_spends_grpd,
+                comparison_df=perturbed_spends_grpd,
+                suffixes=("_original", "_perturbed"),
+            )
+
+            # calculate the pct change in volume
+            original_and_perturbed_spends[
+                ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
+            ] = calculate_absolute_percentage_change(
+                baseline_series=original_and_perturbed_spends[
+                    InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL + "_original"
+                ],
+                comparison_series=original_and_perturbed_spends[
+                    InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL + "_perturbed"
+                ],
+            )
+
+            # Question: Does it make sense to calculate the mean of the mean percentage change?
+            test_scores = PerturbationMetricResults(
+                mean_aggregate_channel_roi_pct_change=self._get_mean_aggregate_channel_roi_pct_change(original_and_perturbed_spends),
+                individual_channel_roi_pct_change=self._collate_channel_and_corresponding_roi_pct_change(original_and_perturbed_spends),
+            )
+
+            return TestResult(
+                test_name=ValidationTestNames.PERTUBATION,
+                passed=test_scores.check_test_passed(),
+                metric_names=PerturbationMetricNames.metrics_to_list(),
+                test_scores=test_scores,
+            )
+            

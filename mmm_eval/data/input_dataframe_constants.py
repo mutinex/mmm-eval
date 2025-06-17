@@ -7,6 +7,6 @@ class InputDataframeConstants:
 
     DATE_COL = "date"
     MEDIA_CHANNEL_COL = "media_channel"
-    MEDIA_CHANNEL_CONTRIBUTION_COL = "media_channel_contribution"
-    REVENUE_COL = "revenue"
-    SPEND_COL = "spend"
+    MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL = "contribution_volume"
+    MEDIA_CHANNEL_REVENUE_COL = "revenue"
+    MEDIA_CHANNEL_SPEND_COL = "spend"
