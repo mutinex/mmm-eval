@@ -7,7 +7,12 @@ from datetime import datetime
 import pandas as pd
 
 from mmm_eval.core.validation_tests_models import ValidationResultAttributeNames, ValidationTestAttributeNames, ValidationTestNames
-from mmm_eval.metrics.metric_models import AccuracyMetrics, CrossValidationMetrics, StabilityMetrics, PerturbationMetrics
+from mmm_eval.metrics.metric_models import (
+    AccuracyMetricResults, 
+    CrossValidationMetricResults, 
+    RefreshStabilityMetricResults, 
+    PerturbationMetricResults
+)
 
 
 class TestResult:
@@ -22,8 +27,8 @@ class TestResult:
         self,
         test_name: ValidationTestNames,
         passed: bool,
-        metric_names: List[Union[AccuracyMetrics, StabilityMetrics, CrossValidationMetrics, PerturbationMetrics]],
-        test_scores: Dict[Union[AccuracyMetrics, StabilityMetrics, CrossValidationMetrics, PerturbationMetrics], float],
+        metric_names: List[str],
+        test_scores: Union[AccuracyMetricResults, CrossValidationMetricResults, RefreshStabilityMetricResults, PerturbationMetricResults],
     ):
         """
         Initialize test results.
@@ -31,9 +36,8 @@ class TestResult:
         Args:
             test_name: Name of the test
             passed: Whether the test passed
-            metrics: Dictionary of computed metrics
-            error: Error message if test failed
-            metadata: Additional test metadata
+            metric_names: List of metric names
+            test_scores: Computed metric results
         """
         self.test_name = test_name
         self.passed = passed

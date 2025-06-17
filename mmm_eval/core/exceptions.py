@@ -1,0 +1,33 @@
+"""
+Custom exceptions for MMM validation framework.
+"""
+
+
+class ValidationError(Exception):
+    """Base exception for validation framework errors."""
+    pass
+
+
+class DataValidationError(ValidationError):
+    """Raised when data validation fails."""
+    pass
+
+
+class ModelValidationError(ValidationError):
+    """Raised when model validation fails."""
+    pass
+
+
+class MetricCalculationError(ValidationError):
+    """Raised when metric calculation fails."""
+    pass
+
+
+class TestExecutionError(ValidationError):
+    """Raised when test execution fails."""
+    pass
+
+
+class ConfigurationError(ValidationError):
+    """Raised when configuration is invalid."""
+    pass 

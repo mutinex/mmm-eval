@@ -16,6 +16,9 @@ def calculate_mape(
     """
     Calculate Mean Absolute Percentage Error (MAPE).
 
+    This function wraps sklearn's mean_absolute_percentage_error with proper
+    type conversion and returns a float value.
+
     Args:
         actual: Actual values
         predicted: Predicted values

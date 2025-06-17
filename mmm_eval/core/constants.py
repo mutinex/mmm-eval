@@ -18,3 +18,12 @@ class ValidationDataframeConstants:
     PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL = "percentage_change_channel_contribution"
     SPEND_PLUS_GAUSSIAN_NOISE_COL = "spend_plus_gaussian_noise"
     CALCULATED_ROI_COL = "calculated_roi"
+
+class PerturbationConstants:
+    """
+    Constants for the perturbation test
+    """
+
+    NOISE_PERCENTAGE = 0.05
+    GAUSSIAN_NOISE_LOC = 0
+

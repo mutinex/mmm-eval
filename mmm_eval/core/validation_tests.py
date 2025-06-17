@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from typing import Any, Dict, Union
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.constants import ValidationDataframeConstants
+from mmm_eval.core.constants import PerturbationConstants, ValidationDataframeConstants
 from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
@@ -31,6 +31,16 @@ from mmm_eval.metrics.metric_models import (
 
 
 class AccuracyTest(BaseValidationTest):
+    """
+    Validation test for model accuracy using holdout validation.
+    
+    This test evaluates model performance by splitting data into train/test sets
+    and calculating MAPE and R-squared metrics on the test set.
+    """
+
+    @property
+    def test_name(self) -> str:
+        return ValidationTestNames.ACCURACY
 
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         train, test = self._split_data_holdout(data)
@@ -40,10 +50,12 @@ class AccuracyTest(BaseValidationTest):
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
             mape=calculate_mape(
-                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], predicted=predictions
-            ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
+                predicted=predictions,
+            ),
             r_squared=calculate_r_squared(
-                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], predicted=predictions
+                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
+                predicted=predictions,
             ),
         )
 
@@ -53,11 +65,16 @@ class AccuracyTest(BaseValidationTest):
             metric_names=AccuracyMetricNames.metrics_to_list(),
             test_scores=test_scores,
         )
-    
+
+
 class CrossValidationTest(BaseValidationTest):
     """
     Validation test for the cross-validation of the MMM framework.
     """
+
+    @property
+    def test_name(self) -> str:
+        return ValidationTestNames.CROSS_VALIDATION
 
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         """
@@ -92,11 +109,11 @@ class CrossValidationTest(BaseValidationTest):
                     mape=calculate_mape(
                         actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
                         predicted=predictions,
-                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                    ),
                     r_squared=calculate_r_squared(
                         actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
                         predicted=predictions,
-                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                    ),
                 )
             )
 
@@ -123,13 +140,18 @@ class CrossValidationTest(BaseValidationTest):
             test_scores=test_scores,
         )
 
-class StabilityTest(BaseValidationTest):
+
+class RefreshStabilityTest(BaseValidationTest):
     """
     Validation test for the stability of the MMM framework.
     """
 
+    @property
+    def test_name(self) -> str:
+        return ValidationTestNames.REFRESH_STABILITY
+
     def _filter_to_common_dates(
-        baseline_data: pd.DataFrame, comparison_data: pd.DataFrame
+        self, baseline_data: pd.DataFrame, comparison_data: pd.DataFrame
     ) -> pd.DataFrame:
         """Filter the data to the common dates for stability comparison."""
 
@@ -155,7 +177,6 @@ class StabilityTest(BaseValidationTest):
 
         return baseline_data_fil, comparison_data_fil
 
-
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         """
         Run the stability test.
@@ -171,7 +192,8 @@ class StabilityTest(BaseValidationTest):
         for train_idx, refresh_idx in cv_splits:
             # Get train/test data
             current_data = data.iloc[train_idx]
-            refresh_data = data.iloc[refresh_idx] + current_data
+            # Combine current data with refresh data for retraining
+            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
 
             # Train model and get coefficients
             current_model = model.fit(
@@ -192,14 +214,17 @@ class StabilityTest(BaseValidationTest):
             refresh_model_grpd = self._aggregate_by_channel_and_sum(refresh_model)
 
             # Add calculated ROI column
-            current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(current_model_grpd)
-            refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(refresh_model_grpd)
+            current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+                self._add_calculated_roi_column(current_model_grpd)
+            )
+            refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+                self._add_calculated_roi_column(refresh_model_grpd)
+            )
 
             # merge the composition dfs by channel
             merged = self._combine_dataframes_by_channel(
                 baseline_df=current_model_grpd,
                 comparison_df=refresh_model_grpd,
-                suffixes=("_current", "_refresh"),
             )
 
             # calculate the pct change in volume
@@ -207,10 +232,10 @@ class StabilityTest(BaseValidationTest):
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
             ] = calculate_absolute_percentage_change(
                 baseline_series=merged[
-                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
+                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_current"
                 ],
                 comparison_series=merged[
-                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
+                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"
                 ],
             )
 
@@ -242,74 +267,118 @@ class StabilityTest(BaseValidationTest):
             test_scores=test_scores,
         )
 
-    class PerturbationTest(BaseValidationTest):
+
+class PerturbationTest(BaseValidationTest):
+    """
+    Validation test for the perturbation of the MMM framework.
+    """
+
+    @property
+    def test_name(self) -> str:
+        return ValidationTestNames.PERTUBATION
+
+    def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Validation test for the perturbation of the MMM framework.
-        """
-
-        def _get_5_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
-            """Get the gaussian noise for the perturbation test."""
-            return np.random.normal(0, 0.05, size=len(df))
+        Generate Gaussian noise for perturbation testing.
         
-        def _add_gaussian_noise_to_spend(self, df: pd.DataFrame, spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL) -> pd.DataFrame:
-            """Add the gaussian noise to the spend."""
-            df_copy = df.copy()
-            noise = self._get_5_percent_gaussian_noise(df_copy[spend_col])
-            df_copy[spend_col] = df_copy[spend_col] * (1 + noise) #todo(): Does this mean its only positive noise?
-            return df
-        
-        def _collate_channel_and_corresponding_roi_pct_change(self, df: pd.DataFrame) -> dict[str, float]:
-            """Collate the channel and corresponding ROI pct change."""
-            return df.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL)[ValidationDataframeConstants.CALCULATED_ROI_COL].mean().to_dict()
-
-        def run(self, model: Any, data: pd.DataFrame) -> TestResult:
-            """
-            Run the perturbation test.
-            """
-
-            df_original = data.copy()
-            df_with_noise = self._add_gaussian_noise_to_spend(df_original)
-
-            # Train model and get coefficients
-            trained_model_original_spends = model.fit(df_original).df # todo(): Update these names when Sam finishes the adapter
-            trained_model_perturbed_spends = model.fit(df_with_noise).df # todo(): Update these names when Sam finishes the adapter
-
-            # Get sum spend and return by channel
-            original_spends_grpd = self._aggregate_by_channel_and_sum(trained_model_original_spends)
-            perturbed_spends_grpd = self._aggregate_by_channel_and_sum(trained_model_perturbed_spends)
-
-            # Add calculated ROI column
-            original_spends_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(original_spends_grpd)
-            perturbed_spends_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = self._add_calculated_roi_column(perturbed_spends_grpd)
-
-            original_and_perturbed_spends = self._combine_dataframes_by_channel(
-                baseline_df=original_spends_grpd,
-                comparison_df=perturbed_spends_grpd,
-                suffixes=("_original", "_perturbed"),
-            )
-
-            # calculate the pct change in volume
-            original_and_perturbed_spends[
-                ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-            ] = calculate_absolute_percentage_change(
-                baseline_series=original_and_perturbed_spends[
-                    InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL + "_original"
-                ],
-                comparison_series=original_and_perturbed_spends[
-                    InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL + "_perturbed"
-                ],
-            )
-
-            # Question: Does it make sense to calculate the mean of the mean percentage change?
-            test_scores = PerturbationMetricResults(
-                mean_aggregate_channel_roi_pct_change=self._get_mean_aggregate_channel_roi_pct_change(original_and_perturbed_spends),
-                individual_channel_roi_pct_change=self._collate_channel_and_corresponding_roi_pct_change(original_and_perturbed_spends),
-            )
-
-            return TestResult(
-                test_name=ValidationTestNames.PERTUBATION,
-                passed=test_scores.check_test_passed(),
-                metric_names=PerturbationMetricNames.metrics_to_list(),
-                test_scores=test_scores,
-            )
+        Args:
+            df: Input dataframe to determine noise size
             
+        Returns:
+            Array of Gaussian noise values
+        """
+        return np.random.normal(
+            PerturbationConstants.GAUSSIAN_NOISE_LOC,
+            PerturbationConstants.NOISE_PERCENTAGE,
+            size=len(df),
+        )
+
+    def _add_gaussian_noise_to_spend(
+        self,
+        df: pd.DataFrame,
+        spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL,
+    ) -> pd.DataFrame:
+        """
+        Add Gaussian noise to spend data for perturbation testing.
+        
+        Args:
+            df: Input dataframe
+            spend_col: Column name for spend data
+            
+        Returns:
+            Dataframe with noise added to spend column
+        """
+        df_copy = df.copy()
+        noise = self._get_percent_gaussian_noise(df)
+        df_copy[spend_col] = df[spend_col] * (1 + noise)
+        return df_copy
+
+    def _collate_channel_and_corresponding_roi_pct_change(
+        self, df: pd.DataFrame
+    ) -> dict[str, float]:
+        """Collate the channel and corresponding ROI percentage change."""
+        return dict(
+            zip(
+                df[InputDataframeConstants.MEDIA_CHANNEL_COL],
+                df[
+                    ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
+                ],
+            )
+        )
+
+    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+        """
+        Run the perturbation test.
+        """
+
+        # Train model on original data
+        original_model = model.fit(data)
+        original_contributions = self._aggregate_by_channel_and_sum(original_model.df)
+
+        # Add noise to spend data and retrain
+        noisy_data = self._add_gaussian_noise_to_spend(data)
+        noisy_model = model.fit(noisy_data)
+        noisy_contributions = self._aggregate_by_channel_and_sum(noisy_model.df)
+
+        # Add calculated ROI column
+        original_contributions[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+            self._add_calculated_roi_column(original_contributions)
+        )
+        noisy_contributions[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+            self._add_calculated_roi_column(noisy_contributions)
+        )
+
+        # merge the composition dfs by channel
+        merged = self._combine_dataframes_by_channel(
+            baseline_df=original_contributions,
+            comparison_df=noisy_contributions,
+        )
+
+        # calculate the pct change in volume
+        merged[
+            ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
+        ] = calculate_absolute_percentage_change(
+            baseline_series=merged[
+                InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_current"
+            ],
+            comparison_series=merged[
+                InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"
+            ],
+        )
+
+        # Create metric results
+        test_scores = PerturbationMetricResults(
+            mean_aggregate_channel_roi_pct_change=self._get_mean_aggregate_channel_roi_pct_change(
+                merged
+            ),
+            individual_channel_roi_pct_change=self._collate_channel_and_corresponding_roi_pct_change(
+                merged
+            ),
+        )
+
+        return TestResult(
+            test_name=ValidationTestNames.PERTUBATION,
+            passed=test_scores.check_test_passed(),
+            metric_names=PerturbationMetricNames.metrics_to_list(),
+            test_scores=test_scores,
+        )

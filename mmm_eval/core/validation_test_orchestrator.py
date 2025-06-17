@@ -10,7 +10,7 @@ from mmm_eval.core.base_validation_test import BaseValidationTest
 from .validation_test_results import TestResult, ValidationResult
 
 # Import standard tests
-from mmm_eval.core.validation_tests import AccuracyTest, RefreshStabilityTest, CrossValidationTest
+from mmm_eval.core.validation_tests import AccuracyTest, RefreshStabilityTest, CrossValidationTest, PerturbationTest
 
 
 class ValidationTestOrchestrator:
@@ -56,7 +56,7 @@ class ValidationTestOrchestrator:
         results: Dict[ValidationTestNames, TestResult] = {}
         for test_name in test_names:
             test_instance = self.tests[test_name]()
-            test_result = test_instance.run(model, data)
+            test_result = test_instance.run_with_error_handling(model, data)
             results[test_name] = test_result
         
         return ValidationResult(results) 
