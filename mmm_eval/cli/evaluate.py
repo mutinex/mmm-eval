@@ -20,43 +20,48 @@ def cli_parser() -> argparse.ArgumentParser:
     Returns: Run experiment parser
     """
     parser = argparse.ArgumentParser(
-        description="Evaluate MMM frameworks using mmm-eval"
+        description="An open source tool for evaluating MMMs"
     )
     parser.add_argument(
         "--config-path",
         type=str,
-        help="Path to framework-specific config JSON file",
+        help="Path to framework-specific config file",
     )
     parser.add_argument(
-        "--input-data-path", type=str, required=True, help="Path to input data CSV file"
+        "--input-data-path", 
+        type=str, 
+        required=True, 
+        help="Path to input data file"
     )
     parser.add_argument(
         "--target-column",
         type=str,
         default="kpi",
-        help="Name of target/KPI column in input data",
+        help="Name of target column in input data. Default is 'kpi'.",
     )
     parser.add_argument(
         "--metrics",
         type=str,
         nargs="+",
         default=["mape", "rmse"],
-        help="Metrics to compute (e.g. mape rmse r_squared)",
+        help="Error metrics to compute for out-of-sample prediction. Default is mape and rmse.",
     )
     parser.add_argument(
         "--framework",
         type=str,
         required=True,
         choices=["meridian", "pymc", "pymc3"],
-        help="Framework to evaluate",
+        help="Open source MMM framework to evaluate",
     )
     parser.add_argument(
         "--kwargs",
         type=str,
-        help="JSON string of additional framework-specific parameters",
+        help="Additional framework-specific parameters",
     )
     parser.add_argument(
-        "--output-path", type=str, help="Path to save evaluation results JSON"
+        "--output-path", 
+        type=str, 
+        help="Directory to save evaluation results. If not provided, results will not be saved."
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
