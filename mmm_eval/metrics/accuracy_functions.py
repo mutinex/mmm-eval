@@ -67,3 +67,11 @@ def calculate_std_for_cross_validation_folds(
     """
     metric_name = metric_name.value
     return np.std([getattr(fold_metric, metric_name) for fold_metric in fold_metrics])
+
+def calculate_absolute_percentage_change(
+    baseline_series: pd.Series, comparison_series: pd.Series
+) -> pd.Series:
+    """
+    Calculate the refresh stability of the MMM framework.
+    """
+    return np.abs((comparison_series - baseline_series) / baseline_series)
