@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 from typing import Any, Dict, Union
 from mmm_eval.core.base_validation_test import BaseValidationTest
+from mmm_eval.core.dataframe_constants import ValidationDataframeConstants
 from mmm_eval.core.validation_test_constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 
+from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_mape,
     calculate_mean_for_cross_validation_folds,
@@ -43,10 +45,10 @@ class AccuracyTest(BaseValidationTest):
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
             mape=calculate_mape(
-                actual=test["revenue"], predicted=predictions
+                actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
             ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
             r_squared=calculate_r_squared(
-                actual=test["revenue"], predicted=predictions
+                actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
             ),
         )
 
@@ -90,12 +92,12 @@ class StabilityTest(BaseValidationTest):
             train_data, refresh_data = self.filter_to_common_dates(current_model, refreshed_model)
 
             train_data_grpd = (
-                train_data.groupby(MEDIA_COL, dropna=False)
+                train_data.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL, dropna=False)
                 .sum(numeric_only=True)
                 .reset_index()
             )
             refresh_data_grpd = (
-                refresh_data.groupby(MEDIA_COL, dropna=False)
+                refresh_data.groupby(InputDataframeConstants.MEDIA_CHANNEL_COL, dropna=False)
                 .sum(numeric_only=True)
                 .reset_index()
             )
@@ -103,21 +105,21 @@ class StabilityTest(BaseValidationTest):
             # merge the composition dfs
             merged = train_data_grpd.merge(
                 refresh_data_grpd,
-                on=[DATE_COL, MEDIA_COL],
+                on=[InputDataframeConstants.DATE_COL, InputDataframeConstants.MEDIA_CHANNEL_COL],
                 suffixes=("_train", "_refresh"),
                 how="inner",
             )
 
             # calculate the pct change in volume
-            merged["mean_percentage_change"] = (
-                (merged[MEDIA_COL + "_refresh"] - merged[MEDIA_COL + "_train"])
-                / merged[MEDIA_COL + "_train"]
+            merged[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL] = (
+                (merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_refresh"] - merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_train"])
+                / merged[InputDataframeConstants.MEDIA_CHANNEL_COL + "_train"]
             ).abs()
 
             fold_metrics.append(
                 RefreshStabilityMetricResults(
-                    mean_percentage_change=merged["mean_percentage_change"].mean(),
-                    std_percentage_change=merged["mean_percentage_change"].std(),
+                    mean_percentage_change=merged[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL].mean(),
+                    std_percentage_change=merged[ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL].std(),
                 )
             )
 
@@ -175,10 +177,10 @@ class CrossValidationTest(BaseValidationTest):
             fold_metrics.append(
                 AccuracyMetricResults(
                     mape=calculate_mape(
-                        actual=test["revenue"], predicted=predictions
+                        actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
                     ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
                     r_squared=calculate_r_squared(
-                        actual=test["revenue"], predicted=predictions
+                        actual=test[InputDataframeConstants.REVENUE_COL], predicted=predictions
                     ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
                 )
             )
