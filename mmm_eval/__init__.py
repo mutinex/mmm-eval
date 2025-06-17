@@ -12,7 +12,7 @@ __email__ = "your.email@example.com"
 # Core functionality
 from .core.evaluator import evaluate_framework
 from .core.results import EvaluationResults
-from .core.base import BaseAdapter
+from .adapters.base import BaseAdapter
 
 # Metrics
 from .metrics.accuracy import mape, rmse, mae, r_squared, symmetric_mape
@@ -22,8 +22,6 @@ from .adapters import (
     get_adapter,
     MeridianAdapter,
     PyMCAdapter,
-    RobynAdapter,
-    LightweightMMAdapter,
 )
 
 # Data utilities
@@ -44,8 +42,8 @@ __all__ = [
     "get_adapter",
     "MeridianAdapter",
     "PyMCAdapter",
-    "RobynAdapter",
-    "LightweightMMAdapter",
+    # "RobynAdapter",
+    # "LightweightMMAdapter",
     # Data utilities
     "load_csv",
     "load_from_database",

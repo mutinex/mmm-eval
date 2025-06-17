@@ -2,7 +2,7 @@
 Data loading utilities for MMM evaluation.
 """
 
-from typing import Dict, Any, Optional, Union, List
+from typing import Dict, Any, Optional, Union
 import pandas as pd
 from pathlib import Path
 

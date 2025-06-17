@@ -3,7 +3,7 @@ Base adapter class for MMM frameworks.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, Any, Optional
 import pandas as pd
 
 
@@ -15,9 +15,10 @@ class BaseAdapter(ABC):
     the required methods to provide a unified interface.
     """
 
-    def __init__(self):
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.model = None
         self.is_fitted = False
+        self.config = config or {}
 
     @abstractmethod
     def fit(self, data: pd.DataFrame, **kwargs) -> None:
