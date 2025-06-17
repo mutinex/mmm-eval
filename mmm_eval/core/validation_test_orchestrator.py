@@ -26,7 +26,8 @@ class ValidationTestOrchestrator:
         self.tests: Dict[ValidationTestNames, BaseValidationTest] = {
             ValidationTestNames.ACCURACY: AccuracyTest,
             ValidationTestNames.STABILITY: StabilityTest,
-            ValidationTestNames.CROSS_VALIDATION: CrossValidationTest
+            ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
+            ValidationTestNames.PERTUBATION: PerturbationTest,
         }
     
     

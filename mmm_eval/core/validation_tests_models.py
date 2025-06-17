@@ -10,6 +10,7 @@ class ValidationTestNames(Enum):
     ACCURACY = "accuracy"
     STABILITY = "stability"
     CROSS_VALIDATION = "cross_validation"
+    PERTUBATION = "perturbation"
 
 class ValidationTestAttributeNames(Enum):
 

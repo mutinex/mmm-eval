@@ -9,9 +9,22 @@ from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 
-from mmm_eval.metrics.accuracy_functions import calculate_mape, calculate_mean_for_cross_validation_folds, calculate_r_squared, calculate_std_for_cross_validation_folds
-from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults, CrossValidationMetricNames, CrossValidationMetricResults
-from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants
+from mmm_eval.metrics.accuracy_functions import (
+    calculate_mape,
+    calculate_mean_for_cross_validation_folds,
+    calculate_r_squared,
+    calculate_std_for_cross_validation_folds,
+)
+from mmm_eval.metrics.metric_models import (
+    AccuracyMetricNames,
+    AccuracyMetricResults,
+    CrossValidationMetricNames,
+    CrossValidationMetricResults,
+)
+from mmm_eval.metrics.threshold_constants import (
+    AccuracyThresholdConstants,
+    CrossValidationThresholdConstants,
+)
 
 
 class AccuracyTest(BaseValidationTest):
@@ -26,8 +39,12 @@ class AccuracyTest(BaseValidationTest):
 
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
-            mape=calculate_mape(actual=test["revenue"], predicted=predictions), # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
-            r_squared=calculate_r_squared(actual=test["revenue"], predicted=predictions),
+            mape=calculate_mape(
+                actual=test["revenue"], predicted=predictions
+            ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+            r_squared=calculate_r_squared(
+                actual=test["revenue"], predicted=predictions
+            ),
         )
 
         return TestResult(
@@ -48,6 +65,35 @@ class StabilityTest(BaseValidationTest):
         Run the stability test.
         """
 
+        # Initialize cross-validation splitter
+        cv = TimeSeriesSplit(
+            n_splits=ValidationTestConstants.N_SPLITS,
+            test_size=ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
+        )
+
+        # Store metrics for each fold
+        fold_metrics = []
+
+        # Run cross-validation
+        for train_idx, test_idx in cv.split(data):
+            # Get train/test data
+            train = data.iloc[train_idx]
+            test = data.iloc[test_idx]
+            combined_data = pd.concat([train, test])
+
+            # Train model and get coefficients
+            current_model = model.fit(train)
+            refreshed_model = model.fit(combined_data)
+
+            ## Get coefficients for current model and refreshed model
+            current_coefficients = current_model.coef_
+            refreshed_coefficients = refreshed_model.coef_
+
+            ## Calculate the difference between the coefficients
+            coefficient_difference = np.abs(current_coefficients - refreshed_coefficients)
+            
+            
+
         pass  # TODO: Implement the stability test
 
         # return TestResult(
@@ -64,48 +110,72 @@ class CrossValidationTest(BaseValidationTest):
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         """
         Run the cross-validation test using time-series splits.
-        
+
         Args:
             model: Model to validate
             data: Input data
-            
+
         Returns:
             TestResult containing cross-validation metrics
         """
         # Initialize cross-validation splitter
-        cv = TimeSeriesSplit(n_splits=CrossValidationThresholdConstants.N_SPLITS)
-        
+        cv = TimeSeriesSplit(n_splits=ValidationTestConstants.N_SPLITS)
+
         # Store metrics for each fold
         fold_metrics = []
-        
+
         # Run cross-validation
         for train_idx, test_idx in cv.split(data):
             # Get train/test data
             train = data.iloc[train_idx]
             test = data.iloc[test_idx]
-            
+
             # Get predictions
             predictions = model.predict(test)
-            
+
             # Add in fold results
             fold_metrics.append(
                 AccuracyMetricResults(
-                    mape=calculate_mape(actual=test["revenue"], predicted=predictions), # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
-                    r_squared=calculate_r_squared(actual=test["revenue"], predicted=predictions), # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                    mape=calculate_mape(
+                        actual=test["revenue"], predicted=predictions
+                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                    r_squared=calculate_r_squared(
+                        actual=test["revenue"], predicted=predictions
+                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
                 )
             )
-        
+
         # Calculate mean and std of metrics across folds and create metric results
         test_scores = CrossValidationMetricResults(
-            mean_mape=calculate_mean_for_cross_validation_folds(fold_metrics, AccuracyMetricNames.MAPE),
-            std_mape=calculate_std_for_cross_validation_folds(fold_metrics, AccuracyMetricNames.MAPE),
-            mean_r_squared=calculate_mean_for_cross_validation_folds(fold_metrics, AccuracyMetricNames.R_SQUARED),
-            std_r_squared=calculate_std_for_cross_validation_folds(fold_metrics, AccuracyMetricNames.R_SQUARED),
+            mean_mape=calculate_mean_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.MAPE
+            ),
+            std_mape=calculate_std_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.MAPE
+            ),
+            mean_r_squared=calculate_mean_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.R_SQUARED
+            ),
+            std_r_squared=calculate_std_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.R_SQUARED
+            ),
         )
-        
+
         return TestResult(
             test_name=ValidationTestNames.CROSS_VALIDATION,
             passed=test_scores.check_test_passed(),
             metric_names=CrossValidationMetricNames.metrics_to_list(),
             test_scores=test_scores,
         )
+
+    class PerturbationTest(BaseValidationTest):
+        """
+        Validation test for the perturbation of the MMM framework.
+        """
+
+        def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+            """
+            Run the perturbation test.
+            """
+
+            pass

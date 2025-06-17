@@ -6,6 +6,10 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Union
 from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults
+from sklearn.metrics import mean_absolute_percentage_error
+from sklearn.metrics import r2_score
+
+
 
 #todo(): Can we use Phils metrics here instead?
 
@@ -26,7 +30,7 @@ def calculate_mape(
     actual = np.array(actual)
     predicted = np.array(predicted)
 
-    return float(np.mean(np.abs((actual - predicted) / actual)) * 100)
+    return float(mean_absolute_percentage_error(actual, predicted))
 
 
 def calculate_r_squared(
@@ -45,13 +49,7 @@ def calculate_r_squared(
     actual = np.array(actual)
     predicted = np.array(predicted)
 
-    ss_res = np.sum((actual - predicted) ** 2)
-    ss_tot = np.sum((actual - np.mean(actual)) ** 2)
-
-    if ss_tot == 0:
-        return 1.0 if ss_res == 0 else 0.0
-
-    return float(1 - (ss_res / ss_tot))
+    return float(r2_score(actual, predicted))
 
 def calculate_mean_for_cross_validation_folds(
     fold_metrics: List[AccuracyMetricResults], 
