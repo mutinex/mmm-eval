@@ -5,4 +5,4 @@ class ValidationDataframeConstants:
     Constants for the dataframe
     """
 
-    PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL = "percentage_change_channel_contribution
+    PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL = "percentage_change_channel_contribution"
