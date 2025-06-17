@@ -60,7 +60,75 @@ class AccuracyTest(BaseValidationTest):
             metric_names=AccuracyMetricNames.metrics_to_list(),
             test_scores=test_scores,
         )
+    
+class CrossValidationTest(BaseValidationTest):
+    """
+    Validation test for the cross-validation of the MMM framework.
+    """
 
+    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+        """
+        Run the cross-validation test using time-series splits.
+
+        Args:
+            model: Model to validate
+            data: Input data
+
+        Returns:
+            TestResult containing cross-validation metrics
+        """
+        # Initialize cross-validation splitter
+        cv_splits = self._split_data_time_series_cv(data)
+
+        # Store metrics for each fold
+        fold_metrics = []
+
+        # Run cross-validation
+        for train_idx, test_idx in cv_splits:
+            # Get train/test data
+            train = data.iloc[train_idx]
+            test = data.iloc[test_idx]
+
+            # Get predictions
+            trained_model = model.fit(train)
+            predictions = trained_model.predict(test)
+
+            # Add in fold results
+            fold_metrics.append(
+                AccuracyMetricResults(
+                    mape=calculate_mape(
+                        actual=test[InputDataframeConstants.REVENUE_COL],
+                        predicted=predictions,
+                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                    r_squared=calculate_r_squared(
+                        actual=test[InputDataframeConstants.REVENUE_COL],
+                        predicted=predictions,
+                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
+                )
+            )
+
+        # Calculate mean and std of metrics across folds and create metric results
+        test_scores = CrossValidationMetricResults(
+            mean_mape=calculate_mean_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.MAPE
+            ),
+            std_mape=calculate_std_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.MAPE
+            ),
+            mean_r_squared=calculate_mean_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.R_SQUARED
+            ),
+            std_r_squared=calculate_std_for_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.R_SQUARED
+            ),
+        )
+
+        return TestResult(
+            test_name=ValidationTestNames.CROSS_VALIDATION,
+            passed=test_scores.check_test_passed(),
+            metric_names=CrossValidationMetricNames.metrics_to_list(),
+            test_scores=test_scores,
+        )
 
 class StabilityTest(BaseValidationTest):
     """
@@ -193,80 +261,21 @@ class StabilityTest(BaseValidationTest):
             test_scores=test_scores,
         )
 
-
-class CrossValidationTest(BaseValidationTest):
-    """
-    Validation test for the cross-validation of the MMM framework.
-    """
-
-    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
-        """
-        Run the cross-validation test using time-series splits.
-
-        Args:
-            model: Model to validate
-            data: Input data
-
-        Returns:
-            TestResult containing cross-validation metrics
-        """
-        # Initialize cross-validation splitter
-        cv_splits = self._split_data_time_series_cv(data)
-
-        # Store metrics for each fold
-        fold_metrics = []
-
-        # Run cross-validation
-        for train_idx, test_idx in cv_splits:
-            # Get train/test data
-            train = data.iloc[train_idx]
-            test = data.iloc[test_idx]
-
-            # Get predictions
-            trained_model = model.fit(train)
-            predictions = trained_model.predict(test)
-
-            # Add in fold results
-            fold_metrics.append(
-                AccuracyMetricResults(
-                    mape=calculate_mape(
-                        actual=test[InputDataframeConstants.REVENUE_COL],
-                        predicted=predictions,
-                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
-                    r_squared=calculate_r_squared(
-                        actual=test[InputDataframeConstants.REVENUE_COL],
-                        predicted=predictions,
-                    ),  # todo(): Use some constant revenue column, perhaps from loaders.py or a constants file
-                )
-            )
-
-        # Calculate mean and std of metrics across folds and create metric results
-        test_scores = CrossValidationMetricResults(
-            mean_mape=calculate_mean_for_cross_validation_folds(
-                fold_metrics, AccuracyMetricNames.MAPE
-            ),
-            std_mape=calculate_std_for_cross_validation_folds(
-                fold_metrics, AccuracyMetricNames.MAPE
-            ),
-            mean_r_squared=calculate_mean_for_cross_validation_folds(
-                fold_metrics, AccuracyMetricNames.R_SQUARED
-            ),
-            std_r_squared=calculate_std_for_cross_validation_folds(
-                fold_metrics, AccuracyMetricNames.R_SQUARED
-            ),
-        )
-
-        return TestResult(
-            test_name=ValidationTestNames.CROSS_VALIDATION,
-            passed=test_scores.check_test_passed(),
-            metric_names=CrossValidationMetricNames.metrics_to_list(),
-            test_scores=test_scores,
-        )
-
     class PerturbationTest(BaseValidationTest):
         """
         Validation test for the perturbation of the MMM framework.
         """
+
+        def _get_5_percent_gaussian_noise(self, data: pd.DataFrame) -> pd.DataFrame:
+            """Get the gaussian noise for the perturbation test."""
+            return np.random.normal(0, 0.05, size=len(data))
+        
+        def _add_gaussian_noise_to_spend(self, data: pd.DataFrame, spend_col: InputDataframeConstants = InputDataframeConstants.SPEND_COL) -> pd.DataFrame:
+            """Add the gaussian noise to the spend."""
+            df = data.copy()
+            noise = self._get_5_percent_gaussian_noise(df[spend_col])
+            df[ValidationDataframeConstants.SPEND_PLUS_GAUSSIAN_NOISE_COL] = df[spend_col] * (1 + noise) #todo(): Does this mean its only positive noise?
+            return df
 
         def run(self, model: Any, data: pd.DataFrame) -> TestResult:
             """

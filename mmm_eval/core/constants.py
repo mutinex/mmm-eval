@@ -16,3 +16,4 @@ class ValidationDataframeConstants:
     """
 
     PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL = "percentage_change_channel_contribution"
+    SPEND_PLUS_GAUSSIAN_NOISE_COL = "spend_plus_gaussian_noise"
