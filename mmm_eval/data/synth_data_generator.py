@@ -27,25 +27,25 @@ def generate_data():
 
     n = df.shape[0]
 
-    # media data
-    x1 = rng.uniform(low=0.0, high=1.0, size=n)
-    df["x1"] = np.where(x1 > 0.9, x1, x1 / 2)
+    # media spend data (in thousands of dollars)
+    channel_1 = 1000*rng.uniform(low=0.0, high=100, size=n)  # $0-100k range
+    df["channel_1"] = np.where(channel_1 > 90000, channel_1, channel_1 / 2)
 
-    x2 = rng.uniform(low=0.0, high=1.0, size=n)
-    df["x2"] = np.where(x2 > 0.8, x2, 0)
+    channel_2 = 1000*rng.uniform(low=0.0, high=80, size=n)  # $0-80k range
+    df["channel_2"] = np.where(channel_2 > 40000, channel_2, 0)
 
     # apply geometric adstock transformation
     alpha1: float = 0.4
     alpha2: float = 0.2
 
-    df["x1_adstock"] = (
-        geometric_adstock(x=df["x1"].to_numpy(), alpha=alpha1, l_max=8, normalize=True)
+    df["channel_1_adstock"] = (
+        geometric_adstock(x=df["channel_1"].to_numpy(), alpha=alpha1, l_max=8, normalize=True)
         .eval()
         .flatten()
     )
 
-    df["x2_adstock"] = (
-        geometric_adstock(x=df["x2"].to_numpy(), alpha=alpha2, l_max=8, normalize=True)
+    df["channel_2_adstock"] = (
+        geometric_adstock(x=df["channel_2"].to_numpy(), alpha=alpha2, l_max=8, normalize=True)
         .eval()
         .flatten()
     )
@@ -54,12 +54,12 @@ def generate_data():
     lam1: float = 4.0
     lam2: float = 3.0
 
-    df["x1_adstock_saturated"] = logistic_saturation(
-        x=df["x1_adstock"].to_numpy(), lam=lam1
+    df["channel_1_adstock_saturated"] = logistic_saturation(
+        x=df["channel_1_adstock"].to_numpy(), lam=lam1
     ).eval()
 
-    df["x2_adstock_saturated"] = logistic_saturation(
-        x=df["x2_adstock"].to_numpy(), lam=lam2
+    df["channel_2_adstock_saturated"] = logistic_saturation(
+        x=df["channel_2_adstock"].to_numpy(), lam=lam2
     ).eval()
 
     # trend + seasonal
@@ -73,32 +73,46 @@ def generate_data():
     df["event_1"] = (df["date_week"] == "2019-05-13").astype(float)
     df["event_2"] = (df["date_week"] == "2020-09-14").astype(float)
 
-    # generate target
-    df["intercept"] = 2.0
-    df["epsilon"] = rng.normal(loc=0.0, scale=0.25, size=n)
+    # generate quantity
+    df["intercept"] = 1000.0  # Base quantity
+    # noise
+    df["epsilon"] = rng.normal(loc=0.0, scale=50.0, size=n)
 
     amplitude = 1
-    beta_1 = 3.0
-    beta_2 = 2.0
+    beta_1 = 100.0
+    beta_2 = 250.0
+    # Generate price with seasonal fluctuations
+    base_price = 50.0
+    price_seasonality = 0.03 * (df["cs"] + df["cc"])
+    price_trend = np.linspace(0, 5, n)  # Gradual price increase
+    df["price"] = base_price + price_seasonality + price_trend
 
-    df["y"] = amplitude * (
+    df["quantity"] = amplitude * (
         df["intercept"]
-        + df["trend"]
-        + df["seasonality"]
-        + 1.5 * df["event_1"]
-        + 2.5 * df["event_2"]
-        + beta_1 * df["x1_adstock_saturated"]
-        + beta_2 * df["x2_adstock_saturated"]
+        + df["trend"] * 100  
+        + df["seasonality"] * 200  
+        + df["price"] * -5
+        + 150 * df["event_1"]  
+        + 250 * df["event_2"]
+        + beta_1 * df["channel_1_adstock_saturated"]  
+        + beta_2 * df["channel_2_adstock_saturated"]
         + df["epsilon"]
     )
+    # Calculate revenue
+    df["revenue"] = df["price"] * df["quantity"]
 
     columns_to_keep = [
         "date_week",
-        "y",
-        "x1",
-        "x2",
+        "quantity",
+        "price",
+        "revenue",
+        "channel_1",
+        "channel_2",
         "event_1",
         "event_2",
         "dayofyear",
     ]
-    return df[columns_to_keep]
+
+    df = df[columns_to_keep]
+    df["date_week"] = pd.to_datetime(df["date_week"])
+    return df
