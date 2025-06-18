@@ -232,10 +232,10 @@ class RefreshStabilityTest(BaseValidationTest):
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
             ] = calculate_absolute_percentage_change(
                 baseline_series=merged[
-                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_current"
+                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
                 ],
                 comparison_series=merged[
-                    InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"
+                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
                 ],
             )
 
@@ -354,15 +354,15 @@ class PerturbationTest(BaseValidationTest):
             comparison_df=noisy_contributions,
         )
 
-        # calculate the pct change in volume
+        # calculate the pct change in roi
         merged[
             ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
         ] = calculate_absolute_percentage_change(
             baseline_series=merged[
-                InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_current"
+                ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
             ],
             comparison_series=merged[
-                InputDataframeConstants.MEDIA_CHANNEL_CONTRIBUTION_COL + "_refresh"
+                ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
             ],
         )
 

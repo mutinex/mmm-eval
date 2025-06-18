@@ -1,5 +1,3 @@
-
-
 from enum import Enum
 from typing import List
 
@@ -35,10 +33,10 @@ class RefreshStabilityMetricNames(MetricNamesBase):
     MEAN_PERCENTAGE_CHANGE = "mean_percentage_change"
     STD_PERCENTAGE_CHANGE = "std_percentage_change"
 
-class PerturbationMetricNames(RefreshStabilityMetricNames):
+class PerturbationMetricNames(MetricNamesBase):
     """Define the names of the perturbation metrics"""
-
-    pass
+    MEAN_AGGREGATE_CHANNEL_ROI_PCT_CHANGE = "mean_aggregate_channel_roi_pct_change"
+    INDIVIDUAL_CHANNEL_ROI_PCT_CHANGE = "individual_channel_roi_pct_change"
 
 class MetricResults(BaseModel):
     """Define the results of the metrics"""

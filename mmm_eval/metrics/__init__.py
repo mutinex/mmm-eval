@@ -1,12 +1,17 @@
 """Accuracy metrics for MMM evaluation."""
 
-from .accuracy_functions import mape, rmse, r_squared, mae, symmetric_mape, AVAILABLE_METRICS
+from .accuracy_functions import (
+    calculate_mape,
+    calculate_r_squared,
+    calculate_mean_for_cross_validation_folds,
+    calculate_std_for_cross_validation_folds,
+    calculate_absolute_percentage_change,
+)
 
 __all__ = [
-    "mape",
-    "rmse",
-    "r_squared",
-    "mae",
-    "symmetric_mape",
-    "AVAILABLE_METRICS",
+    "calculate_mape",
+    "calculate_r_squared",
+    "calculate_mean_for_cross_validation_folds",
+    "calculate_std_for_cross_validation_folds",
+    "calculate_absolute_percentage_change",
 ]

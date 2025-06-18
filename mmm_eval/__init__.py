@@ -12,10 +12,11 @@ __email__ = "your.email@example.com"
 from .core.evaluator import Evaluator
 from .core.validation_test_results import ValidationResult
 from .core.base_validation_test import BaseAdapter
+from .core.validation_test_results import TestResult, ValidationResult
+from .core.base_validation_test import BaseValidationTest
 
 # Metrics
-from .metrics.accuracy_functions import mape, rmse, mae, r_squared, symmetric_mape
-
+from .metrics.accuracy_functions import calculate_mape, calculate_r_squared, calculate_mean_for_cross_validation_folds, calculate_std_for_cross_validation_folds
 # Adapters
 from .adapters import get_adapter
 from .adapters.experimental.pymc import PyMCAdapter
@@ -39,12 +40,18 @@ __all__ = [
     "evaluate_framework",
     "PyMCAdapter",
     "EvaluationResults",
+    "TestResult",
+    "ValidationResult",
+    "BaseValidationTest",
     # Metrics
-    "mape",
-    "rmse",
-    "mae",
-    "r_squared",
-    "symmetric_mape",
+    "calculate_mape",
+    "calculate_r_squared",
+    "calculate_mean_for_cross_validation_folds",
+    "calculate_std_for_cross_validation_folds",
+    "calculate_absolute_percentage_change",
+    # Adapters
+    "get_adapter",
+    "PyMCAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",
