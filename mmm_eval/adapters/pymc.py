@@ -12,23 +12,26 @@ from pymc_marketing.mmm import MMM
 from typing import Dict
 
 from mmm_eval.adapters.base import BaseAdapter
-
+from mmm_eval.utils import PyMCConfigRehydrator
 
 class PyMCAdapter(BaseAdapter):
     def __init__(self, config: dict):
+        # Create a copy of the config to avoid modifying the original
+        self.config = PyMCConfigRehydrator(config.copy()).rehydrate_config()
+        
         # Store explicitly needed pieces
-        self.response_col = config["response_column"]
-        self.date_col = config["date_column"]
-        self.channel_spend_cols = config["channel_columns"]
-        self.revenue_col = config.pop("revenue_column")
+        self.response_col = self.config["response_column"]
+        self.date_col = self.config["date_column"]
+        self.channel_spend_cols = self.config["channel_columns"]
+        self.revenue_col = self.config.pop("revenue_column")
         
         # Pass everything else (after extracting response_col) to MMM constructor
         self.model_kwargs = {
-            k: v for k, v in config.items()
+            k: v for k, v in self.config.items()
             if k != "response_column" and
             k != "fit_kwargs"
         }
-        self.fit_kwargs = config.get("fit_kwargs", {})
+        self.fit_kwargs = self.config.get("fit_kwargs", {})
 
         self.model = None
         self.trace = None
@@ -58,6 +61,7 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before computing ROI.")
         return self._channel_rois
+    
 
     def _compute_rois(self, data: pd.DataFrame):
         """
@@ -80,4 +84,5 @@ class PyMCAdapter(BaseAdapter):
             channel_revenue = cont_df[f"{channel}_units"]*avg_rev_per_unit
             rois[channel] = (channel_revenue.sum()/cont_df[channel].sum() - 1).item()
 
+        self._channel_rois = rois
         self._channel_rois = rois
