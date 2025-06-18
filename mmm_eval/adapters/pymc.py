@@ -18,8 +18,10 @@ class PyMCAdapter(BaseAdapter):
     def __init__(self, config: dict):
         # Store explicitly needed pieces
         self.response_col = config["response_column"]
+        self.date_col = config["date_column"]
+        self.channel_spend_cols = config["channel_columns"]
         self.revenue_col = config.pop("revenue_column")
-
+        
         # Pass everything else (after extracting response_col) to MMM constructor
         self.model_kwargs = {
             k: v for k, v in config.items()
@@ -40,7 +42,7 @@ class PyMCAdapter(BaseAdapter):
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
 
-        #self._compute_rois()
+        self._compute_rois(data)
         self.is_fitted = True
 
     def predict(self, data: pd.DataFrame) -> pd.Series:
@@ -57,13 +59,25 @@ class PyMCAdapter(BaseAdapter):
             raise RuntimeError("Model must be fit before computing ROI.")
         return self._channel_rois
 
-    def _compute_rois(self):
+    def _compute_rois(self, data: pd.DataFrame):
         """
         Estimate ROI = marginal contribution / spend.
         PyMC-Marketing supports posterior samples of β weights.
         We'll use the mean of the posterior coefficients.
         """
-        betas = self.trace.posterior["beta_media"].mean(dim=["chain", "draw"]).values
-        self._channel_rois = {
-            ch: float(beta) for ch, beta in zip(self.channels, betas)
-        }
+        channel_cont = self.model.compute_channel_contribution_original_scale().mean(dim=["chain", "draw"])
+        
+        # FIXME: infer the index/column names from the data
+        channel_response_cols = [f"{col}_units" for col in self.channel_spend_cols]
+        cont_df = pd.DataFrame(channel_cont, columns=channel_response_cols, index=channel_cont["date"].values)
+        cont_df = pd.merge(cont_df, data[[self.date_col, self.response_col, self.revenue_col,
+                                          *self.channel_spend_cols]].set_index(self.date_col), left_index=True, right_index=True)
+
+        avg_rev_per_unit = cont_df[self.revenue_col]/cont_df[self.response_col]
+
+        rois = {}
+        for channel in self.channel_spend_cols:
+            channel_revenue = cont_df[f"{channel}_units"]*avg_rev_per_unit
+            rois[channel] = (channel_revenue.sum()/cont_df[channel].sum() - 1).item()
+
+        self._channel_rois = rois
