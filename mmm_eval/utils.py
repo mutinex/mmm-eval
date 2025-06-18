@@ -20,7 +20,7 @@ class ConfigRehydrator:
                 for name, cls in inspect.getmembers(mod, inspect.isclass)
                 if cls.__module__.startswith(mod.__name__)
             })
-        return registry  # do NOT set self.class_registry here
+        return registry 
     
     def fix_missing_commas(self, val):
         if not isinstance(val, str):

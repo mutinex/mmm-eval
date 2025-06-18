@@ -13,17 +13,24 @@ from typing import Dict
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.utils import PyMCConfigRehydrator
+from mmm_eval.adapters.schemas import PyMCConfigSchema
 
 class PyMCAdapter(BaseAdapter):
     def __init__(self, config: dict):
         # Create a copy of the config to avoid modifying the original
         self.config = PyMCConfigRehydrator(config.copy()).rehydrate_config()
         
+        # Validate config against schema
+        try:
+            PyMCConfigSchema(**self.config)
+        except Exception as e:
+            raise ValueError(f"Invalid config: {str(e)}")
+        
         # Store explicitly needed pieces
         self.response_col = self.config["response_column"]
         self.date_col = self.config["date_column"]
         self.channel_spend_cols = self.config["channel_columns"]
-        self.revenue_col = self.config.pop("revenue_column")
+        self.revenue_col = self.config.pop("revenue_column") if "revenue_column" in self.config else None
         
         # Pass everything else (after extracting response_col) to MMM constructor
         self.model_kwargs = {
