@@ -15,12 +15,6 @@ def build_class_registry(*modules):
         })
     return registry
 
-def valid_adstock_classes() -> list:
-    return list(build_class_registry(adstock).keys())
-
-def valid_saturation_classes() -> list:
-    return list(build_class_registry(saturation).keys())
-
 # Get the actual class objects for validation
 ADSTOCK_CLASSES = build_class_registry(adstock)
 SATURATION_CLASSES = build_class_registry(saturation)

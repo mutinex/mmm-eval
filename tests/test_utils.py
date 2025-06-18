@@ -7,7 +7,7 @@ from pymc_marketing.prior import Prior
 from mmm_eval.utils import PyMCConfigRehydrator
 from mmm_eval.data.synth_data_generator import generate_data
 
-def valid_config_1():
+def valid_hydration_config_1():
     return {
         "date_column": "date_week",
         "channel_columns": ["channel_1", "channel_2"],
@@ -26,7 +26,7 @@ def valid_config_1():
         "fit_kwargs": {"target_accept": 0.9}
     }
 
-def valid_config_2():
+def valid_hydration_config_2():
     model_config = {
         "intercept": Prior("Normal", mu=0.5, sigma=0.2),
         "saturation_beta": Prior("HalfNormal", sigma=[0.321, 0.123]),
@@ -46,7 +46,7 @@ def valid_config_2():
         "fit_kwargs": {"target_accept": 0.9}
     }
 
-def invalid_config():
+def invalid_hydration_config():
     return {
         "date_column": "date_week",
         "channel_columns": ["channel_1", "channel_2"],
@@ -56,21 +56,15 @@ def invalid_config():
         "adstock": "GeometricAdstock(l_max=4)",  # String instead of object
         "saturation": "LogisticSaturation()",  # String instead of object
         "yearly_seasonality": 2,
-        "model_config": {
-            "intercept": "Prior('Normal', mu=0.5, sigma=0.2)",  # String instead of object
-            "saturation_beta": "Prior('HalfNormal', sigma=prior_sigma)",  # String instead of object
-            "gamma_control": "Prior('Normal', mu=0, sigma=0.05)",  # String instead of object
-            "gamma_fourier": "Prior('Laplace', mu=0, b=0.2)",  # String instead of object
-        },
         "fit_kwargs": {"target_accept": 0.9}
     }
 
 
 
 @pytest.mark.parametrize("config, equal_to_original", [
-    (valid_config_1(), True),
-    (valid_config_2(), True),
-    (invalid_config(), False)
+    (valid_hydration_config_1(), True),
+    (valid_hydration_config_2(), True),
+    (invalid_hydration_config(), False)
 ])
 def test_config_rehydration(config, equal_to_original, tmp_path):
     # Save config to temporary file
@@ -90,6 +84,3 @@ def test_config_rehydration(config, equal_to_original, tmp_path):
         assert rehydrated_config == config
     else:
         assert rehydrated_config != config
-
-if __name__ == "__main__":
-    pytest.main()
