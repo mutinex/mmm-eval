@@ -18,10 +18,12 @@ from .core.evaluator import evaluate_framework
 from .core.results import EvaluationResults
 
 # Data utilities
-from .data.loaders import DataLoader, load_csv
-
-# Metrics
-from .metrics.accuracy import mae, mape, r_squared, rmse, symmetric_mape
+from .data import (
+    DataLoader,
+    DataProcessor,
+    DataValidator,
+    DataPipeline,
+)
 
 __all__ = [
     # Core API
@@ -37,6 +39,8 @@ __all__ = [
     "get_adapter",
     "PyMCAdapter",
     # Data utilities
-    "load_csv",
     "DataLoader",
+    "DataProcessor", 
+    "DataValidator",
+    "DataPipeline",
 ]
