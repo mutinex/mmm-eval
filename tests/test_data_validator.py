@@ -4,7 +4,7 @@ Unit tests for DataValidator.
 
 import pytest
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 from mmm_eval.data import DataValidator
 from mmm_eval.data.exceptions import DataValidationError, EmptyDataFrameError
 from mmm_eval.data.constants import InputDataframeConstants

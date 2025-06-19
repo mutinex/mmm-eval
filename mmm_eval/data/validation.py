@@ -4,7 +4,7 @@ Data validation for MMM evaluation.
 
 from typing import Dict, Any, List, Optional
 import pandas as pd
-import pandera as pa
+import pandera.pandas as pa
 
 from .schemas import ValidatedDataSchema
 from .exceptions import DataValidationError, EmptyDataFrameError, ValidationError

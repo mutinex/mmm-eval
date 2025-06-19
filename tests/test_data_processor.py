@@ -12,17 +12,16 @@ from mmm_eval.data.constants import InputDataframeConstants
 class TestDataProcessor:
     """Test DataProcessor functionality."""
     
-    def test_good_df(self):
-        """Test data processor data."""
-        df = pd.DataFrame({
+    def _get_test_df(self):
+        """Helper method to create test DataFrame."""
+        return pd.DataFrame({
             InputDataframeConstants.DATE_COL: ['2023-01-01', '2023-01-02'],
             InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [1000.0, 1500.0]
         })
-        return df
 
     def test_parse_dates(self):
         """Test date parsing functionality."""
-        df = self.test_good_df()
+        df = self._get_test_df()
         
         processor = DataProcessor()
         result = processor.process(df)
@@ -32,7 +31,8 @@ class TestDataProcessor:
     
     def test_custom_date_column(self):
         """Test processing with custom date column name."""
-        df = self.test_good_df()
+        df = self._get_test_df()
+        df = df.rename(columns={InputDataframeConstants.DATE_COL: 'Date'})
         
         processor = DataProcessor(date_column='Date')
         result = processor.process(df)

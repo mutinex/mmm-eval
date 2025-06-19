@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 import pandas as pd
 
-import pandera as pa
+import pandera.pandas as pa
 from pandera.typing import Index, Series
 from mmm_eval.data.constants import InputDataframeConstants
 

@@ -12,18 +12,17 @@ from mmm_eval.data.constants import InputDataframeConstants, DataLoaderConstants
 class TestDataLoader:
     """Test DataLoader functionality."""
 
-    def test_df(self):
-        """Test data loader data."""
-        df = pd.DataFrame({
+    def _get_test_df(self):
+        """Helper method to create test DataFrame."""
+        return pd.DataFrame({
             InputDataframeConstants.DATE_COL: ['2023-01-01', '2023-01-02'],
             InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [1000.0, 1500.0]
         })
-        return df
     
     def test_load_csv(self, tmp_path):
         """Test loading CSV data."""
         # Create test CSV
-        df = self.test_df()
+        df = self._get_test_df()
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
         
@@ -38,7 +37,7 @@ class TestDataLoader:
     def test_load_parquet(self, tmp_path):
         """Test loading Parquet data."""
         # Create test Parquet
-        df = self.test_df()
+        df = self._get_test_df()
         parquet_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.PARQUET}"
         df.to_parquet(parquet_path, index=False)
         

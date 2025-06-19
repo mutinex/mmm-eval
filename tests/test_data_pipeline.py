@@ -12,19 +12,18 @@ from mmm_eval.data.constants import InputDataframeConstants, DataLoaderConstants
 class TestDataPipeline:
     """Test DataPipeline functionality."""
 
-    def test_df(self):
-        """Test data pipeline data."""
-        df = pd.DataFrame({
+    def _get_test_df(self):
+        """Helper method to create test DataFrame."""
+        return pd.DataFrame({
             InputDataframeConstants.DATE_COL: pd.date_range('2023-01-01', periods=25).strftime('%Y-%m-%d'),
             InputDataframeConstants.MEDIA_CHANNEL_COL: ['facebook'] * 25,
             InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [1000.0] * 25
         })
-        return df
     
     def test_complete_pipeline(self, tmp_path):
         """Test complete pipeline with valid data."""
         # Create test CSV
-        df = self.test_df()
+        df = self._get_test_df()
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
         
@@ -42,14 +41,14 @@ class TestDataPipeline:
     def test_pipeline_with_custom_settings(self, tmp_path):
         """Test pipeline with custom settings."""
         # Create test CSV
-        df = self.test_df()
+        df = self._get_test_df()
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
         
         # Run pipeline with custom date column
         pipeline = DataPipeline(
             data_path=csv_path,
-            date_column='Date',
+            date_column=InputDataframeConstants.DATE_COL,
             min_data_size=10
         )
         result = pipeline.run()
@@ -61,7 +60,7 @@ class TestDataPipeline:
     def test_pipeline_fails_with_invalid_data(self, tmp_path):
         """Test pipeline fails with invalid data."""
         # Create test CSV with insufficient data
-        df = self.test_df()
+        df = self._get_test_df()
         df = df.head(10)
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
