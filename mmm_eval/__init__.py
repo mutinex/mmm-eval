@@ -10,11 +10,11 @@ __email__ = "your.email@example.com"
 
 # Core functionality
 from .core.evaluator import Evaluator
+from .core.validation_tests_models import ValidationTestNames
 from .core.validation_test_results import ValidationResult
-from .core.base_validation_test import BaseAdapter
+from .core.base_validation_test import BaseValidationTest
 from .core.validation_test_results import TestResult, ValidationResult
 from .core.base_validation_test import BaseValidationTest
-from .core.evaluator import Evaluator
 
 # Metrics
 from .metrics.accuracy_functions import calculate_mape, calculate_r_squared, calculate_mean_for_cross_validation_folds, calculate_std_for_cross_validation_folds
@@ -22,8 +22,13 @@ from .metrics.accuracy_functions import calculate_mape, calculate_r_squared, cal
 from .adapters import get_adapter
 from .adapters.experimental.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
-from .core.evaluator import evaluate_framework
-from .core.results import EvaluationResults
+from .adapters import (
+    get_adapter,
+    # MeridianAdapter,
+    # PyMCAdapter,
+)
+from .configs import PyMCConfig, PyMCConfigRehydrator
+from .core.evaluator import Evaluator
 
 # Data utilities
 from .data import (
@@ -41,11 +46,12 @@ __all__ = [
     "evaluate_framework",
     "PyMCAdapter",
     "EvaluationResults",
+    # Core API
+    "Evaluator",
     "TestResult",
     "ValidationResult",
     "BaseValidationTest",
-    "evaluate_framework",
-    "Evaluator",
+    "ValidationTestNames",
     # Metrics
     "calculate_mape",
     "calculate_r_squared",
@@ -55,6 +61,7 @@ __all__ = [
     # Adapters
     "get_adapter",
     "PyMCAdapter",
+    "MeridianAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",

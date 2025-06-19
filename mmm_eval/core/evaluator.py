@@ -1,6 +1,6 @@
 """Main evaluator for MMM frameworks."""
 
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 import pandas as pd
 from pathlib import Path
 
