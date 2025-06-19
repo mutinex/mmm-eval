@@ -2,10 +2,10 @@
 
 # todo(): Possibly move to the constants file
 
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import List
 
-class ValidationTestNames(Enum):
+class ValidationTestNames(StrEnum):
 
     """Define the names of the validation tests"""
 
@@ -25,7 +25,7 @@ class ValidationTestNames(Enum):
         return [test.value for test in cls]
     
 
-class ValidationTestAttributeNames(Enum):
+class ValidationTestAttributeNames(StrEnum):
 
     """Define the names of the validation test attributes"""
 
@@ -35,7 +35,7 @@ class ValidationTestAttributeNames(Enum):
     TEST_SCORES = "test_scores"
     TIMESTAMP = "timestamp"
 
-class ValidationResultAttributeNames(Enum):
+class ValidationResultAttributeNames(StrEnum):
 
     """Define the names of the validation result attributes"""
 

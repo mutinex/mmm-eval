@@ -18,6 +18,10 @@ DUMMY_MODEL = MMM(
 )
 FIT_KWARGS = {"target_accept": 0.9, "chains": 4}
 REVENUE_COLUMN = "revenue"
+import json
+import os
+from click.testing import CliRunner
+from mmm_eval.cli.evaluate import main
 
 
 def _create_test_data() -> pd.DataFrame:
