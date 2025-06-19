@@ -42,7 +42,6 @@ def evaluate_framework(
     framework: str,
     data: pd.DataFrame,
     config: Optional[Dict[str, Any]] = None,
-    target_column: str = "kpi",
     metrics: Optional[List[str]] = None,
     output_path: Optional[Path] = None,
     **kwargs,
@@ -54,7 +53,6 @@ def evaluate_framework(
         framework: Name of the MMM framework to evaluate
         data: Input data containing media channels, KPI, and other variables
         config: Framework-specific configuration
-        target_column: Name of the target/KPI column in the data
         metrics: List of metrics to compute (defaults to ["mape", "rmse"])
         **kwargs: Additional framework-specific parameters
 

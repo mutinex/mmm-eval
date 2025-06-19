@@ -9,11 +9,11 @@ import os
     "cmd_template,expected",
     [
         (
-            "mmm-eval --input-data-path {data_path} --framework pymc3 --target-column kpi --output-path {output_path} --config-path {config_path}",
+            "mmm-eval --input-data-path {data_path} --framework pymc-marketing --output-path {output_path} --config-path {config_path}",
             True,
         ),
         (
-            "mmm-eval --target-column kpi --output-path {output_path} --config-path {config_path}",
+            "mmm-eval --output-path {output_path} --config-path {config_path}",
             False,
         ),
         (
@@ -21,7 +21,7 @@ import os
             True,
         ),
         (
-            "mmm-eval --input-data-path {data_path} --framework robyn --target-column kpi --output-path {output_path} --config-path {config_path}",
+            "mmm-eval --input-data-path {data_path} --framework NotAFramework --output-path {output_path} --config-path {config_path}",
             False,
         ),
     ],

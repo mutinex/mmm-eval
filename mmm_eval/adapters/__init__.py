@@ -11,8 +11,7 @@ from .pymc import PyMCAdapter
 # Registry of available adapters
 ADAPTER_REGISTRY = {
     "meridian": MeridianAdapter,
-    "pymc": PyMCAdapter,
-    "pymc3": PyMCAdapter,  # Alias for backwards compatibility
+    "pymc-marketing": PyMCAdapter,
 }
 
 

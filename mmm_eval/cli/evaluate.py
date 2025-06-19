@@ -19,18 +19,16 @@ def load_config(config_path: Optional[str]) -> Optional[Dict[str, Any]]:
     if not config_path:
         return None
     config_path = validate_path(config_path)
+    if not config_path.suffix.lower() == ".json":
+        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
     with open(config_path) as f:
-        if not f.name.endswith(".json"):
-            raise ValueError(
-                f"Invalid config path: {config_path}. Must be a JSON file."
-            )
         return json.load(f)
 
 
 def load_data(data_path: str) -> pd.DataFrame:
     """Load data from CSV file."""
     data_path = validate_path(data_path)
-    if not data_path.name.endswith(".csv"):
+    if not data_path.suffix.lower() == ".csv":
         raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
 
     logger.info(f"Loading input data from {data_path}")
@@ -84,7 +82,6 @@ def validate_path(path: str) -> Path:
 def main(
     config_path: Optional[str],
     input_data_path: str,
-    target_column: Optional[str],
     metrics: Optional[tuple[str, ...]],
     framework: str,
     output_path: Optional[str],
@@ -102,9 +99,7 @@ def main(
     config = load_config(config_path)
 
     output_path_obj = (
-        Path(output_path).mkdir(parents=True, exist_ok=True)
-        if output_path
-        else None
+        Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
     )
 
     # Run evaluation
@@ -114,7 +109,6 @@ def main(
         framework=framework,
         data=data,
         config=config,
-        target_column=target_column,
         metrics=list(metrics),
         output_path=output_path_obj,
     )
