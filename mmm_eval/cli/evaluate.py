@@ -17,8 +17,23 @@ def load_config(config_path: Optional[str]) -> Optional[Dict[str, Any]]:
     """Load config from JSON file if provided."""
     if not config_path:
         return None
+    config_path = validate_path(config_path)
     with open(config_path) as f:
+        if not f.name.endswith(".json"):
+            raise ValueError(
+                f"Invalid config path: {config_path}. Must be a JSON file."
+            )
         return json.load(f)
+
+
+def load_data(data_path: str) -> pd.DataFrame:
+    """Load data from CSV file."""
+    data_path = validate_path(data_path)
+    if not data_path.name.endswith(".csv"):
+        raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
+
+    logger.info(f"Loading input data from {data_path}")
+    return pd.read_csv(data_path)
 
 
 def validate_path(path: str) -> Path:
@@ -37,15 +52,15 @@ def validate_path(path: str) -> Path:
     help="Open source MMM framework to evaluate",
 )
 @click.option(
-    "--config-path",
-    type=str,
-    help="Path to framework-specific JSON config file",
-)
-@click.option(
     "--input-data-path",
     type=str,
     required=True,
-    help="Path to input data file",
+    help="Path to input data CSV file",
+)
+@click.option(
+    "--config-path",
+    type=str,
+    help="Path to framework-specific JSON config file",
 )
 @click.option(
     "--target-column",
@@ -74,28 +89,23 @@ def validate_path(path: str) -> Path:
 def main(
     config_path: Optional[str],
     input_data_path: str,
-    target_column: str,
-    metrics: tuple[str, ...],
+    target_column: Optional[str],
+    metrics: Optional[tuple[str, ...]],
     framework: str,
     output_path: Optional[str],
-    verbose: bool,
-) -> Dict[str, Any]:
+    verbose: Optional[bool],
+):
     """An open source tool for MMM evaluation."""
-    # Configure logging
+    # logging
     log_level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(level=log_level)
 
     # Load input data
-    data_path = validate_path(input_data_path)
-    logger.info(f"Loading input data from {data_path}")
-    data = pd.read_csv(data_path)
+    logger.info(f"Loading input data from {input_data_path}")
+    data = load_data(input_data_path)
 
-    config = None
-    if config_path:
-        config_path = validate_path(config_path)
-        config = load_config(config_path)
+    config = load_config(config_path)
 
-    # Save results if output path provided
     output_path_obj = None
     if output_path:
         output_path_obj = validate_path(output_path)
@@ -103,7 +113,8 @@ def main(
 
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
-    results = evaluate_framework(
+
+    evaluate_framework(
         framework=framework,
         data=data,
         config=config,
@@ -111,8 +122,6 @@ def main(
         metrics=list(metrics),
         output_path=output_path_obj,
     )
-
-    return results
 
 
 if __name__ == "__main__":
