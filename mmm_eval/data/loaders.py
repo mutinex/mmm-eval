@@ -35,12 +35,13 @@ class DataLoader:
             Loaded DataFrame
 
         """
-        if self.data_path.suffix.lower() not in DataLoaderConstants.FileFormat.to_list():
+        ext = self.data_path.suffix.lower().lstrip(".")
+        if ext not in DataLoaderConstants.ValidDataExtensions.to_list():
             raise ValueError(f"Unsupported file format: {self.data_path.suffix}")
         
-        if self.data_path.suffix.lower() == DataLoaderConstants.FileFormat.CSV:
+        if ext == DataLoaderConstants.ValidDataExtensions.CSV:
             return self._load_csv()
-        elif self.data_path.suffix.lower() == DataLoaderConstants.FileFormat.PARQUET:
+        elif ext == DataLoaderConstants.ValidDataExtensions.PARQUET:
             return self._load_parquet()
     
     def _load_csv(self) -> pd.DataFrame:

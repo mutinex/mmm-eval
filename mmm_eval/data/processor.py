@@ -18,17 +18,14 @@ class DataProcessor:
     
     def __init__(
         self,
-        parse_dates: bool = True,
         date_column: str = InputDataframeConstants.DATE_COL
     ):
         """
         Initialize data processor.
         
         Args:
-            parse_dates: Whether to parse date columns
-            date_columns: List of date column names to parse (defaults to ['date'])
+            date_column: Name of the date column to parse and rename
         """
-        self.parse_dates = parse_dates
         self.date_column = date_column
     
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -44,8 +41,7 @@ class DataProcessor:
         processed_df = df.copy()
         
         # Parse date columns
-        if self.parse_dates:
-            processed_df = self._parse_date_columns(processed_df, self.date_column)
+        processed_df = self._parse_date_columns(processed_df, self.date_column)
         
         # Rename date column
         processed_df = self._rename_date_column(processed_df, self.date_column)
@@ -58,7 +54,7 @@ class DataProcessor:
             raise DataValidationError(f"Date column '{date_column}' not found in DataFrame")
         
         try:
-            df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+            df[date_column] = pd.to_datetime(df[date_column], errors='raise')
         except Exception as e:
             raise InvalidDateFormatError(f"Failed to parse date column '{date_column}': {e}")
         

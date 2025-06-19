@@ -8,6 +8,7 @@ import pandas as pd
 
 import pandera as pa
 from pandera.typing import Index, Series
+from mmm_eval.data.constants import InputDataframeConstants
 
 
 class ValidatedDataSchema(pa.DataFrameModel):
@@ -20,7 +21,7 @@ class ValidatedDataSchema(pa.DataFrameModel):
     # Required columns
     date: Series[pa.dtypes.DateTime] = pa.Field(nullable=False)
     media_channel: Series[str] = pa.Field(nullable=False)
-    media_channel_spend: Series[pa.dtypes.Float64] = pa.Field(nullable=False)
+    spend: Series[pa.dtypes.Float64] = pa.Field(nullable=False)
     
     class Config:
         coerce = True

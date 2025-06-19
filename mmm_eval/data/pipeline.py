@@ -9,6 +9,7 @@ from pathlib import Path
 from .loaders import DataLoader
 from .processor import DataProcessor
 from .validation import DataValidator
+from .constants import DataPipelineConstants
 
 
 class DataPipeline:
@@ -21,37 +22,25 @@ class DataPipeline:
     def __init__(
         self,
         data_path: Union[str, Path],
-        parse_dates: bool = True,
         date_column: str = "date",
-        require_no_nulls: bool = True,
-        min_data_size: int = 21
+        min_data_size: int = DataPipelineConstants.MIN_DATA_SIZE
     ):
         """
         Initialize data pipeline.
         
         Args:
             data_path: Path to the data file
-            parse_dates: Whether to parse date columns
             date_column: Name of the date column
-            require_no_nulls: Whether to require no null values
             min_data_size: Minimum required data size
         """
         self.data_path = data_path
-        self.parse_dates = parse_dates
         self.date_column = date_column
-        self.require_no_nulls = require_no_nulls
         self.min_data_size = min_data_size
         
         # Initialize components
         self.loader = DataLoader(data_path)
-        self.processor = DataProcessor(
-            parse_dates=parse_dates,
-            date_column=date_column
-        )
-        self.validator = DataValidator(
-            require_no_nulls=require_no_nulls,
-            min_data_size=min_data_size
-        )
+        self.processor = DataProcessor(date_column=date_column)
+        self.validator = DataValidator(min_data_size=min_data_size)
     
     def run(self) -> pd.DataFrame:
         """

@@ -6,19 +6,25 @@ import pytest
 import pandas as pd
 from pathlib import Path
 from mmm_eval.data import DataLoader
+from mmm_eval.data.constants import InputDataframeConstants, DataLoaderConstants
 
 
 class TestDataLoader:
     """Test DataLoader functionality."""
+
+    def test_df(self):
+        """Test data loader data."""
+        df = pd.DataFrame({
+            InputDataframeConstants.DATE_COL: ['2023-01-01', '2023-01-02'],
+            InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [1000.0, 1500.0]
+        })
+        return df
     
     def test_load_csv(self, tmp_path):
         """Test loading CSV data."""
         # Create test CSV
-        df = pd.DataFrame({
-            'date': ['2023-01-01', '2023-01-02'],
-            'value': [1, 2]
-        })
-        csv_path = tmp_path / "test.csv"
+        df = self.test_df()
+        csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
         
         # Load data
@@ -27,16 +33,13 @@ class TestDataLoader:
         
         assert isinstance(result, pd.DataFrame)
         assert result.shape == (2, 2)
-        assert list(result.columns) == ['date', 'value']
+        assert list(result.columns) == [InputDataframeConstants.DATE_COL, InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL]
     
     def test_load_parquet(self, tmp_path):
         """Test loading Parquet data."""
         # Create test Parquet
-        df = pd.DataFrame({
-            'date': ['2023-01-01', '2023-01-02'],
-            'value': [1, 2]
-        })
-        parquet_path = tmp_path / "test.parquet"
+        df = self.test_df()
+        parquet_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.PARQUET}"
         df.to_parquet(parquet_path, index=False)
         
         # Load data
@@ -49,7 +52,7 @@ class TestDataLoader:
     def test_file_not_found(self):
         """Test error when file doesn't exist."""
         with pytest.raises(FileNotFoundError):
-            DataLoader("nonexistent.csv")
+            DataLoader(f"nonexistent.{DataLoaderConstants.ValidDataExtensions.CSV}")
     
     def test_unsupported_format(self, tmp_path):
         """Test error for unsupported file format."""

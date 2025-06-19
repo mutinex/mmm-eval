@@ -13,11 +13,18 @@ class InputDataframeConstants:
 
 class DataLoaderConstants:
 
-    class FileFormat:
-        CSV = ".csv"
-        PARQUET = ".parquet"
+    class ValidDataExtensions:
+        CSV = "csv"
+        PARQUET = "parquet"
         
         @classmethod
         def to_list(cls):
-            """Return list of all supported file formats."""
+            """Return list of all supported file extensions."""
             return [cls.CSV, cls.PARQUET]
+        
+class DataPipelineConstants:
+    """
+    Constants for the data pipeline
+    """
+
+    MIN_DATA_SIZE = 21

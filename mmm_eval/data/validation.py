@@ -8,6 +8,7 @@ import pandera as pa
 
 from .schemas import ValidatedDataSchema
 from .exceptions import DataValidationError, EmptyDataFrameError, ValidationError
+from .constants import DataPipelineConstants
 
 class DataValidator:
     """
@@ -16,7 +17,7 @@ class DataValidator:
     
     def __init__(
         self,
-        min_data_size: int = 21
+        min_data_size: int = DataPipelineConstants.MIN_DATA_SIZE
     ):
         """
         Initialize validator with validation rules.
@@ -37,9 +38,10 @@ class DataValidator:
             Validation result with all errors and warnings
         """
         
-        # Run each validation
-        self._validate_schema(df)
+        # Run each validation in order
         self._validate_not_empty(df)
+        self._validate_no_nulls(df)
+        self._validate_schema(df)
         self._validate_data_size(df)
 
     
@@ -59,4 +61,9 @@ class DataValidator:
         """Check minimum data size."""
         if len(df) < self.min_data_size:
             raise DataValidationError(f"Data has {len(df)} rows, but time series CV requires at least {self.min_data_size} rows")
+    
+    def _validate_no_nulls(self, df: pd.DataFrame) -> None:
+        """Check for null values."""
+        if df.isnull().any().any():
+            raise DataValidationError("Found null values in DataFrame")
 
