@@ -16,8 +16,6 @@ from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.adapters import (
     MeridianAdapter,
     PyMCAdapter,
-    RobynAdapter,
-    LightweightMMAdapter,
     get_adapter,
 )
 
