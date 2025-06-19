@@ -24,7 +24,7 @@ from .adapters import (
 )
 
 # Data utilities
-from .data.loaders import load_csv, load_from_database, DataLoader
+from .data.loaders import load_csv, load_from_database, DataLoader, save_config
 
 __all__ = [
     # Core API
@@ -44,4 +44,5 @@ __all__ = [
     "load_csv",
     "load_from_database",
     "DataLoader",
+    "save_config",
 ]

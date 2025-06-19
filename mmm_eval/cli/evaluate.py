@@ -1,6 +1,3 @@
-# TODO:
-# - Decide how to handle data loading (ie do we load the data w/ dataloader then validate it separately within each adapter class then call evaluate_framework?)
-
 import click
 import logging
 from pathlib import Path

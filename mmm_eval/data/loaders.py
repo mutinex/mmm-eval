@@ -5,6 +5,39 @@ Data loading utilities for MMM evaluation.
 from typing import Dict, Any, Optional, Union
 import pandas as pd
 from pathlib import Path
+import json
+from logging import getLogger
+
+
+def save_config(
+    model_kwargs: dict[str, Any],
+    fit_kwargs: dict[str, Any],
+    target_column: str,
+    save_path: str,
+    file_name: str,
+) -> dict[str, Any]:
+    """
+    Create a config object and save it to a JSON file.
+
+    Args:
+        model_kwargs: Model configuration
+        fit_kwargs: Fit configuration
+        target_column: Target column name
+        save_path: Path to save the config file
+        file_name: Name of the config file to be saved
+
+    Returns:
+        Config object
+    """
+    config = {
+        "model_config": {k: repr(v) for k, v in model_kwargs.items()},
+        "fit_config": {k: repr(v) for k, v in fit_kwargs.items()},
+        "target_column": target_column,
+    }
+    Path(save_path).mkdir(parents=True, exist_ok=True)
+    json.dump(config, open(f"{save_path}/{file_name}.json", "w"))
+    getLogger(__name__).info(f"Config saved to {save_path}/{file_name}.json")
+    return config
 
 
 class DataLoader:

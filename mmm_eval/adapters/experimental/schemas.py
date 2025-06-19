@@ -1,100 +1,97 @@
-from pydantic import BaseModel, Field, validator
-from typing import List, Dict, Optional, Union
-from datetime import datetime
-import pymc_marketing.mmm.components.adstock as adstock
-import pymc_marketing.mmm.components.saturation as saturation
-import inspect
-
-
-def build_class_registry(*modules):
-    registry = {}
-    for mod in modules:
-        registry.update(
-            {
-                name: cls
-                for name, cls in inspect.getmembers(mod, inspect.isclass)
-                if cls.__module__.startswith(mod.__name__)
-            }
-        )
-    return registry
-
-
-# Get the actual class objects for validation
-ADSTOCK_CLASSES = build_class_registry(adstock)
-SATURATION_CLASSES = build_class_registry(saturation)
+from pydantic import BaseModel, Field, validator, InstanceOf
+from typing import Annotated
+from pymc_marketing.mmm.components.adstock import AdstockTransformation
+from pymc_marketing.mmm.components.saturation import SaturationTransformation
 
 
 class PyMCInputDataSchema(BaseModel):
     """Schema for input CSV data"""
 
-    date: datetime
-    channel_spend: Dict[str, float] = Field(description="Channel spend columns")
-    response: float = Field(description="Target response variable")
-    control_vars: Dict[str, float] = Field(description="Control variables")
-    revenue: float = Field(description="Revenue column")
+    date_column: str = (Field(..., description="Column name of the date variable."),)
+    channel_columns: list[str] = (
+        Field(min_length=1, description="Column names of the media channel variables."),
+    )
+    response_column: str = (
+        Field(..., description="Column name of the response variable."),
+    )
+    control_columns: list[str] = (
+        Field(..., description="Column names of the control variables."),
+    )
+    revenue_column: float = Field(description="Revenue column")
 
 
-class PyMCConfigSchema(BaseModel):
+class PyMCFitSchema(BaseModel):
+    """Schema for PyMC Fit Configuration Dictionary"""
+
+    chains: int = Field(..., description="Number of chains to run.")
+    target_accept: float = Field(
+        ..., description="Target acceptance rate for the sampler."
+    )
+    tune: int = Field(..., description="Number of tuning steps.")
+    draws: int = Field(..., description="Number of draws to sample.")
+    init: str = Field(..., description="Initialization method.")
+
+
+class PyMCMMMSchema(BaseModel):
     """Schema for PyMC Config Dictionary"""
 
-    date_column: Optional[str] = Field(
-        default=None, description="Column name of the date variable."
+    date_column: str = (Field(..., description="Column name of the date variable."),)
+    channel_columns: list[str] = (
+        Field(min_length=1, description="Column names of the media channel variables."),
     )
-    channel_columns: Optional[List[str]] = Field(
-        default=None,
-        description="Column names of the media channel variables.",
-        min_items=1,
+    adstock: InstanceOf[AdstockTransformation] = (
+        Field(..., description="Type of adstock transformation to apply."),
     )
-    response_column: Optional[str] = Field(
-        default=None, description="Column name of the response variable."
+    saturation: InstanceOf[SaturationTransformation] = (
+        Field(..., description="Type of saturation transformation to apply."),
     )
-    revenue_column: Optional[str] = Field(
-        default=None, description="Column name of the revenue variable."
+    time_varying_intercept: bool = (
+        Field(False, description="Whether to consider time-varying intercept."),
     )
-    adstock: Optional[Union[tuple(ADSTOCK_CLASSES.values())]] = Field(
-        default=None, description="Type of adstock transformation to apply."
+    time_varying_media: bool = (
+        Field(
+            False, description="Whether to consider time-varying media contributions."
+        ),
     )
-    saturation: Optional[Union[tuple(SATURATION_CLASSES.values())]] = Field(
-        default=None, description="Type of saturation transformation to apply."
+    model_config: dict | None = (Field(None, description="Model configuration."),)
+    sampler_config: dict | None = (Field(None, description="Sampler configuration."),)
+    validate_data: bool = (
+        Field(True, description="Whether to validate the data before fitting to model"),
     )
-    time_varying_intercept: bool = Field(
-        default=False, description="Whether to consider time-varying intercept."
+    control_columns: (
+        Annotated[
+            list[str],
+            Field(
+                min_length=1,
+                description="Column names of control variables to be added as additional regressors",
+            ),
+        ]
+        | None
+    ) = (None,)
+    yearly_seasonality: (
+        Annotated[
+            int,
+            Field(
+                gt=0, description="Number of Fourier modes to model yearly seasonality."
+            ),
+        ]
+        | None
+    ) = (None,)
+    adstock_first: bool = (Field(True, description="Whether to apply adstock first."),)
+    dag: str | None = (
+        Field(
+            None,
+            description="Optional DAG provided as a string Dot format for causal identification.",
+        ),
     )
-    time_varying_media: bool = Field(
-        default=False,
-        description="Whether to consider time-varying media contributions.",
+    treatment_nodes: list[str] | tuple[str] | None = (
+        Field(
+            None,
+            description="Column names of the variables of interest to identify causal effects on outcome.",
+        ),
     )
-    model_config: Optional[Dict] = Field(
-        default=None, description="Model configuration."
-    )
-    sampler_config: Optional[Dict] = Field(
-        default=None, description="Sampler configuration."
-    )
-    validate_data: bool = Field(
-        default=True, description="Whether to validate the data before fitting to model"
-    )
-    control_columns: Optional[List[str]] = Field(
-        default=None, description="Column names of the control variables."
-    )
-    yearly_seasonality: Optional[int] = Field(
-        default=None, description="Number of yearly seasonality components."
-    )
-    adstock_first: bool = Field(
-        default=True, description="Whether to apply adstock first."
-    )
-    dag: Optional[str] = Field(
-        default=None,
-        description="Optional DAG provided as a string Dot format for causal identification.",
-    )
-    treatment_nodes: Optional[Union[List[str], tuple[str]]] = Field(
-        default=None,
-        description="Column names of the variables of interest to identify causal effects on outcome.",
-    )
-    outcome_node: Optional[str] = Field(
-        default=None, description="Name of the outcome variable."
-    )
-    fit_kwargs: Optional[Dict] = Field(
-        default=None, description="Additional arguments for model fitting."
+    outcome_node: str | None = (
+        Field(None, description="Name of the outcome variable."),
     )
 
     @validator("channel_columns")
@@ -106,26 +103,22 @@ class PyMCConfigSchema(BaseModel):
     @validator("adstock")
     def validate_adstock(cls, v):
         if v is not None:
-            valid_classes = list(ADSTOCK_CLASSES.values())
-            if not any(isinstance(v, cls) for cls in valid_classes):
-                valid_names = list(ADSTOCK_CLASSES.keys())
-                raise ValueError(
-                    f"adstock must be one of {valid_names}, got {type(v).__name__}"
-                )
+            assert isinstance(v, AdstockTransformation)
         return v
 
     @validator("saturation")
     def validate_saturation(cls, v):
         if v is not None:
-            valid_classes = list(SATURATION_CLASSES.values())
-            if not any(isinstance(v, cls) for cls in valid_classes):
-                valid_names = list(SATURATION_CLASSES.keys())
-                raise ValueError(
-                    f"saturation must be one of {valid_names}, got {type(v).__name__}"
-                )
+            assert isinstance(v, SaturationTransformation)
         return v
 
     model_config = {
         "arbitrary_types_allowed": True,
         "extra": "allow",  # Allow extra fields not defined in schema
     }
+
+
+class EvalConfigSchema(PyMCMMMSchema, PyMCFitSchema):
+    target_column: str = Field(..., description="Name of the target column.")
+    model_config: PyMCMMMSchema = Field(..., description="Model configuration.")
+    fit_config: PyMCFitSchema = Field(..., description="Fit configuration.")
