@@ -137,18 +137,18 @@ class TestBaseValidationTest:
         })
         
         result = self.test_instance._combine_dataframes_by_channel(
-            baseline_df, comparison_df
+            baseline_df, comparison_df, suffixes=("_original", "_perturbed")
         )
         
         # Check that dataframes are combined
         assert len(result) == 3  # 3 channels
-        assert 'spend_current' in result.columns
-        assert 'spend_refresh' in result.columns
+        assert 'spend_original' in result.columns
+        assert 'spend_perturbed' in result.columns
         
         # Check TV values
         tv_row = result[result[InputDataframeConstants.MEDIA_CHANNEL_COL] == 'TV'].iloc[0]
-        assert tv_row['spend_current'] == 100
-        assert tv_row['spend_refresh'] == 110
+        assert tv_row['spend_original'] == 100
+        assert tv_row['spend_perturbed'] == 110
 
     def test_get_mean_aggregate_channel_roi_pct_change(self):
         """Test mean ROI percentage change calculation."""

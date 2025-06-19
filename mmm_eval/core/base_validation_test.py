@@ -60,8 +60,6 @@ class BaseValidationTest(ABC):
             raise MetricCalculationError(f"Invalid metric input in {self.test_name} test: {str(e)}")
         except IndexError as e:
             raise DataValidationError(f"Invalid data format in {self.test_name} test: {str(e)}")
-        except AttributeError as e:
-            raise ModelValidationError(f"Model fitting failed in {self.test_name} test: {str(e)}")
         except Exception as e:
             raise TestExecutionError(f"Unexpected error in {self.test_name} test: {str(e)}")
 
@@ -163,7 +161,7 @@ class BaseValidationTest(ABC):
         self,
         baseline_df: pd.DataFrame,
         comparison_df: pd.DataFrame,
-        suffixes: tuple[str, str] = ("_current", "_refresh"),
+        suffixes: tuple[str, str],
     ) -> pd.DataFrame:
         """Combine the current and refresh data."""
         return baseline_df.merge(

@@ -4,35 +4,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from mmm_eval.configs.base import BaseConfig
-
-from .results import EvaluationResults
-
-
-def _compute_metrics(actual: pd.Series, predicted: pd.Series, metrics: list[str]) -> dict[str, float]:
-    """Compute specified metrics for actual vs predicted values.
-
-    Args:
-        actual: Actual values
-        predicted: Predicted values
-        metrics: List of metric names to compute
-
-    Returns:
-        Dictionary mapping metric names to values
-
-    """
-    from ..metrics.accuracy import AVAILABLE_METRICS
-
-    results = {}
-
-    for metric in metrics:
-        if metric not in AVAILABLE_METRICS:
-            raise ValueError(f"Unknown metric: {metric}. Available metrics: {list(AVAILABLE_METRICS.keys())}")
-
-        metric_func = AVAILABLE_METRICS[metric]
-        results[metric] = metric_func(actual, predicted)
-
-    return results
+from mmm_eval.configs import EvalConfig
+from .validation_test_results import ValidationResult
 
 
 def evaluate_framework(
@@ -42,8 +15,9 @@ def evaluate_framework(
     metrics: list[str] | None = None,
     output_path: Path | None = None,
     **kwargs,
-) -> EvaluationResults:
-    """Evaluate an MMM framework using the unified API.
+) -> ValidationResult:
+    """
+    Evaluate an MMM framework using the unified API.
 
     Args:
         framework: Name of the MMM framework to evaluate

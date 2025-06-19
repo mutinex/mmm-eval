@@ -225,6 +225,7 @@ class RefreshStabilityTest(BaseValidationTest):
             merged = self._combine_dataframes_by_channel(
                 baseline_df=current_model_grpd,
                 comparison_df=refresh_model_grpd,
+                suffixes=("_current", "_refresh"),
             )
 
             # calculate the pct change in volume
@@ -352,6 +353,7 @@ class PerturbationTest(BaseValidationTest):
         merged = self._combine_dataframes_by_channel(
             baseline_df=original_contributions,
             comparison_df=noisy_contributions,
+            suffixes=("_original", "_perturbed"),
         )
 
         # calculate the pct change in roi
@@ -359,10 +361,10 @@ class PerturbationTest(BaseValidationTest):
             ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
         ] = calculate_absolute_percentage_change(
             baseline_series=merged[
-                ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
+                ValidationDataframeConstants.CALCULATED_ROI_COL + "_original"
             ],
             comparison_series=merged[
-                ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
+                ValidationDataframeConstants.CALCULATED_ROI_COL + "_perturbed"
             ],
         )
 
