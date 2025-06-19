@@ -3,6 +3,7 @@ from mmm_eval.adapters.pymc import PyMCAdapter
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
+
 def valid_pymc_config_1():
     return {
         "date_column": "date_week",
@@ -19,8 +20,9 @@ def valid_pymc_config_1():
             "gamma_control": Prior("Normal", mu=0, sigma=0.05),
             "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
         },
-        "fit_kwargs": {"target_accept": 0.9}
+        "fit_kwargs": {"target_accept": 0.9},
     }
+
 
 def valid_pymc_config_2():
     model_config = {
@@ -39,7 +41,7 @@ def valid_pymc_config_2():
         "saturation": LogisticSaturation(),
         "yearly_seasonality": 2,
         "model_config": model_config,
-        "fit_kwargs": {"target_accept": 0.9}
+        "fit_kwargs": {"target_accept": 0.9},
     }
 
 
@@ -53,11 +55,14 @@ def invalid_pymc_config():
     }
 
 
-@pytest.mark.parametrize("config, is_valid", [
-    (valid_pymc_config_1(), True),
-    (valid_pymc_config_2(), True),
-    (invalid_pymc_config(), False)
-])
+@pytest.mark.parametrize(
+    "config, is_valid",
+    [
+        (valid_pymc_config_1(), True),
+        (valid_pymc_config_2(), True),
+        (invalid_pymc_config(), False),
+    ],
+)
 def test_adapter_instantiation(config, is_valid):
     # Instantiate the adapter
 

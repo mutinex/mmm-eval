@@ -1,11 +1,9 @@
 import pytest
 import json
-import os
-import pandas as pd
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 from mmm_eval.utils import PyMCConfigRehydrator
-from mmm_eval.data.synth_data_generator import generate_data
+
 
 def valid_hydration_config_1():
     return {
@@ -23,8 +21,9 @@ def valid_hydration_config_1():
             "gamma_control": Prior("Normal", mu=0, sigma=0.05),
             "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
         },
-        "fit_kwargs": {"target_accept": 0.9}
+        "fit_kwargs": {"target_accept": 0.9},
     }
+
 
 def valid_hydration_config_2():
     model_config = {
@@ -43,8 +42,9 @@ def valid_hydration_config_2():
         "saturation": LogisticSaturation(),
         "yearly_seasonality": 2,
         "model_config": model_config,
-        "fit_kwargs": {"target_accept": 0.9}
+        "fit_kwargs": {"target_accept": 0.9},
     }
+
 
 def invalid_hydration_config():
     return {
@@ -56,16 +56,18 @@ def invalid_hydration_config():
         "adstock": "GeometricAdstock(l_max=4)",  # String instead of object
         "saturation": "LogisticSaturation()",  # String instead of object
         "yearly_seasonality": 2,
-        "fit_kwargs": {"target_accept": 0.9}
+        "fit_kwargs": {"target_accept": 0.9},
     }
 
 
-
-@pytest.mark.parametrize("config, equal_to_original", [
-    (valid_hydration_config_1(), True),
-    (valid_hydration_config_2(), True),
-    (invalid_hydration_config(), False)
-])
+@pytest.mark.parametrize(
+    "config, equal_to_original",
+    [
+        (valid_hydration_config_1(), True),
+        (valid_hydration_config_2(), True),
+        (invalid_hydration_config(), False),
+    ],
+)
 def test_config_rehydration(config, equal_to_original, tmp_path):
     # Save config to temporary file
     config_path = tmp_path / "pymc_config.json"

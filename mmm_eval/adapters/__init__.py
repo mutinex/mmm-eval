@@ -3,7 +3,6 @@ Framework adapters for MMM evaluation.
 """
 
 from typing import Dict, Any, Optional
-from .base import BaseAdapter
 from .meridian import MeridianAdapter
 from .pymc import PyMCAdapter
 
