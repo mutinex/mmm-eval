@@ -8,6 +8,7 @@ import pandera.pandas as pa
 from mmm_eval.data import DataValidator
 from mmm_eval.data.exceptions import DataValidationError, EmptyDataFrameError
 from mmm_eval.data.constants import InputDataframeConstants
+from mmm_eval.data.schemas import ValidatedDataSchema
 
 
 class TestDataValidator:
@@ -44,8 +45,8 @@ class TestDataValidator:
         with pytest.raises(DataValidationError):  # Should raise exception for small data
             validator.run_validations(df)
     
-    def test_null_values(self):
-        """Test validation with null values."""
+    def test_pandera_schema_null_validation(self):
+        """Test that Pandera schema directly catches null values."""
         df = pd.DataFrame({
             InputDataframeConstants.DATE_COL: pd.date_range('2023-01-01', periods=25),
             InputDataframeConstants.MEDIA_CHANNEL_COL: ['facebook'] * 25,
@@ -53,6 +54,6 @@ class TestDataValidator:
         })
         df.loc[0, InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL] = None
         
-        validator = DataValidator()
-        with pytest.raises(DataValidationError):  # Should raise DataValidationError for nulls
-            validator.run_validations(df)
+        # Test direct Pandera schema validation
+        with pytest.raises(pa.errors.SchemaError):  # Should raise Pandera SchemaError directly
+            ValidatedDataSchema.validate(df)
