@@ -5,11 +5,13 @@ A simple and powerful evaluation package for machine learning models.
 ## Installation
 
 ### Using pip
+
 ```bash
 pip install mmm-eval
 ```
 
 ### Using Poetry
+
 ```bash
 poetry add mmm-eval
 ```
@@ -36,6 +38,7 @@ print(result)
 This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
 ### Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/mmm-eval.git
@@ -49,11 +52,13 @@ poetry shell
 ```
 
 ### Running Tests
+
 ```bash
 poetry run pytest
 ```
 
 ### Code Quality
+
 ```bash
 # Format code
 poetry run black src tests
@@ -82,4 +87,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for a list of changes. 
+See [CHANGELOG.md](CHANGELOG.md) for a list of changes.

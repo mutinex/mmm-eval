@@ -6,17 +6,12 @@ from typing import Dict, Any, Optional
 from .base import BaseAdapter
 from .meridian import MeridianAdapter
 from .pymc import PyMCAdapter
-# from .robyn import RobynAdapter
-# from .lightweight_mmm import LightweightMMAdapter
 
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
     "meridian": MeridianAdapter,
-    "pymc": PyMCAdapter,
-    "pymc3": PyMCAdapter,  # Alias for backwards compatibility
-    # "robyn": RobynAdapter,
-    # "lightweight_mmm": LightweightMMAdapter,
+    "pymc-marketing": PyMCAdapter,
 }
 
 
@@ -48,8 +43,6 @@ __all__ = [
     "BaseAdapter",
     "MeridianAdapter",
     "PyMCAdapter",
-    # "RobynAdapter",
-    # "LightweightMMAdapter",
     "get_adapter",
     "ADAPTER_REGISTRY",
 ]

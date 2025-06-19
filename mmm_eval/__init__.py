@@ -22,8 +22,6 @@ from .adapters import (
     get_adapter,
     MeridianAdapter,
     PyMCAdapter,
-    # RobynAdapter,
-    # LightweightMMAdapter,
 )
 
 # Data utilities
@@ -44,8 +42,6 @@ __all__ = [
     "get_adapter",
     "MeridianAdapter",
     "PyMCAdapter",
-    # "RobynAdapter",
-    # "LightweightMMAdapter",
     # Data utilities
     "load_csv",
     "load_from_database",

@@ -8,5 +8,4 @@ from .results import EvaluationResults
 __all__ = [
     "evaluate_framework",
     "EvaluationResults",
-    "BaseAdapter",
 ]

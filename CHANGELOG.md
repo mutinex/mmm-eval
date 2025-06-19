@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial project structure
 - Core evaluation functionality
 - Basic metrics: accuracy, precision, recall, f1_score
@@ -16,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Poetry for dependency management
 
 ### Changed
+
 - Migrated from setuptools to Poetry for packaging and dependency management
 - Updated development workflow to use Poetry commands
 - Restructured dependency management with Poetry groups
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-01-XX
 
 ### Added
+
 - Initial release of mmm-eval
 - Core `evaluate` function for model evaluation
 - Support for multiple metrics in a single call
@@ -32,10 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Poetry-based project structure
 
 ### Dependencies
+
 - numpy ^1.20.0
 - pandas ^1.3.0
 
 ### Development Dependencies
+
 - pytest ^6.0
 - pytest-cov ^2.0
 - black ^22.0
@@ -45,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pre-commit ^2.0
 
 ### Documentation Dependencies
+
 - sphinx ^4.0
 - sphinx-rtd-theme ^1.0
-- myst-parser ^0.17 
+- myst-parser ^0.17
