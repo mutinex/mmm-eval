@@ -9,6 +9,7 @@ import pandas as pd
 from typing import Optional, Dict, Any
 
 from mmm_eval import evaluate_framework
+from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def validate_path(path: str) -> Path:
 @click.command()
 @click.option(
     "--framework",
-    type=click.Choice(["meridian", "pymc", "pymc3"]),
+    type=click.Choice(["meridian", "pymc-marketing"]),
     required=True,
     help="Open source MMM framework to evaluate",
 )
@@ -63,17 +64,11 @@ def validate_path(path: str) -> Path:
     help="Path to framework-specific JSON config file",
 )
 @click.option(
-    "--target-column",
-    type=str,
-    default="kpi",
-    help="Name of target column in input data. Default is 'kpi'.",
-)
-@click.option(
     "--metrics",
-    type=str,
+    type=click.Choice(AVAILABLE_METRICS),
     multiple=True,
     default=["mape", "rmse"],
-    help="Error metrics to compute for out-of-sample prediction. Default is mape and rmse.",
+    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse.",
 )
 @click.option(
     "--output-path",

@@ -18,7 +18,7 @@ class BaseAdapter(ABC):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.model = None
         self.is_fitted = False
-        self.config = config or {}
+        self.config = config or None
 
     @abstractmethod
     def fit(self, data: pd.DataFrame, **kwargs) -> None:
