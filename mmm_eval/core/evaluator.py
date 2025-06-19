@@ -6,15 +6,18 @@ import pandas as pd
 
 from mmm_eval.configs import EvalConfig
 from .validation_test_results import ValidationResult
+from mmm_eval.adapters import get_adapter
+from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
+from mmm_eval.core.validation_tests_models import ValidationTestNames
+from mmm_eval.core.validation_test_results import ValidationResult
 
 
 def evaluate_framework(
     framework: str,
     data: pd.DataFrame,
     config: BaseConfig,
-    metrics: list[str] | None = None,
     output_path: Path | None = None,
-    **kwargs,
+    test_names: Optional[List[ValidationTestNames]] = None,
 ) -> ValidationResult:
     """
     Evaluate an MMM framework using the unified API.
@@ -23,41 +26,30 @@ def evaluate_framework(
         framework: Name of the MMM framework to evaluate
         data: Input data containing media channels, KPI, and other variables
         config: Framework-specific configuration
-        metrics: List of metrics to compute (defaults to ["mape", "rmse"])
-        output_path: Optional path to save evaluation results
+        test_names: List of test names to run
         **kwargs: Additional framework-specific parameters
 
     Returns:
         EvaluationResults object containing evaluation metrics and predictions
 
-    Example:
-        >>> import pandas as pd
-        >>> from mmm_eval import evaluate_framework
-        >>>
-        >>> # Sample data
-        >>> data = pd.DataFrame({
-        ...     'kpi': [100, 120, 110, 130],
-        ...     'tv': [50, 60, 55, 65],
-        ...     'digital': [30, 35, 32, 40]
-        ... })
-        >>>
-        >>> # Evaluate framework
-        >>> results = evaluate_framework(
-        ...     framework="meridian",
-        ...     data=data,
-        ...     metrics=["mape", "rmse", "r_squared"]
-        ... )
-        >>> print(results)
-
     """
-    if metrics is None:
-        metrics = ["mape", "rmse"]
 
-    # TODO: implement fit and evaluate
-    # For now, return a placeholder result
-    return EvaluationResults(
-        framework=framework,
-        metrics={},
-        predictions=pd.Series(),
-        actual=pd.Series(),
+    # Initialize the adapter
+    adapter = get_adapter(framework, config)
+
+    # Initialize the validation test orchestrator
+    validation_test_orchestrator = ValidationTestOrchestrator()
+    
+    # Run validation tests
+    validation_results = validation_test_orchestrator.validate(
+        model=adapter,
+        data=data,
+        test_names=test_names,
     )
+    
+    # Save results if output path is provided
+    if output_path:
+        # TODO: Implement result saving logic
+        pass
+    
+    return validation_results

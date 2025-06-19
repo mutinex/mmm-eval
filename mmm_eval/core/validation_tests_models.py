@@ -3,7 +3,7 @@
 # todo(): Possibly move to the constants file
 
 from enum import Enum
-
+from typing import List
 
 class ValidationTestNames(Enum):
 
@@ -13,6 +13,17 @@ class ValidationTestNames(Enum):
     REFRESH_STABILITY = "refresh_stability"
     CROSS_VALIDATION = "cross_validation"
     PERTUBATION = "perturbation"
+
+    @classmethod
+    def all_tests(cls) -> List['ValidationTestNames']:
+        """Return all validation test names as a list."""
+        return list(cls)
+    
+    @classmethod
+    def all_tests_as_str(cls) -> List[str]:
+        """Return all validation test names as a list of strings."""
+        return [test.value for test in cls]
+    
 
 class ValidationTestAttributeNames(Enum):
 

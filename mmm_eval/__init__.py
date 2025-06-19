@@ -14,6 +14,7 @@ from .core.validation_test_results import ValidationResult
 from .core.base_validation_test import BaseAdapter
 from .core.validation_test_results import TestResult, ValidationResult
 from .core.base_validation_test import BaseValidationTest
+from .core.evaluator import evaluate_framework
 
 # Metrics
 from .metrics.accuracy_functions import calculate_mape, calculate_r_squared, calculate_mean_for_cross_validation_folds, calculate_std_for_cross_validation_folds
@@ -43,6 +44,7 @@ __all__ = [
     "TestResult",
     "ValidationResult",
     "BaseValidationTest",
+    "evaluate_framework",
     # Metrics
     "calculate_mape",
     "calculate_r_squared",

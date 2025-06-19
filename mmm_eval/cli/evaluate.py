@@ -6,8 +6,8 @@ import click
 from mmm_eval import evaluate_framework
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
-from mmm_eval.data import DataPipeline
-from mmm_eval.metrics import AVAILABLE_METRICS
+from mmm_eval.data.pipeline import DataPipeline
+from mmm_eval.core.validation_tests_models import ValidationTestNames
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +31,11 @@ logger = logging.getLogger(__name__)
     help="Path to framework-specific JSON config file",
 )
 @click.option(
-    "--metrics",
-    type=click.Choice(AVAILABLE_METRICS),
+    "--test-names",
+    type=click.Choice(ValidationTestNames.all_tests_as_str()),
     multiple=True,
-    default=["mape", "rmse"],
-    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse.",
+    default=ValidationTestNames.all_tests_as_str(),
+    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse. Can be a list of test names.",
 )
 @click.option(
     "--output-path",
@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 def main(
     config_path: str,
     input_data_path: str,
-    metrics: tuple[str, ...],
+    test_names: Optional[tuple[str, ...]],
     framework: str,
     output_path: str | None,
     verbose: bool,
@@ -84,7 +84,7 @@ def main(
         framework=framework,
         data=data,
         config=config,
-        metrics=list(metrics),
+        test_names=list(test_names),
         output_path=output_path_obj,
     )
 

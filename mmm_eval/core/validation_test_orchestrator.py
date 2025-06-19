@@ -5,6 +5,7 @@ Test orchestrator for MMM validation framework.
 from typing import Dict, List, Any, Optional, Type
 import pandas as pd
 
+from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from mmm_eval.core.base_validation_test import BaseValidationTest
 from .validation_test_results import TestResult, ValidationResult
@@ -33,9 +34,9 @@ class ValidationTestOrchestrator:
     
     def validate(
         self,
-        model: Any,
+        model: BaseAdapter,
         data: pd.DataFrame,
-        test_names: List[ValidationTestNames],
+        test_names: Optional[List[ValidationTestNames]] = None,
     ) -> ValidationResult:
         """
         Run validation tests on the model.
@@ -54,7 +55,8 @@ class ValidationTestOrchestrator:
         
         # Run tests and collect results
         results: Dict[ValidationTestNames, TestResult] = {}
-        for test_name in test_names:
+        tests_to_run = test_names or list(self.tests.keys())
+        for test_name in tests_to_run:
             test_instance = self.tests[test_name]()
             test_result = test_instance.run_with_error_handling(model, data)
             results[test_name] = test_result
