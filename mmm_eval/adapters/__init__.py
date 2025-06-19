@@ -3,6 +3,7 @@ Framework adapters for MMM evaluation.
 """
 
 from typing import Dict, Any, Optional
+from .base import BaseAdapter
 from .meridian import MeridianAdapter
 from .pymc import PyMCAdapter
 
@@ -10,8 +11,7 @@ from .pymc import PyMCAdapter
 # Registry of available adapters
 ADAPTER_REGISTRY = {
     "meridian": MeridianAdapter,
-    "pymc": PyMCAdapter,
-    "pymc3": PyMCAdapter,  # Alias for backwards compatibility
+    "pymc-marketing": PyMCAdapter,
 }
 
 
