@@ -1,5 +1,7 @@
 import pytest
-from mmm_eval.adapters.pymc import PyMCAdapter
+
+# TODO: update this import once PyMCAdapter is promoted out of experimental
+from mmm_eval.adapters.experimental.pymc import PyMCAdapter
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
