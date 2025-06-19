@@ -1,8 +1,7 @@
 """
 PyMC MMM framework adapter.
 
-TODOs:
-- scale control variables using maxabs - should do this before splitting train/test
+N.B. expects control variables to be scaled to 0-1 using maxabs scaling.
 """
 
 from typing import Dict
@@ -36,7 +35,6 @@ class PyMCAdapter(BaseAdapter):
     def fit(self, data: pd.DataFrame, metadata: dict = None):
         """Fit the model and compute ROIs."""
         X = data.drop(columns=[self.response_col, self.revenue_col])
-        print(X.columns)
         y = data[self.response_col]
 
         self.model = MMM(**self.model_kwargs)
@@ -50,10 +48,9 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction.")
 
-        X_new = data.drop(columns=[self.response_col])
-        prediction = self.model.predict(X_new, extend_idata=False)
-        return prediction
-        # return prediction.mean(axis=0)  # returning posterior predictive mean
+        if self.response_col in data.columns:
+            data = data.drop(columns=[self.response_col])
+        return self.model.predict(data, extend_idata=False)
 
     def get_channel_roi(self) -> Dict[str, float]:
         """Return the ROIs for each channel."""
