@@ -11,6 +11,7 @@ import click
 import pandas as pd
 
 from mmm_eval import evaluate_framework
+from mmm_eval.data.pipeline import DataPipeline
 from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
@@ -123,8 +124,9 @@ def main(
 
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
-    data = load_data(input_data_path)
 
+    data = DataPipeline(data_path=input_data_path).run()
+    
     config = load_config(config_path)
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
