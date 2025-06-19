@@ -30,13 +30,17 @@ class ValidationTestOrchestrator:
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
             ValidationTestNames.PERTUBATION: PerturbationTest,
         }
+
+    def _get_all_test_names(self) -> List[ValidationTestNames]:
+        """Get all test names from the registry."""
+        return list(self.tests.keys())
     
     
     def validate(
         self,
         model: BaseAdapter,
         data: pd.DataFrame,
-        test_names: Optional[List[ValidationTestNames]] = None,
+        test_names: List[ValidationTestNames]
     ) -> ValidationResult:
         """
         Run validation tests on the model.
@@ -55,8 +59,7 @@ class ValidationTestOrchestrator:
         
         # Run tests and collect results
         results: Dict[ValidationTestNames, TestResult] = {}
-        tests_to_run = test_names or list(self.tests.keys())
-        for test_name in tests_to_run:
+        for test_name in test_names:
             test_instance = self.tests[test_name]()
             test_result = test_instance.run_with_error_handling(model, data)
             results[test_name] = test_result

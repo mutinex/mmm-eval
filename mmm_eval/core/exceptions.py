@@ -31,3 +31,7 @@ class TestExecutionError(ValidationError):
 class ConfigurationError(ValidationError):
     """Raised when configuration is invalid."""
     pass 
+
+class InvalidTestNameError(ValidationError):
+    """Raised when an invalid test name is provided."""
+    pass
