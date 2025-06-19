@@ -101,10 +101,11 @@ def main(
 
     config = load_config(config_path)
 
-    output_path_obj = None
-    if output_path:
-        output_path_obj = validate_path(output_path)
-        output_path_obj.mkdir(parents=True, exist_ok=True)
+    output_path_obj = (
+        Path(output_path).mkdir(parents=True, exist_ok=True)
+        if output_path
+        else None
+    )
 
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
