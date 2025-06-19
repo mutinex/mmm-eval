@@ -3,7 +3,6 @@ Framework adapters for MMM evaluation.
 """
 
 from typing import Dict, Any, Optional
-from .base import BaseAdapter
 from .meridian import MeridianAdapter
 from .pymc import PyMCAdapter
 
@@ -15,7 +14,7 @@ ADAPTER_REGISTRY = {
 }
 
 
-def get_adapter(framework: str, config: Optional[Dict[str, Any]] = None) -> BaseAdapter:
+def get_adapter(framework: str, config: Optional[Dict[str, Any]] = None):
     """
     Get an adapter instance for the specified framework.
 
@@ -40,7 +39,6 @@ def get_adapter(framework: str, config: Optional[Dict[str, Any]] = None) -> Base
 
 
 __all__ = [
-    "BaseAdapter",
     "MeridianAdapter",
     "PyMCAdapter",
     "get_adapter",

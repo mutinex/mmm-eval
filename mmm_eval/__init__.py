@@ -12,7 +12,6 @@ __email__ = "your.email@example.com"
 # Core functionality
 from .core.evaluator import evaluate_framework
 from .core.results import EvaluationResults
-from .adapters.base import BaseAdapter
 
 # Metrics
 from .metrics.accuracy import mape, rmse, mae, r_squared, symmetric_mape
@@ -31,7 +30,6 @@ __all__ = [
     # Core API
     "evaluate_framework",
     "EvaluationResults",
-    "BaseAdapter",
     # Metrics
     "mape",
     "rmse",
