@@ -1,3 +1,8 @@
+"""Test the PyMC adapter.
+
+TODO (SM): write tests for adapter instance methods
+"""
+
 import pytest
 
 # TODO: update this import once PyMCAdapter is promoted out of experimental
