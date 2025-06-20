@@ -90,7 +90,7 @@ class Evaluator:
 
         # Run validation tests
         validation_results = self.validation_orchestrator.validate(
-            model=adapter,
+            adapter=adapter,
             data=data,
             test_names=test_names,
         )

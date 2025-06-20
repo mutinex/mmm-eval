@@ -1,5 +1,6 @@
 # This file defines the validation tests for the MMM framework.
 
+import logging
 import numpy as np
 import pandas as pd
 from typing import Any, Dict, Union
@@ -9,7 +10,7 @@ from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
-
+from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
@@ -29,6 +30,8 @@ from mmm_eval.metrics.metric_models import (
     RefreshStabilityMetricResults,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class AccuracyTest(BaseValidationTest):
     """
@@ -42,10 +45,10 @@ class AccuracyTest(BaseValidationTest):
     def test_name(self) -> str:
         return ValidationTestNames.ACCURACY
 
-    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         train, test = self._split_data_holdout(data)
-        model.fit(train)  # fit() modifies model in-place, returns None
-        predictions = model.predict(test)  # predict() on same model instance
+        adapter.fit(train)  # fit() modifies model in-place, returns None
+        predictions = adapter.predict(test)  # predict() on same model instance
 
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
@@ -58,6 +61,8 @@ class AccuracyTest(BaseValidationTest):
                 predicted=predictions,
             ),
         )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
 
         return TestResult(
             test_name=ValidationTestNames.ACCURACY,
@@ -76,7 +81,7 @@ class CrossValidationTest(BaseValidationTest):
     def test_name(self) -> str:
         return ValidationTestNames.CROSS_VALIDATION
 
-    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
         Run the cross-validation test using time-series splits.
 
@@ -94,14 +99,17 @@ class CrossValidationTest(BaseValidationTest):
         fold_metrics = []
 
         # Run cross-validation
-        for train_idx, test_idx in cv_splits:
+        for i, (train_idx, test_idx) in enumerate(cv_splits):
+
+            logger.info(f"Running cross-validation fold {i+1} of {len(cv_splits)}")
+
             # Get train/test data
             train = data.iloc[train_idx]
             test = data.iloc[test_idx]
 
             # Get predictions
-            model.fit(train)
-            predictions = model.predict(test)
+            adapter.fit(train)
+            predictions = adapter.predict(test)
 
             # Add in fold results
             fold_metrics.append(
@@ -132,6 +140,8 @@ class CrossValidationTest(BaseValidationTest):
                 fold_metrics, AccuracyMetricNames.R_SQUARED
             ),
         )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
 
         return TestResult(
             test_name=ValidationTestNames.CROSS_VALIDATION,
@@ -177,7 +187,7 @@ class RefreshStabilityTest(BaseValidationTest):
 
         return baseline_data_fil, comparison_data_fil
 
-    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
         Run the stability test.
         """
@@ -196,9 +206,10 @@ class RefreshStabilityTest(BaseValidationTest):
             refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
 
             # Train model and get coefficients
-            model.fit(current_data)
-            current_model = model.df  # todo(): Update these names when Sam finishes the adapter
-            refreshed_model = model.df  # todo(): Update these names when Sam finishes the adapter
+            adapter.fit(current_data)
+            adapter.fit(refresh_data)
+            current_model = adapter.df  # todo(): Update these names when Sam finishes the adapter
+            refreshed_model = adapter.df  # todo(): Update these names when Sam finishes the adapter
 
             # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
             current_model, refresh_model = self._filter_to_common_dates(
@@ -257,6 +268,8 @@ class RefreshStabilityTest(BaseValidationTest):
                 fold_metrics, RefreshStabilityMetricNames.STD_PERCENTAGE_CHANGE
             ),
         )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
 
         return TestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
@@ -324,20 +337,20 @@ class PerturbationTest(BaseValidationTest):
             )
         )
 
-    def run(self, model: Any, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
         Run the perturbation test.
         """
 
         # Train model on original data
-        model.fit(data)
-        original_model = model.df
+        adapter.fit(data)
+        original_model = adapter.df
         original_contributions = self._aggregate_by_channel_and_sum(original_model)
 
         # Add noise to spend data and retrain
         noisy_data = self._add_gaussian_noise_to_spend(data)
-        model.fit(noisy_data)
-        noisy_model = model.df
+        adapter.fit(noisy_data)
+        noisy_model = adapter.df
         noisy_contributions = self._aggregate_by_channel_and_sum(noisy_model)
 
         # Add calculated ROI column
@@ -376,6 +389,8 @@ class PerturbationTest(BaseValidationTest):
                 merged
             ),
         )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
 
         return TestResult(
             test_name=ValidationTestNames.PERTUBATION,

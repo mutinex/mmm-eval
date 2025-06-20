@@ -10,8 +10,8 @@ class ValidationTestNames(StrEnum):
     """Define the names of the validation tests"""
 
     ACCURACY = "accuracy"
-    REFRESH_STABILITY = "refresh_stability"
     CROSS_VALIDATION = "cross_validation"
+    REFRESH_STABILITY = "refresh_stability"
     PERTUBATION = "perturbation"
 
     @classmethod

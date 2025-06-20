@@ -4,7 +4,9 @@ Test orchestrator for MMM validation framework.
 
 from typing import Dict, List, Any, Optional, Type
 import pandas as pd
+import logging
 
+logger = logging.getLogger(__name__)
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from mmm_eval.core.base_validation_test import BaseValidationTest
@@ -26,8 +28,8 @@ class ValidationTestOrchestrator:
         """Initialize the validator with standard tests pre-registered."""
         self.tests: Dict[ValidationTestNames, BaseValidationTest] = {
             ValidationTestNames.ACCURACY: AccuracyTest,
-            ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
+            ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,
             ValidationTestNames.PERTUBATION: PerturbationTest,
         }
 
@@ -38,7 +40,7 @@ class ValidationTestOrchestrator:
     
     def validate(
         self,
-        model: BaseAdapter,
+        adapter: BaseAdapter,
         data: pd.DataFrame,
         test_names: List[ValidationTestNames]
     ) -> ValidationResult:
@@ -60,8 +62,9 @@ class ValidationTestOrchestrator:
         # Run tests and collect results
         results: Dict[ValidationTestNames, TestResult] = {}
         for test_name in test_names:
+            logger.info(f"Running test: {test_name}")
             test_instance = self.tests[test_name]()
-            test_result = test_instance.run_with_error_handling(model, data)
+            test_result = test_instance.run_with_error_handling(adapter, data)
             results[test_name] = test_result
         
         return ValidationResult(results) 
