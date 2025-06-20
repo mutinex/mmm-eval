@@ -8,6 +8,7 @@ passed to the PyMCAdapter.
 import logging
 from typing import Dict, Optional
 
+import numpy as np
 import pandas as pd
 from pymc_marketing.mmm import MMM
 
@@ -66,7 +67,7 @@ class PyMCAdapter(BaseAdapter):
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
 
-    def predict(self, data: pd.DataFrame) -> pd.Series:
+    def predict(self, data: pd.DataFrame) -> np.ndarray:
         """Predict the response variable for new data."""
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction.")
