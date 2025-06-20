@@ -43,7 +43,7 @@ class PyMCAdapter(BaseAdapter):
 
         # Everything else is passed to MMM constructor
         self.model_kwargs = config
-        
+
         # initialise fields set in `fit`
         self.model = None
         self.trace = None
@@ -56,8 +56,16 @@ class PyMCAdapter(BaseAdapter):
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
         """
         # TODO: this may be redundant after an upstream schema check, remove if so
-        _check_columns_in_data(data, [self.date_col, self.channel_spend_cols, self.response_col, self.revenue_col])
-            
+        _check_columns_in_data(
+            data,
+            [
+                self.date_col,
+                self.channel_spend_cols,
+                self.response_col,
+                self.revenue_col,
+            ],
+        )
+
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
 
@@ -71,7 +79,7 @@ class PyMCAdapter(BaseAdapter):
         """Predict the response variable for new data."""
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction.")
-        
+
         # TODO: this may be redundant after an upstream schema check, remove if so
         _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
 
@@ -188,9 +196,12 @@ def _validate_start_end_dates(
         )
 
 
-def _check_columns_in_data(data: pd.DataFrame, column_sets: list[str], ) -> None:
+def _check_columns_in_data(
+    data: pd.DataFrame,
+    column_sets: list[str],
+) -> None:
     """Check if column(s) are in a dataframe.
-    
+
     Args:
         data: DataFrame to check
         column_sets: list of column sets to check
@@ -201,4 +212,6 @@ def _check_columns_in_data(data: pd.DataFrame, column_sets: list[str], ) -> None
     for column_set in column_sets:
         column_set = [column_set] if isinstance(column_set, str) else column_set
         if set(column_set) - set(data.columns) != set():
-            raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
+            raise ValueError(
+                f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`"
+            )
