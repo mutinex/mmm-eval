@@ -114,18 +114,20 @@ class PyMCAdapter(BaseAdapter):
         Returns:
             DataFrame containing channel contributions and spend data
         """
-        channel_cont = self.model.compute_channel_contribution_original_scale().mean(
-            dim=["chain", "draw"]
+        channel_contribution = (
+            self.model.compute_channel_contribution_original_scale().mean(
+                dim=["chain", "draw"]
+            )
         )
 
-        cont_df = pd.DataFrame(
-            channel_cont,
-            columns=channel_cont["channel"].to_numpy(),
-            index=channel_cont["date"].to_numpy(),
+        contribution_df = pd.DataFrame(
+            channel_contribution,
+            columns=channel_contribution["channel"].to_numpy(),
+            index=channel_contribution["date"].to_numpy(),
         )
-        cont_df.columns = [f"{col}_units" for col in self.channel_spend_cols]
-        cont_df = pd.merge(
-            cont_df,
+        contribution_df.columns = [f"{col}_units" for col in self.channel_spend_cols]
+        contribution_df = pd.merge(
+            contribution_df,
             data[
                 [
                     self.date_col,
@@ -138,7 +140,7 @@ class PyMCAdapter(BaseAdapter):
             right_index=True,
         )
 
-        return cont_df
+        return contribution_df
 
     def _calculate_rois(self, contribution_df: pd.DataFrame) -> Dict[str, float]:
         """Calculate ROIs from a contribution DataFrame.
