@@ -199,7 +199,10 @@ class RefreshStabilityTest(BaseValidationTest):
         fold_metrics = []
 
         # Run cross-validation
-        for train_idx, refresh_idx in cv_splits:
+        for i, (train_idx, refresh_idx) in enumerate(cv_splits):
+
+            logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
+
             # Get train/test data
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
@@ -207,57 +210,53 @@ class RefreshStabilityTest(BaseValidationTest):
 
             # Train model and get coefficients
             adapter.fit(current_data)
+            current_model_rois = adapter.get_channel_roi()  # todo(): Update these names when Sam finishes the adapter
             adapter.fit(refresh_data)
-            current_model = adapter.df  # todo(): Update these names when Sam finishes the adapter
-            refreshed_model = adapter.df  # todo(): Update these names when Sam finishes the adapter
+            refreshed_model_rois = adapter.get_channel_roi()  # todo(): Update these names when Sam finishes the adapter
 
             # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
-            current_model, refresh_model = self._filter_to_common_dates(
-                baseline_data=current_model,
-                comparison_data=refreshed_model,
-            )
+            # todo(): Sam is going to build a function into get roi to do it by time period
+            # current_model, refresh_model = self._filter_to_common_dates(
+            #     baseline_data=current_model,
+            #     comparison_data=refreshed_model,
+            # )
 
             # Get sum spend and return by channel
-            current_model_grpd = self._aggregate_by_channel_and_sum(current_model)
-            refresh_model_grpd = self._aggregate_by_channel_and_sum(refresh_model)
+            # current_model_grpd = self._aggregate_by_channel_and_sum(current_model)
+            # refresh_model_grpd = self._aggregate_by_channel_and_sum(refresh_model)
 
-            # Add calculated ROI column
-            current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-                self._add_calculated_roi_column(current_model_grpd)
-            )
-            refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-                self._add_calculated_roi_column(refresh_model_grpd)
-            )
+            # # Add calculated ROI column
+            # current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+            #     self._add_calculated_roi_column(current_model_grpd)
+            # )
+            # refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
+            #     self._add_calculated_roi_column(refresh_model_grpd)
+            # )
 
             # merge the composition dfs by channel
-            merged = self._combine_dataframes_by_channel(
-                baseline_df=current_model_grpd,
-                comparison_df=refresh_model_grpd,
-                suffixes=("_current", "_refresh"),
-            )
+            # merged = self._combine_dataframes_by_channel(
+            #     baseline_df=current_model_rois,
+            #     comparison_df=refreshed_model_rois,
+            #     suffixes=("_current", "_refresh"),
+            # )
 
             # calculate the pct change in volume
-            merged[
-                ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-            ] = calculate_absolute_percentage_change(
-                baseline_series=merged[
-                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
-                ],
-                comparison_series=merged[
-                    ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
-                ],
+            percentage_change = calculate_absolute_percentage_change(
+                baseline_series=current_model_rois,
+                comparison_series=refreshed_model_rois,
             )
+            # merged[
+            #     ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
+            # ] = calculate_absolute_percentage_change(
+            #     baseline_series=merged[
+            #         ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
+            #     ],
+            #     comparison_series=merged[
+            #         ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
+            #     ],
+            # )
 
-            fold_metrics.append(
-                RefreshStabilityMetricResults(
-                    mean_percentage_change=merged[
-                        ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-                    ].mean(),
-                    std_percentage_change=merged[
-                        ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-                    ].std(),
-                )
-            )
+            fold_metrics.append(percentage_change)
 
         # Question: Does it make sense to calculate the mean of the mean percentage change?
         test_scores = RefreshStabilityMetricResults(

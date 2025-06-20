@@ -137,7 +137,7 @@ class BaseValidationTest(ABC):
             test_size=ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
         )
 
-        return cv.split(data)
+        return list(cv.split(data))
 
     def _add_calculated_roi_column(
         self,
