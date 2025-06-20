@@ -3,6 +3,7 @@ Unit tests for metric models.
 """
 
 import pytest
+import pandas as pd
 from mmm_eval.metrics.metric_models import (
     AccuracyMetricResults,
     CrossValidationMetricResults,
@@ -60,15 +61,21 @@ class TestRefreshStabilityMetricResults:
 
     def test_stability_test_passed_good_metrics(self):
         """Test stability test passed with good metrics."""
+        mean_series = pd.Series({'channel_1': 0.1, 'channel_2': 0.05})
+        std_series = pd.Series({'channel_1': 0.02, 'channel_2': 0.01})
         results = RefreshStabilityMetricResults(
-            mean_percentage_change=0.1, std_percentage_change=0.02
+            mean_percentage_change_for_each_channel=mean_series,
+            std_percentage_change_for_each_channel=std_series
         )
         assert results.check_test_passed() is True
 
     def test_stability_test_failed_high_mean_percentage_change(self):
         """Test stability test failed with high mean percentage change."""
+        mean_series = pd.Series({'channel_1': 0.16, 'channel_2': 0.05})  # channel_1 > threshold
+        std_series = pd.Series({'channel_1': 0.02, 'channel_2': 0.01})
         results = RefreshStabilityMetricResults(
-            mean_percentage_change=0.16, std_percentage_change=0.02
+            mean_percentage_change_for_each_channel=mean_series,
+            std_percentage_change_for_each_channel=std_series
         )
         assert results.check_test_passed() is False
 
@@ -78,24 +85,16 @@ class TestPerturbationMetricResults:
 
     def test_perturbation_test_passed_good_metrics(self):
         """Test perturbation test passed with good metrics."""
+        percentage_change_series = pd.Series({'TV': 0.03, 'Radio': 0.07})
         results = PerturbationMetricResults(
-            mean_aggregate_channel_roi_pct_change=0.05,
-            individual_channel_roi_pct_change={'TV': 0.03, 'Radio': 0.07},
+            percentage_change_for_each_channel=percentage_change_series
         )
         assert results.check_test_passed() is True
 
-    def test_perturbation_test_failed_high_mean_aggregate(self):
-        """Test perturbation test failed with high mean aggregate."""
-        results = PerturbationMetricResults(
-            mean_aggregate_channel_roi_pct_change=0.09,
-            individual_channel_roi_pct_change={'TV': 0.03, 'Radio': 0.07},
-        )
-        assert results.check_test_passed() is False
-
     def test_perturbation_test_failed_high_individual_channel(self):
         """Test perturbation test failed with high individual channel change."""
+        percentage_change_series = pd.Series({'TV': 0.03, 'Radio': 0.11})  # Radio > threshold
         results = PerturbationMetricResults(
-            mean_aggregate_channel_roi_pct_change=0.05,
-            individual_channel_roi_pct_change={'TV': 0.03, 'Radio': 0.11},
+            percentage_change_for_each_channel=percentage_change_series
         )
         assert results.check_test_passed() is False

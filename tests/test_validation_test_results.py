@@ -3,6 +3,7 @@ Unit tests for validation test result classes.
 """
 
 import pytest
+import pandas as pd
 from datetime import datetime
 from mmm_eval.core.validation_test_results import TestResult, ValidationResult
 from mmm_eval.core.validation_tests_models import (
@@ -59,12 +60,16 @@ class TestValidationResult:
             test_scores=AccuracyMetricResults(mape=0.1, r_squared=0.8),
         )
         
+        # Create stability result with new field names
+        mean_series = pd.Series({'channel_1': 0.1, 'channel_2': 0.05})
+        std_series = pd.Series({'channel_1': 0.02, 'channel_2': 0.01})
         stability_result = TestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=False,
             metric_names=RefreshStabilityMetricNames.metrics_to_list(),
             test_scores=RefreshStabilityMetricResults(
-                mean_percentage_change=0.1, std_percentage_change=0.02
+                mean_percentage_change_for_each_channel=mean_series,
+                std_percentage_change_for_each_channel=std_series
             ),
         )
         

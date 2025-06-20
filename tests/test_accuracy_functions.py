@@ -6,8 +6,10 @@ import pytest
 import numpy as np
 import pandas as pd
 from mmm_eval.metrics.accuracy_functions import (
-    calculate_mean_for_cross_validation_folds,
-    calculate_std_for_cross_validation_folds,
+    calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_std_for_singular_values_across_cross_validation_folds,
+    calculate_means_for_series_across_cross_validation_folds,
+    calculate_stds_for_series_across_cross_validation_folds,
     calculate_absolute_percentage_change,
 )
 from mmm_eval.metrics.metric_models import (
@@ -58,15 +60,15 @@ class TestCalculateAbsolutePercentageChange:
 class TestCrossValidationFoldCalculations:
     """Test cases for cross-validation fold calculations."""
 
-    def test_calculate_mean_for_cross_validation_folds(self):
-        """Test mean calculation across folds."""
+    def test_calculate_mean_for_singular_values_across_cross_validation_folds(self):
+        """Test mean calculation across folds for single values."""
         fold_metrics = [
             AccuracyMetricResults(mape=0.1, r_squared=0.8),
             AccuracyMetricResults(mape=0.2, r_squared=0.7),
             AccuracyMetricResults(mape=0.3, r_squared=0.9),
         ]
         
-        result = calculate_mean_for_cross_validation_folds(
+        result = calculate_mean_for_singular_values_across_cross_validation_folds(
             fold_metrics, AccuracyMetricNames.MAPE
         )
         
@@ -74,19 +76,52 @@ class TestCrossValidationFoldCalculations:
         assert result == expected
         assert isinstance(result, float)
 
-    def test_calculate_std_for_cross_validation_folds(self):
-        """Test standard deviation calculation across folds."""
+    def test_calculate_std_for_singular_values_across_cross_validation_folds(self):
+        """Test standard deviation calculation across folds for single values."""
         fold_metrics = [
-            RefreshStabilityMetricResults(mean_percentage_change=0.1, std_percentage_change=0.05),
-            RefreshStabilityMetricResults(mean_percentage_change=0.2, std_percentage_change=0.05),
-            RefreshStabilityMetricResults(mean_percentage_change=0.3, std_percentage_change=0.05),
+            AccuracyMetricResults(mape=0.1, r_squared=0.8),
+            AccuracyMetricResults(mape=0.2, r_squared=0.7),
+            AccuracyMetricResults(mape=0.3, r_squared=0.9),
         ]
         
-        result = calculate_std_for_cross_validation_folds(
-            fold_metrics, RefreshStabilityMetricNames.MEAN_PERCENTAGE_CHANGE
+        result = calculate_std_for_singular_values_across_cross_validation_folds(
+            fold_metrics, AccuracyMetricNames.MAPE
         )
         
         # Expected std of [0.1, 0.2, 0.3]
         expected = np.std([0.1, 0.2, 0.3])
         assert abs(result - expected) < 1e-10
-        assert isinstance(result, float) 
+        assert isinstance(result, float)
+
+    def test_calculate_means_for_series_across_cross_validation_folds(self):
+        """Test mean calculation across folds for pandas Series."""
+        fold_series = [
+            pd.Series({'channel_1': 0.1, 'channel_2': 0.2}),
+            pd.Series({'channel_1': 0.2, 'channel_2': 0.3}),
+            pd.Series({'channel_1': 0.3, 'channel_2': 0.4}),
+        ]
+        
+        result = calculate_means_for_series_across_cross_validation_folds(fold_series)
+        
+        # Expected means: channel_1 = (0.1+0.2+0.3)/3 = 0.2, channel_2 = (0.2+0.3+0.4)/3 = 0.3
+        assert result['channel_1'] == pytest.approx(0.2)
+        assert result['channel_2'] == pytest.approx(0.3)
+        assert isinstance(result, pd.Series)
+
+    def test_calculate_stds_for_series_across_cross_validation_folds(self):
+        """Test standard deviation calculation across folds for pandas Series."""
+        fold_series = [
+            pd.Series({'channel_1': 0.1, 'channel_2': 0.2}),
+            pd.Series({'channel_1': 0.2, 'channel_2': 0.3}),
+            pd.Series({'channel_1': 0.3, 'channel_2': 0.4}),
+        ]
+        
+        result = calculate_stds_for_series_across_cross_validation_folds(fold_series)
+        
+        # Expected stds: channel_1 = std([0.1,0.2,0.3]), channel_2 = std([0.2,0.3,0.4])
+        # pandas uses ddof=1 by default (sample std), numpy uses ddof=0 by default (population std)
+        expected_channel_1 = np.std([0.1, 0.2, 0.3], ddof=1)  # Use sample std to match pandas
+        expected_channel_2 = np.std([0.2, 0.3, 0.4], ddof=1)  # Use sample std to match pandas
+        assert result['channel_1'] == pytest.approx(expected_channel_1)
+        assert result['channel_2'] == pytest.approx(expected_channel_2)
+        assert isinstance(result, pd.Series) 

@@ -82,10 +82,9 @@ class TestBaseValidationTest:
     def test_split_data_time_series_cv_insufficient_data(self):
         """Test time series cross-validation with insufficient data."""
         # Should raise sklearn's ValueError with informative message
-        # The error occurs when we try to iterate over the generator
-        cv_splits = self.test_instance._split_data_time_series_cv(self.insufficient_data)
+        # The error occurs when we try to call the method
         with pytest.raises(ValueError, match="Too many splits"):
-            list(cv_splits)  # This triggers the error
+            self.test_instance._split_data_time_series_cv(self.insufficient_data)
 
     def test_split_data_time_series_cv_minimum_data(self):
         """Test time series cross-validation with exactly minimum required data."""
@@ -95,69 +94,6 @@ class TestBaseValidationTest:
         
         # Should get exactly 5 splits
         assert len(splits_list) == 5
-
-    def test_add_calculated_roi_column(self):
-        """Test ROI calculation."""
-        result = self.test_instance._add_calculated_roi_column(self.test_data)
-        
-        # Check that ROI column was added
-        assert ValidationDataframeConstants.CALCULATED_ROI_COL in result.columns
-        
-        # Check ROI calculations: (revenue - spend) / spend
-        # First 3 rows: TV(160-110)/110=0.455, Radio(260-220)/220=0.182, Digital(360-330)/330=0.091
-        expected_roi = [(160 - 110) / 110, (260 - 220) / 220, (360 - 330) / 330]  # [0.455, 0.182, 0.091]
-        assert list(result[ValidationDataframeConstants.CALCULATED_ROI_COL][:3]) == expected_roi
-
-    def test_aggregate_by_channel_and_sum(self):
-        """Test channel aggregation."""
-        result = self.test_instance._aggregate_by_channel_and_sum(self.test_data)
-        
-        # Check aggregation
-        assert len(result) == 3  # 3 unique channels
-        
-        # Check TV aggregation (7 rows of TV with spend=110 each = 770 total)
-        tv_row = result[result[InputDataframeConstants.MEDIA_CHANNEL_COL] == 'TV'].iloc[0]
-        assert tv_row[InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL] == 770  # 110 * 7
-        assert tv_row[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL] == 1120  # 160 * 7
-
-    def test_combine_dataframes_by_channel(self):
-        """Test dataframe combination by channel."""
-        # Create a simpler comparison dataset with just the essential columns
-        comparison_df = pd.DataFrame({
-            InputDataframeConstants.MEDIA_CHANNEL_COL: ['TV', 'Radio', 'Digital'],
-            'spend': [110, 220, 330],
-            'revenue': [160, 260, 360],
-        })
-        
-        # Create a baseline dataset with just the essential columns
-        baseline_df = pd.DataFrame({
-            InputDataframeConstants.MEDIA_CHANNEL_COL: ['TV', 'Radio', 'Digital'],
-            'spend': [100, 200, 300],
-            'revenue': [150, 250, 350],
-        })
-        
-        result = self.test_instance._combine_dataframes_by_channel(
-            baseline_df, comparison_df, suffixes=("_original", "_perturbed")
-        )
-        
-        # Check that dataframes are combined
-        assert len(result) == 3  # 3 channels
-        assert 'spend_original' in result.columns
-        assert 'spend_perturbed' in result.columns
-        
-        # Check TV values
-        tv_row = result[result[InputDataframeConstants.MEDIA_CHANNEL_COL] == 'TV'].iloc[0]
-        assert tv_row['spend_original'] == 100
-        assert tv_row['spend_perturbed'] == 110
-
-    def test_get_mean_aggregate_channel_roi_pct_change(self):
-        """Test mean ROI percentage change calculation."""
-        result = self.test_instance._get_mean_aggregate_channel_roi_pct_change(self.test_data)
-        
-        # Expected mean of [0.1, 0.2, 0.3] repeated 7 times = 0.2
-        expected_mean = 0.2
-        assert result == expected_mean
-        assert isinstance(result, float)
 
     def test_run_with_error_handling_success(self):
         """Test successful error handling."""
@@ -180,7 +116,7 @@ class TestBaseValidationTest:
         # Mock the run method to raise KeyError
         self.test_instance.run = Mock(side_effect=KeyError("Missing column"))
         
-        with pytest.raises(DataValidationError, match="Missing required columns"):
+        with pytest.raises(DataValidationError, match="Data validation error"):
             self.test_instance.run_with_error_handling(mock_model, mock_data)
 
     def test_run_with_error_handling_value_error(self):
@@ -191,5 +127,16 @@ class TestBaseValidationTest:
         # Mock the run method to raise ValueError
         self.test_instance.run = Mock(side_effect=ValueError("Invalid input"))
         
-        with pytest.raises(MetricCalculationError, match="Invalid metric input"):
+        with pytest.raises(DataValidationError, match="Data validation error"):
+            self.test_instance.run_with_error_handling(mock_model, mock_data)
+
+    def test_run_with_error_handling_type_error(self):
+        """Test error handling for TypeError."""
+        mock_model = Mock()
+        mock_data = pd.DataFrame({'test': [1, 2, 3]})
+        
+        # Mock the run method to raise TypeError
+        self.test_instance.run = Mock(side_effect=TypeError("Invalid type"))
+        
+        with pytest.raises(MetricCalculationError, match="Metric calculation error"):
             self.test_instance.run_with_error_handling(mock_model, mock_data) 
