@@ -125,9 +125,14 @@ def main(
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
 
-    data = DataPipeline(data_path=input_data_path).run()
-    
-    config = load_config(config_path)
+    config = load_config(config_path) ## I think we need to validate the config here, requiring the date, response, and revenue columns
+
+    data = DataPipeline(
+        data_path=input_data_path,
+        date_column=config["date_column"],
+        response_column=config["response_column"],
+        revenue_column=config["revenue_column"],
+    ).run()
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
 

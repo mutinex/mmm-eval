@@ -21,3 +21,7 @@ class EmptyDataFrameError(Exception):
 class ValidationError(Exception):
     """Base class for validation errors."""
     pass
+
+class MissingRequiredColumnsError(Exception):
+    """Raised when required columns are missing."""
+    pass

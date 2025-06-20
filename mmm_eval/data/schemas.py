@@ -20,8 +20,8 @@ class ValidatedDataSchema(pa.DataFrameModel):
     
     # Required columns
     date: Series[pa.dtypes.DateTime] = pa.Field(nullable=False)
-    media_channel: Series[str] = pa.Field(nullable=False)
-    spend: Series[pa.dtypes.Float64] = pa.Field(nullable=False)
+    response: Series[pa.dtypes.Float64] = pa.Field(nullable=False)
+    revenue: Series[pa.dtypes.Float64] = pa.Field(nullable=False)
     
     class Config:
         coerce = True
