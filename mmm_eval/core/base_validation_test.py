@@ -92,7 +92,7 @@ class BaseValidationTest(ABC):
 
         train, test = train_test_split(
             data,
-            test_size=ValidationTestConstants.TRAIN_TEST_SPLIT_RATIO,
+            test_size=ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_SIZE,
             random_state=ValidationTestConstants.RANDOM_STATE,
         )
 
