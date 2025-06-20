@@ -31,5 +31,5 @@ class PerturbationThresholdConstants:
     Constants for the perturbation threshold
     """
 
-    MEAN_AGGREGATE_CHANNEL_ROI_PCT_CHANGE = 0.08
-    INDIVIDUAL_CHANNEL_ROI_PCT_CHANGE = 0.1
+    MEAN_PERCENTAGE_CHANGE = 0.08
+    STD_PERCENTAGE_CHANGE = 0.1

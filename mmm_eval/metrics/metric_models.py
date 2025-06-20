@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel
+import pandas as pd
+from pydantic import BaseModel, ConfigDict
 
 from mmm_eval.metrics.threshold_constants import AccuracyThresholdConstants, CrossValidationThresholdConstants, PerturbationThresholdConstants, RefreshStabilityThresholdConstants
 
@@ -86,30 +87,27 @@ class CrossValidationMetricResults(MetricResults):
     
 class RefreshStabilityMetricResults(MetricResults):
     """Define the results of the refresh stability metrics"""
-    mean_percentage_change: float
-    std_percentage_change: float
+    mean_percentage_change_for_each_channel: pd.Series
+    std_percentage_change_for_each_channel: pd.Series
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def check_test_passed(self) -> bool:
         """
         Check if the tests passed.
         """
-        return self.mean_percentage_change <= RefreshStabilityThresholdConstants.MEAN_PERCENTAGE_CHANGE
+        return bool((self.mean_percentage_change_for_each_channel <= RefreshStabilityThresholdConstants.MEAN_PERCENTAGE_CHANGE).all())
     
 class PerturbationMetricResults(MetricResults):
 
     """Define the results of the perturbation metrics"""
 
-    mean_aggregate_channel_roi_pct_change: float #todo(): Does it make sense to aggregate rois?
-    individual_channel_roi_pct_change: dict[str, float]
+    percentage_change_for_each_channel: pd.Series
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def check_test_passed(self) -> bool:
         """
         Check if the tests passed.
         """
-        return (
-            self.mean_aggregate_channel_roi_pct_change <= PerturbationThresholdConstants.MEAN_AGGREGATE_CHANNEL_ROI_PCT_CHANGE
-            and all(
-                self.individual_channel_roi_pct_change[channel] <= PerturbationThresholdConstants.INDIVIDUAL_CHANNEL_ROI_PCT_CHANGE
-                for channel in self.individual_channel_roi_pct_change
-            )
-        )
+        return bool((self.percentage_change_for_each_channel <= PerturbationThresholdConstants.MEAN_PERCENTAGE_CHANGE).all())

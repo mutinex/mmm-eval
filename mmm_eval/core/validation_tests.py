@@ -15,11 +15,11 @@ from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
     calculate_mape,
-    calculate_mean_for_series_across_cross_validation_folds,
     calculate_r_squared,
-    calculate_std_for_series_across_cross_validation_folds,
     calculate_mean_for_singular_values_across_cross_validation_folds,
     calculate_std_for_singular_values_across_cross_validation_folds,
+    calculate_stds_for_series_across_cross_validation_folds,
+    calculate_means_for_series_across_cross_validation_folds,
 )
 from mmm_eval.metrics.metric_models import (
     AccuracyMetricNames,
@@ -270,10 +270,10 @@ class RefreshStabilityTest(BaseValidationTest):
 
         # Question: Does it make sense to calculate the mean of the mean percentage change?
         test_scores = RefreshStabilityMetricResults(
-            mean_percentage_change=calculate_mean_for_series_across_cross_validation_folds(
+            mean_percentage_change_for_each_channel=calculate_means_for_series_across_cross_validation_folds(
                 fold_metrics
             ),
-            std_percentage_change=calculate_std_for_series_across_cross_validation_folds(
+            std_percentage_change_for_each_channel=calculate_stds_for_series_across_cross_validation_folds(
                 fold_metrics
             ),
         )
@@ -316,7 +316,7 @@ class PerturbationTest(BaseValidationTest):
     def _add_gaussian_noise_to_spend(
         self,
         df: pd.DataFrame,
-        spend_col: InputDataframeConstants = InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL,
+        spend_cols: list[str],
     ) -> pd.DataFrame:
         """
         Add Gaussian noise to spend data for perturbation testing.
@@ -330,21 +330,10 @@ class PerturbationTest(BaseValidationTest):
         """
         df_copy = df.copy()
         noise = self._get_percent_gaussian_noise(df)
-        df_copy[spend_col] = df[spend_col] * (1 + noise)
+        for spend_col in spend_cols:
+            df_copy[spend_col] = df[spend_col] * (1 + noise)
         return df_copy
 
-    def _collate_channel_and_corresponding_roi_pct_change(
-        self, df: pd.DataFrame
-    ) -> dict[str, float]:
-        """Collate the channel and corresponding ROI percentage change."""
-        return dict(
-            zip(
-                df[InputDataframeConstants.MEDIA_CHANNEL_COL],
-                df[
-                    ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-                ],
-            )
-        )
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
@@ -353,50 +342,25 @@ class PerturbationTest(BaseValidationTest):
 
         # Train model on original data
         adapter.fit(data)
-        original_model = adapter.df
-        original_contributions = self._aggregate_by_channel_and_sum(original_model)
+        original_model = adapter.get_channel_roi()
 
         # Add noise to spend data and retrain
-        noisy_data = self._add_gaussian_noise_to_spend(data)
+        noisy_data = self._add_gaussian_noise_to_spend(
+            df=data,
+            spend_cols=adapter.channel_spend_cols,
+        )
         adapter.fit(noisy_data)
-        noisy_model = adapter.df
-        noisy_contributions = self._aggregate_by_channel_and_sum(noisy_model)
-
-        # Add calculated ROI column
-        original_contributions[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-            self._add_calculated_roi_column(original_contributions)
-        )
-        noisy_contributions[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-            self._add_calculated_roi_column(noisy_contributions)
-        )
-
-        # merge the composition dfs by channel
-        merged = self._combine_dataframes_by_channel(
-            baseline_df=original_contributions,
-            comparison_df=noisy_contributions,
-            suffixes=("_original", "_perturbed"),
-        )
+        noisy_model = adapter.get_channel_roi()
 
         # calculate the pct change in roi
-        merged[
-            ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-        ] = calculate_absolute_percentage_change(
-            baseline_series=merged[
-                ValidationDataframeConstants.CALCULATED_ROI_COL + "_original"
-            ],
-            comparison_series=merged[
-                ValidationDataframeConstants.CALCULATED_ROI_COL + "_perturbed"
-            ],
+        percentage_change = calculate_absolute_percentage_change(
+            baseline_series=original_model,
+            comparison_series=noisy_model,
         )
 
-        # Create metric results
+        # Create metric results - roi % change for each channel
         test_scores = PerturbationMetricResults(
-            mean_aggregate_channel_roi_pct_change=self._get_mean_aggregate_channel_roi_pct_change(
-                merged
-            ),
-            individual_channel_roi_pct_change=self._collate_channel_and_corresponding_roi_pct_change(
-                merged
-            ),
+            percentage_change_for_each_channel=percentage_change,
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")

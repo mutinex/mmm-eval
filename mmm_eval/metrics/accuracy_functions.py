@@ -68,20 +68,20 @@ def calculate_mean_for_singular_values_across_cross_validation_folds(
     metric_name = metric_name.value if hasattr(metric_name, 'value') else metric_name
     return np.mean([getattr(fold_metric, metric_name) for fold_metric in fold_metrics])
 
-def calculate_mean_for_series_across_cross_validation_folds(
-    fold_metrics: List[pd.Series],
+def calculate_means_for_series_across_cross_validation_folds(
+    folds_of_series: List[pd.Series],
 
 ) -> pd.Series:
     """
     Calculate the mean of pandas Series across folds.
     
     Args:
-        fold_metrics: List of pandas Series (e.g., ROI series from different folds)
+        folds_of_series: List of pandas Series (e.g., ROI series from different folds)
         
     Returns:
         Mean Series with same index as input series
     """
-    return pd.concat(fold_metrics, axis=1).mean(axis=1)
+    return pd.concat(folds_of_series, axis=1).mean(axis=1)
 
 def calculate_std_for_singular_values_across_cross_validation_folds(
     fold_metrics: List[AccuracyMetricResults], 
@@ -100,19 +100,19 @@ def calculate_std_for_singular_values_across_cross_validation_folds(
     metric_name = metric_name.value if hasattr(metric_name, 'value') else metric_name
     return np.std([getattr(fold_metric, metric_name) for fold_metric in fold_metrics])
 
-def calculate_std_for_series_across_cross_validation_folds(
-    fold_metrics: List[pd.Series]
+def calculate_stds_for_series_across_cross_validation_folds(
+    folds_of_series: List[pd.Series]
 ) -> pd.Series:
     """
     Calculate the standard deviation of pandas Series across folds.
     
     Args:
-        fold_metrics: List of pandas Series (e.g., ROI series from different folds)
+        folds_of_series: List of pandas Series (e.g., ROI series from different folds)
         
     Returns:
         Standard deviation Series with same index as input series
     """
-    return pd.concat(fold_metrics, axis=1).std(axis=1)
+    return pd.concat(folds_of_series, axis=1).std(axis=1)
 
 def calculate_absolute_percentage_change(
     baseline_series: pd.Series, comparison_series: pd.Series

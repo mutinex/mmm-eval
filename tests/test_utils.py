@@ -27,7 +27,13 @@ def valid_hydration_config_1():
             "gamma_control": Prior("Normal", mu=0, sigma=0.05),
             "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
         },
-        "fit_kwargs": {"target_accept": 0.9},
+        "fit_kwargs": {
+            "target_accept": 0.9,
+            "draws": 50,
+            "tune": 50,
+            "chains": 1,
+            "random_seed": 123,
+        },
     }
 
 
