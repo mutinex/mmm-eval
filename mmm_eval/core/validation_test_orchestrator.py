@@ -30,7 +30,7 @@ class ValidationTestOrchestrator:
             ValidationTestNames.ACCURACY: AccuracyTest,
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
             ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,
-            ValidationTestNames.PERTUBATION: PerturbationTest,
+            ValidationTestNames.PERTURBATION: PerturbationTest,
         }
 
     def _get_all_test_names(self) -> List[ValidationTestNames]:

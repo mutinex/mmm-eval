@@ -259,7 +259,7 @@ class PerturbationTest(BaseValidationTest):
 
     @property
     def test_name(self) -> str:
-        return ValidationTestNames.PERTUBATION
+        return ValidationTestNames.PERTURBATION
 
     def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -330,7 +330,7 @@ class PerturbationTest(BaseValidationTest):
         logger.info(f"Saving the test results for {self.test_name} test")
 
         return TestResult(
-            test_name=ValidationTestNames.PERTUBATION,
+            test_name=ValidationTestNames.PERTURBATION,
             passed=test_scores.check_test_passed(),
             metric_names=PerturbationMetricNames.metrics_to_list(),
             test_scores=test_scores,
