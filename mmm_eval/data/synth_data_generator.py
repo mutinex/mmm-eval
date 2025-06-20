@@ -30,6 +30,8 @@ def generate_data():
         dayofyear=lambda x: x["date_week"].dt.dayofyear,
     )
 
+    df["date_week"] = pd.to_datetime(df["date_week"])
+
     n = df.shape[0]
 
     # media spend data

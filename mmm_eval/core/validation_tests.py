@@ -44,8 +44,8 @@ class AccuracyTest(BaseValidationTest):
 
     def run(self, model: Any, data: pd.DataFrame) -> TestResult:
         train, test = self._split_data_holdout(data)
-        trained_model = model.fit(train)
-        predictions = trained_model.predict(test)
+        model.fit(train)  # fit() modifies model in-place, returns None
+        predictions = model.predict(test)  # predict() on same model instance
 
         # Calculate metrics and convert to expected format
         test_scores = AccuracyMetricResults(
@@ -100,8 +100,8 @@ class CrossValidationTest(BaseValidationTest):
             test = data.iloc[test_idx]
 
             # Get predictions
-            trained_model = model.fit(train)
-            predictions = trained_model.predict(test)
+            model.fit(train)
+            predictions = model.predict(test)
 
             # Add in fold results
             fold_metrics.append(
@@ -196,12 +196,9 @@ class RefreshStabilityTest(BaseValidationTest):
             refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
 
             # Train model and get coefficients
-            current_model = model.fit(
-                current_data
-            ).df  # todo(): Update these names when Sam finishes the adapter
-            refreshed_model = model.fit(
-                refresh_data
-            ).df  # todo(): Update these names when Sam finishes the adapter
+            model.fit(current_data)
+            current_model = model.df  # todo(): Update these names when Sam finishes the adapter
+            refreshed_model = model.df  # todo(): Update these names when Sam finishes the adapter
 
             # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
             current_model, refresh_model = self._filter_to_common_dates(
@@ -333,13 +330,15 @@ class PerturbationTest(BaseValidationTest):
         """
 
         # Train model on original data
-        original_model = model.fit(data)
-        original_contributions = self._aggregate_by_channel_and_sum(original_model.df)
+        model.fit(data)
+        original_model = model.df
+        original_contributions = self._aggregate_by_channel_and_sum(original_model)
 
         # Add noise to spend data and retrain
         noisy_data = self._add_gaussian_noise_to_spend(data)
-        noisy_model = model.fit(noisy_data)
-        noisy_contributions = self._aggregate_by_channel_and_sum(noisy_model.df)
+        model.fit(noisy_data)
+        noisy_model = model.df
+        noisy_contributions = self._aggregate_by_channel_and_sum(noisy_model)
 
         # Add calculated ROI column
         original_contributions[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
