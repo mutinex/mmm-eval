@@ -162,9 +162,9 @@ class RefreshStabilityTest(BaseValidationTest):
     def test_name(self) -> str:
         return ValidationTestNames.REFRESH_STABILITY
 
-    def _filter_to_common_dates(
+    def _get_common_dates(
         self, baseline_data: pd.DataFrame, comparison_data: pd.DataFrame
-    ) -> pd.DataFrame:
+    ) -> tuple[pd.Timestamp, pd.Timestamp]:
         """Filter the data to the common dates for stability comparison."""
 
         common_start_date = max(
@@ -176,18 +176,7 @@ class RefreshStabilityTest(BaseValidationTest):
             comparison_data[InputDataframeConstants.DATE_COL].max(),
         )
 
-        baseline_data_fil = baseline_data[
-            baseline_data[InputDataframeConstants.DATE_COL].between(
-                common_start_date, common_end_date
-            )
-        ]
-        comparison_data_fil = comparison_data[
-            comparison_data[InputDataframeConstants.DATE_COL].between(
-                common_start_date, common_end_date
-            )
-        ]
-
-        return baseline_data_fil, comparison_data_fil
+        return common_start_date, common_end_date
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
@@ -213,58 +202,33 @@ class RefreshStabilityTest(BaseValidationTest):
             refresh_data = pd.concat(
                 [current_data, data.iloc[refresh_idx]], ignore_index=True
             )
+            # Get common dates for roi stability comparison
+            common_start_date, common_end_date = self._get_common_dates(
+                baseline_data=current_data,
+                comparison_data=refresh_data,
+            )
 
             # Train model and get coefficients
             adapter.fit(current_data)
             current_model_rois = (
-                adapter.get_channel_roi()
-            )  # todo(): Update these names when Sam finishes the adapter
+                adapter.get_channel_roi(
+                    start_date=common_start_date,
+                    end_date=common_end_date,
+                )
+            )
             adapter.fit(refresh_data)
             refreshed_model_rois = (
-                adapter.get_channel_roi()
-            )  # todo(): Update these names when Sam finishes the adapter
-
-            # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
-            # todo(): Sam is going to build a function into get roi to do it by time period
-            # current_model, refresh_model = self._filter_to_common_dates(
-            #     baseline_data=current_model,
-            #     comparison_data=refreshed_model,
-            # )
-
-            # Get sum spend and return by channel
-            # current_model_grpd = self._aggregate_by_channel_and_sum(current_model)
-            # refresh_model_grpd = self._aggregate_by_channel_and_sum(refresh_model)
-
-            # # Add calculated ROI column
-            # current_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-            #     self._add_calculated_roi_column(current_model_grpd)
-            # )
-            # refresh_model_grpd[ValidationDataframeConstants.CALCULATED_ROI_COL] = (
-            #     self._add_calculated_roi_column(refresh_model_grpd)
-            # )
-
-            # merge the composition dfs by channel
-            # merged = self._combine_dataframes_by_channel(
-            #     baseline_df=current_model_rois,
-            #     comparison_df=refreshed_model_rois,
-            #     suffixes=("_current", "_refresh"),
-            # )
+                adapter.get_channel_roi(
+                    start_date=common_start_date,
+                    end_date=common_end_date,
+                )
+            )
 
             # calculate the pct change in volume
             percentage_change = calculate_absolute_percentage_change(
                 baseline_series=current_model_rois,
                 comparison_series=refreshed_model_rois,
             )
-            # merged[
-            #     ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL
-            # ] = calculate_absolute_percentage_change(
-            #     baseline_series=merged[
-            #         ValidationDataframeConstants.CALCULATED_ROI_COL + "_current"
-            #     ],
-            #     comparison_series=merged[
-            #         ValidationDataframeConstants.CALCULATED_ROI_COL + "_refresh"
-            #     ],
-            # )
 
             fold_metrics.append(percentage_change)
 

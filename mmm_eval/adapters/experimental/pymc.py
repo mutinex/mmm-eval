@@ -186,7 +186,7 @@ class PyMCAdapter(BaseAdapter):
             # return as a percentage
             rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
 
-        return rois
+        return pd.Series(rois)
 
 
 def _validate_start_end_dates(
