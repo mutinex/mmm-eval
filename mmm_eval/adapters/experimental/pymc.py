@@ -1,7 +1,8 @@
 """
 PyMC MMM framework adapter.
 
-N.B. expects control variables to be scaled to 0-1 using maxabs scaling.
+N.B. we expect control variables to be scaled to 0-1 using maxabs scaling BEFORE being
+passed to the PyMCAdapter.
 """
 
 import logging
@@ -28,20 +29,18 @@ class PyMCAdapter(BaseAdapter):
         super().__init__(config)
         PyMCConfigSchema.model_validate(config)
 
-        # Store explicitly needed pieces
-        self.response_col = config["response_column"]
         self.date_col = config["date_column"]
         self.channel_spend_cols = config["channel_columns"]
+
+        # Pop out items that are not needed for MMM constructor
+        self.response_col = config.pop("response_column")
         self.revenue_col = config.pop("revenue_column")
+        self.fit_kwargs = config.pop("fit_kwargs", {})
 
-        # Pass everything else (after extracting response_col) to MMM constructor
-        self.model_kwargs = {
-            k: v
-            for k, v in config.items()
-            if k != "response_column" and k != "fit_kwargs"
-        }
-        self.fit_kwargs = config.get("fit_kwargs", {})
-
+        # Everything else is passed to MMM constructor
+        self.model_kwargs = config.items()
+        
+        # initialise fields set in `fit`
         self.model = None
         self.trace = None
         self._channel_roi_df = None
@@ -52,6 +51,9 @@ class PyMCAdapter(BaseAdapter):
         Args:
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
         """
+        # TODO: this may be redundant after an upstream schema check, remove if so
+        _check_columns_in_data(data, [self.date_col, self.channel_spend_cols, self.response_col, self.revenue_col])
+            
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
 
@@ -65,6 +67,9 @@ class PyMCAdapter(BaseAdapter):
         """Predict the response variable for new data."""
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction.")
+        
+        # TODO: this may be redundant after an upstream schema check, remove if so
+        _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
 
         if self.response_col in data.columns:
             data = data.drop(columns=[self.response_col])
@@ -178,3 +183,10 @@ def _validate_start_end_dates(
         logger.info(
             f"End date is after the last date in the training data: {date_range.max()}"
         )
+
+
+def _check_columns_in_data(data: pd.DataFrame, column_sets: list[str], ) -> None:
+    """Check if column(s) are in a dataframe."""
+    for column_set in column_sets:
+        if set(column_set) - set(data.columns):
+            raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
