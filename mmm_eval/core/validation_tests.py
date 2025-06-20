@@ -15,9 +15,11 @@ from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
     calculate_mape,
-    calculate_mean_for_cross_validation_folds,
+    calculate_mean_for_series_across_cross_validation_folds,
     calculate_r_squared,
-    calculate_std_for_cross_validation_folds,
+    calculate_std_for_series_across_cross_validation_folds,
+    calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_std_for_singular_values_across_cross_validation_folds,
 )
 from mmm_eval.metrics.metric_models import (
     AccuracyMetricNames,
@@ -36,7 +38,7 @@ logger = logging.getLogger(__name__)
 class AccuracyTest(BaseValidationTest):
     """
     Validation test for model accuracy using holdout validation.
-    
+
     This test evaluates model performance by splitting data into train/test sets
     and calculating MAPE and R-squared metrics on the test set.
     """
@@ -127,16 +129,16 @@ class CrossValidationTest(BaseValidationTest):
 
         # Calculate mean and std of metrics across folds and create metric results
         test_scores = CrossValidationMetricResults(
-            mean_mape=calculate_mean_for_cross_validation_folds(
+            mean_mape=calculate_mean_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.MAPE
             ),
-            std_mape=calculate_std_for_cross_validation_folds(
+            std_mape=calculate_std_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.MAPE
             ),
-            mean_r_squared=calculate_mean_for_cross_validation_folds(
+            mean_r_squared=calculate_mean_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.R_SQUARED
             ),
-            std_r_squared=calculate_std_for_cross_validation_folds(
+            std_r_squared=calculate_std_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.R_SQUARED
             ),
         )
@@ -201,18 +203,26 @@ class RefreshStabilityTest(BaseValidationTest):
         # Run cross-validation
         for i, (train_idx, refresh_idx) in enumerate(cv_splits):
 
-            logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
+            logger.info(
+                f"Running refresh stability test fold {i+1} of {len(cv_splits)}"
+            )
 
             # Get train/test data
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
+            refresh_data = pd.concat(
+                [current_data, data.iloc[refresh_idx]], ignore_index=True
+            )
 
             # Train model and get coefficients
             adapter.fit(current_data)
-            current_model_rois = adapter.get_channel_roi()  # todo(): Update these names when Sam finishes the adapter
+            current_model_rois = (
+                adapter.get_channel_roi()
+            )  # todo(): Update these names when Sam finishes the adapter
             adapter.fit(refresh_data)
-            refreshed_model_rois = adapter.get_channel_roi()  # todo(): Update these names when Sam finishes the adapter
+            refreshed_model_rois = (
+                adapter.get_channel_roi()
+            )  # todo(): Update these names when Sam finishes the adapter
 
             # We test stability on how similar the retrained models coefficents are to the original model coefficents for the same time period
             # todo(): Sam is going to build a function into get roi to do it by time period
@@ -260,11 +270,11 @@ class RefreshStabilityTest(BaseValidationTest):
 
         # Question: Does it make sense to calculate the mean of the mean percentage change?
         test_scores = RefreshStabilityMetricResults(
-            mean_percentage_change=calculate_mean_for_cross_validation_folds(
-                fold_metrics, RefreshStabilityMetricNames.MEAN_PERCENTAGE_CHANGE
+            mean_percentage_change=calculate_mean_for_series_across_cross_validation_folds(
+                fold_metrics
             ),
-            std_percentage_change=calculate_std_for_cross_validation_folds(
-                fold_metrics, RefreshStabilityMetricNames.STD_PERCENTAGE_CHANGE
+            std_percentage_change=calculate_std_for_series_across_cross_validation_folds(
+                fold_metrics
             ),
         )
 
@@ -290,10 +300,10 @@ class PerturbationTest(BaseValidationTest):
     def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Generate Gaussian noise for perturbation testing.
-        
+
         Args:
             df: Input dataframe to determine noise size
-            
+
         Returns:
             Array of Gaussian noise values
         """
@@ -310,11 +320,11 @@ class PerturbationTest(BaseValidationTest):
     ) -> pd.DataFrame:
         """
         Add Gaussian noise to spend data for perturbation testing.
-        
+
         Args:
             df: Input dataframe
             spend_col: Column name for spend data
-            
+
         Returns:
             Dataframe with noise added to spend column
         """
