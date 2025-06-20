@@ -24,7 +24,11 @@ from .adapters import (
 )
 
 # Data utilities
-from .data.loaders import load_csv, load_from_database, DataLoader, PYMCConfig
+from .data.loaders import load_csv, load_from_database, DataLoader, load_data
+
+# Configs
+from .configs import get_config, save_config, load_config, PyMCConfig, MeridianConfig, EvalConfig, Config, PyMCConfigRehydrator
+
 
 __all__ = [
     # Core API
@@ -44,5 +48,12 @@ __all__ = [
     "load_csv",
     "load_from_database",
     "DataLoader",
-    "PYMCConfig",
+    "PyMCConfig",
+    "MeridianConfig",
+    "EvalConfig",
+    "Config",
+    "PyMCConfigRehydrator",
+    "load_config",
+    "save_config",
+    "load_data",
 ]
