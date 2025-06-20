@@ -14,7 +14,9 @@ mmm-eval provides a standardized way to evaluate and compare different MMM frame
 - **Flexible data handling**: Support for custom column names and data formats
 - **CLI interface**: Easy-to-use command-line tool for evaluation
 
-## Installation
+## Dependencies
+
+If on Mac OS15+, install the latest xcode.
 
 ### Using pip
 
