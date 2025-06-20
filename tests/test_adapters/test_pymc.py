@@ -1,12 +1,5 @@
-"""Test the PyMC adapter.
-
-TODO (SM): write tests for adapter instance methods
-"""
-
 import pytest
-
-# TODO: update this import once PyMCAdapter is promoted out of experimental
-from mmm_eval.adapters.experimental.pymc import PyMCAdapter
+from mmm_eval.adapters.pymc import PyMCAdapter
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
@@ -27,7 +20,6 @@ def valid_pymc_config_1():
             "gamma_control": Prior("Normal", mu=0, sigma=0.05),
             "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
         },
-        "fit_kwargs": {"target_accept": 0.9},
     }
 
 

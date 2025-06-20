@@ -11,16 +11,14 @@ from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.utils import PyMCConfigRehydrator
-from mmm_eval.adapters.experimental.schemas import PyMCConfigSchema
+from mmm_eval.adapters.experimental.schemas import PyMCConfigEvalSchema
 
 
 class PyMCAdapter(BaseAdapter):
     def __init__(self, config: dict):
-        super().__init__(config)
-
         # Rehydrate the config dictionary
         self.config = PyMCConfigRehydrator(config).rehydrate_config()
-        PyMCConfigSchema.model_validate(self.config)
+        PyMCConfigEvalSchema.model_validate(self.config)
 
         # Store explicitly needed pieces
         self.response_col = config["response_column"]

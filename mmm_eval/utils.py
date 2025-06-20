@@ -3,15 +3,16 @@ import re
 import pymc_marketing.mmm as mmm
 import pymc_marketing.prior as prior
 from typing import Any
-
+from mmm_eval.adapters.experimental.schemas import PyMCModelSchema, PyMCFitSchema
 
 class ConfigRehydrator:
     """
     Rehydrate a string config dictionary with PyMC objects.
     """
 
-    def __init__(self, config):
+    def __init__(self, config, schema_class: Any):
         self.config = config.copy()
+        self.schema_class = schema_class
 
     def build_class_registry(self, *modules):
         """Build a registry of classes from the given modules.
@@ -111,10 +112,10 @@ class ConfigRehydrator:
         Returns:
             dict: The rehydrated config dictionary.
         """
-        return self.rehydrate_value(self.config)
+        return self.schema_class.model_validate(self.rehydrate_value(self.config)).model_dump()
 
 
 class PyMCConfigRehydrator(ConfigRehydrator):
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, config, schema_class: PyMCModelSchema | PyMCFitSchema):
+        super().__init__(config, schema_class)
         self.class_registry = self.build_class_registry(mmm, prior)

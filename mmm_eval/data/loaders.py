@@ -7,37 +7,80 @@ import pandas as pd
 from pathlib import Path
 import json
 from logging import getLogger
+from pymc_marketing.mmm import MMM
+from mmm_eval.adapters.experimental.schemas import PyMCModelSchema, PyMCFitSchema
+from mmm_eval.utils import PyMCConfigRehydrator
+from pydantic import BaseModel
 
 
-def save_config(
-    model_kwargs: dict[str, Any],
-    fit_kwargs: dict[str, Any],
-    target_column: str,
-    save_path: str,
-    file_name: str,
-) -> dict[str, Any]:
-    """
-    Create a config object and save it to a JSON file.
+class Config:
+    def __init__(self, config: dict[str, Any]):
+        self.config = config
+        self.is_hydrated = self.check_hydration()
 
-    Args:
-        model_kwargs: Model configuration
-        fit_kwargs: Fit configuration
-        target_column: Target column name
-        save_path: Path to save the config file
-        file_name: Name of the config file to be saved
+    def check_hydration(self):
+        """
+        Check if the config is hydrated (not all strings)
 
-    Returns:
-        Config object
-    """
-    config = {
-        "model_config": {k: repr(v) for k, v in model_kwargs.items()},
-        "fit_config": {k: repr(v) for k, v in fit_kwargs.items()},
-        "target_column": target_column,
+        Returns:
+            bool: True if the config is hydrated, False otherwise.
+        """
+        return not all(isinstance(v, str) for v in self.config.values())
+
+
+class ConfigLoader:
+    def __init__(self, model_object: Any):
+        self.schema_class = None
+        self.model_object = model_object
+
+    def extract_config_from_dict(self) -> dict[str, Any]:
+        """
+        Load config from dictionary using only the keys defined in the schema.
+
+        Args:
+            config (dict): Dictionary (e.g., from model.__dict__).
+            schema_class (BaseModel): The Pydantic schema to validate against.
+
+        Returns:
+            dict: A schema-validated dictionary populated with values from config.
+        """
+        if self.schema_class is None:
+            raise ValueError("schema_class must be set before calling extract_config_from_dict")
+        schema_keys = self.schema_class.model_fields.keys()
+        filtered_dict = {k: v for k, v in self.model_object.__dict__.items() if k in schema_keys}
+        return self.schema_class(**filtered_dict).model_dump()
+
+    
+
+class PYMCConfig(ConfigLoader):
+    def __init__(self, model_object: Any, fit_kwargs: dict[str, Any], target_column: str):
+        super().__init__(model_object)
+        self.schema_class = PyMCModelSchema
+        self.model_config = Config(self.extract_config_from_dict())
+        self.fit_kwargs = Config(fit_kwargs)
+        self.target_column = target_column
+
+
+    def save_config_to_json(self, save_path: str, file_name: str):
+        config = {
+        "model_config": {k: repr(v) for k, v in self.model_config.config.items()},
+        "fit_config": {k: repr(v) for k, v in self.fit_kwargs.config.items()},
+        "target_column": self.target_column,
     }
-    Path(save_path).mkdir(parents=True, exist_ok=True)
-    json.dump(config, open(f"{save_path}/{file_name}.json", "w"))
-    getLogger(__name__).info(f"Config saved to {save_path}/{file_name}.json")
-    return config
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+        json.dump(config, open(f"{save_path}/{file_name}.json", "w"))
+        return self
+    
+    def load_config_from_json(self, load_path: str, file_name: str):
+        config = json.load(open(f"{load_path}/{file_name}.json"))
+        self.model_config = Config(self._rehydrate_config(config["model_config"], PyMCModelSchema))
+        self.fit_kwargs = Config(self._rehydrate_config(config["fit_config"], PyMCFitSchema))
+        self.target_column = config["target_column"]
+        return self
+    
+    def _rehydrate_config(self, config, schema_class: PyMCModelSchema | PyMCFitSchema):
+        hydrated_config = PyMCConfigRehydrator(config, schema_class).rehydrate_config()
+        return hydrated_config
 
 
 class DataLoader:
