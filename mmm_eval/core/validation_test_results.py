@@ -48,10 +48,10 @@ class TestResult:
     def to_dict(self) -> Dict[ValidationTestAttributeNames, Any]:
         """Convert results to dictionary format."""
         return {
-            ValidationTestAttributeNames.TEST_NAME: self.test_name,
+            ValidationTestAttributeNames.TEST_NAME: self.test_name.value,
             ValidationTestAttributeNames.PASSED: self.passed, #todo(): Perhaps set as false permanently or dont use if we dont want thresh
             ValidationTestAttributeNames.METRIC_NAMES: self.metric_names,
-            ValidationTestAttributeNames.TEST_SCORES: self.test_scores,
+            ValidationTestAttributeNames.TEST_SCORES: self.test_scores.to_dict(),
             ValidationTestAttributeNames.TIMESTAMP: self.timestamp.isoformat(),
         }
 
@@ -88,7 +88,7 @@ class ValidationResult:
             ValidationResultAttributeNames.TIMESTAMP: self.timestamp.isoformat(),
             ValidationResultAttributeNames.ALL_PASSED: self.all_passed(),
             ValidationResultAttributeNames.RESULTS: {
-                name: result.to_dict() 
-                for name, result in self.test_results.items()
+                result.test_name.value: result.to_dict() 
+                for result in self.test_results.values()
             }
         }

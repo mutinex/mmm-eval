@@ -12,7 +12,7 @@ class ValidationTestNames(StrEnum):
     ACCURACY = "accuracy"
     CROSS_VALIDATION = "cross_validation"
     REFRESH_STABILITY = "refresh_stability"
-    PERTUBATION = "perturbation"
+    PERTURBATION = "perturbation"
 
     @classmethod
     def all_tests(cls) -> List['ValidationTestNames']:

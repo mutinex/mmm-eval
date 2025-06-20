@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Dict, Any
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
@@ -48,6 +48,10 @@ class MetricResults(BaseModel):
         """
         
         raise NotImplementedError("Child classes must implement test_passed()")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert the class of test results to dictionary format."""
+        return self.model_dump()
 
 
 class AccuracyMetricResults(MetricResults):
