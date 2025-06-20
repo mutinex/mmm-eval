@@ -232,7 +232,7 @@ class RefreshStabilityTest(BaseValidationTest):
 
             fold_metrics.append(percentage_change)
 
-        # Question: Does it make sense to calculate the mean of the mean percentage change?
+        # Calculate mean and std of percentage change for each channel across cross validation folds
         test_scores = RefreshStabilityMetricResults(
             mean_percentage_change_for_each_channel=calculate_means_for_series_across_cross_validation_folds(
                 fold_metrics

@@ -24,8 +24,6 @@ from .adapters.experimental.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .adapters import (
     get_adapter,
-    # MeridianAdapter,
-    # PyMCAdapter,
 )
 from .configs import PyMCConfig, PyMCConfigRehydrator
 from .core.evaluator import Evaluator

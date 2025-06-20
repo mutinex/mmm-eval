@@ -49,7 +49,7 @@ class TestResult:
         """Convert results to dictionary format."""
         return {
             ValidationTestAttributeNames.TEST_NAME: self.test_name,
-            ValidationTestAttributeNames.PASSED: self.passed,
+            ValidationTestAttributeNames.PASSED: self.passed, #todo(): Perhaps set as false permanently or dont use if we dont want thresh
             ValidationTestAttributeNames.METRIC_NAMES: self.metric_names,
             ValidationTestAttributeNames.TEST_SCORES: self.test_scores,
             ValidationTestAttributeNames.TIMESTAMP: self.timestamp.isoformat(),
