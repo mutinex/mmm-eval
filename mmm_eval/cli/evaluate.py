@@ -64,7 +64,6 @@ def main(
     data = load_data(input_data_path)
 
     config = get_config(framework, config_path)
-    
 
     output_path_obj = (
         Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None

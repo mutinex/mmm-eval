@@ -84,7 +84,8 @@ def evaluate_framework(
         metrics = ["mape", "rmse"]
 
     # Get the appropriate adapter for the framework
-    adapter = get_adapter(framework, config)
+    adapter = get_adapter(framework, data, config)
+    adapter.fit()
 
     return 0
 
