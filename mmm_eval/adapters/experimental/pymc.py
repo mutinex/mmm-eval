@@ -29,6 +29,9 @@ class PyMCAdapter(BaseAdapter):
         super().__init__(config)
         PyMCConfigSchema.model_validate(config)
 
+        # copy config to avoid mutating the original
+        config = config.copy()
+
         self.date_col = config["date_column"]
         self.channel_spend_cols = config["channel_columns"]
 
@@ -38,7 +41,7 @@ class PyMCAdapter(BaseAdapter):
         self.fit_kwargs = config.pop("fit_kwargs", {})
 
         # Everything else is passed to MMM constructor
-        self.model_kwargs = config.items()
+        self.model_kwargs = config
         
         # initialise fields set in `fit`
         self.model = None
@@ -106,13 +109,12 @@ class PyMCAdapter(BaseAdapter):
             dim=["chain", "draw"]
         )
 
-        # FIXME: infer the index/column names from the data
-        channel_response_cols = [f"{col}_units" for col in self.channel_spend_cols]
         cont_df = pd.DataFrame(
             channel_cont,
-            columns=channel_response_cols,
-            index=channel_cont["date"].values,
+            columns=channel_cont["channel"].to_numpy(),
+            index=channel_cont["date"].to_numpy(),
         )
+        cont_df.columns = [f"{col}_units" for col in self.channel_spend_cols]
         cont_df = pd.merge(
             cont_df,
             data[
@@ -186,7 +188,16 @@ def _validate_start_end_dates(
 
 
 def _check_columns_in_data(data: pd.DataFrame, column_sets: list[str], ) -> None:
-    """Check if column(s) are in a dataframe."""
+    """Check if column(s) are in a dataframe.
+    
+    Args:
+        data: DataFrame to check
+        column_sets: list of column sets to check
+
+    Raises:
+        ValueError: If not all column(s) in `column_set` are found in `data`.
+    """
     for column_set in column_sets:
-        if set(column_set) - set(data.columns):
+        column_set = [column_set] if isinstance(column_set, str) else column_set
+        if set(column_set) - set(data.columns) != set():
             raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
