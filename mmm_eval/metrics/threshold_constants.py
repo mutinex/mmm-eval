@@ -1,5 +1,6 @@
 # This file contains the threshold constants for the different tests
 
+
 class AccuracyThresholdConstants:
     """
     Constants for the accuracy threshold
@@ -7,6 +8,7 @@ class AccuracyThresholdConstants:
 
     MAPE = 0.15
     R_SQUARED = 0.8
+
 
 class CrossValidationThresholdConstants:
     """
@@ -18,6 +20,7 @@ class CrossValidationThresholdConstants:
     STD_MAPE = 0.03
     MEAN_R_SQUARED = 0.8
 
+
 class RefreshStabilityThresholdConstants:
     """
     Constants for the refresh stability threshold
@@ -25,6 +28,7 @@ class RefreshStabilityThresholdConstants:
 
     MEAN_PERCENTAGE_CHANGE = 0.15
     STD_PERCENTAGE_CHANGE = 0.03
+
 
 class PerturbationThresholdConstants:
     """

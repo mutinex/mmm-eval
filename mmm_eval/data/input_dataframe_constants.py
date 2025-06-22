@@ -1,5 +1,6 @@
 # This file defines the constants for the dataframe
 
+
 class InputDataframeConstants:
     """
     Constants for the dataframe

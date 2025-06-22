@@ -3,7 +3,9 @@
 from mmm_eval.configs import PyMCConfig
 from typing import Dict, Any, Optional
 # from .pymc import PyMCAdapter
-from .experimental.pymc import PyMCAdapter #todo(): remove this once PyMCAdapter is promoted out of experimental
+from .experimental.pymc import (
+    PyMCAdapter,
+)  # todo(): remove this once PyMCAdapter is promoted out of experimental
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {

@@ -17,7 +17,15 @@ from .core.validation_test_results import TestResult, ValidationResult
 from .core.base_validation_test import BaseValidationTest
 
 # Metrics
-from .metrics.accuracy_functions import calculate_mape, calculate_r_squared, calculate_means_for_series_across_cross_validation_folds, calculate_stds_for_series_across_cross_validation_folds, calculate_mean_for_singular_values_across_cross_validation_folds, calculate_std_for_singular_values_across_cross_validation_folds
+from .metrics.accuracy_functions import (
+    calculate_mape,
+    calculate_r_squared,
+    calculate_means_for_series_across_cross_validation_folds,
+    calculate_stds_for_series_across_cross_validation_folds,
+    calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_std_for_singular_values_across_cross_validation_folds,
+)
+
 # Adapters
 from .adapters import get_adapter
 from .adapters.experimental.pymc import PyMCAdapter

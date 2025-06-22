@@ -8,7 +8,11 @@ from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import TestResult
-from mmm_eval.core.exceptions import DataValidationError, MetricCalculationError, TestExecutionError
+from mmm_eval.core.exceptions import (
+    DataValidationError,
+    MetricCalculationError,
+    TestExecutionError,
+)
 import pandas as pd
 import logging
 
@@ -23,17 +27,19 @@ class BaseValidationTest(ABC):
     the required methods to provide a unified testing interface.
     """
 
-    def run_with_error_handling(self, adapter: BaseAdapter, data: pd.DataFrame) -> "TestResult":
+    def run_with_error_handling(
+        self, adapter: BaseAdapter, data: pd.DataFrame
+    ) -> "TestResult":
         """
         Run the validation test with error handling.
-        
+
         Args:
             adapter: The adapter to validate
             data: Input data for validation
-            
+
         Returns:
             TestResult object containing test results
-            
+
         Raises:
             DataValidationError: If data validation fails
             MetricCalculationError: If metric calculation fails
@@ -43,11 +49,17 @@ class BaseValidationTest(ABC):
         try:
             return self.run(adapter, data)
         except (KeyError, IndexError, ValueError) as e:
-            raise DataValidationError(f"Data validation error in {self.test_name} test: {str(e)}")
+            raise DataValidationError(
+                f"Data validation error in {self.test_name} test: {str(e)}"
+            )
         except (ZeroDivisionError, TypeError) as e:
-            raise MetricCalculationError(f"Metric calculation error in {self.test_name} test: {str(e)}")
+            raise MetricCalculationError(
+                f"Metric calculation error in {self.test_name} test: {str(e)}"
+            )
         except Exception as e:
-            raise TestExecutionError(f"Unexpected error in {self.test_name} test: {str(e)}")
+            raise TestExecutionError(
+                f"Unexpected error in {self.test_name} test: {str(e)}"
+            )
 
     @abstractmethod
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> "TestResult":
@@ -88,7 +100,9 @@ class BaseValidationTest(ABC):
             test: The test data
         """
 
-        logger.info(f"Splitting data into train and test sets for {self.test_name} test")
+        logger.info(
+            f"Splitting data into train and test sets for {self.test_name} test"
+        )
 
         train, test = train_test_split(
             data,
@@ -112,7 +126,9 @@ class BaseValidationTest(ABC):
             test: The test data
         """
 
-        logger.info(f"Splitting data into train and test sets for {self.test_name} test")
+        logger.info(
+            f"Splitting data into train and test sets for {self.test_name} test"
+        )
 
         cv = TimeSeriesSplit(
             n_splits=ValidationTestConstants.N_SPLITS,

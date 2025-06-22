@@ -8,7 +8,7 @@ from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
 from mmm_eval.data.pipeline import DataPipeline
 import pandas as pd
-from typing import Optional, Dict, Any, List    
+from typing import Optional, Dict, Any, List
 
 from mmm_eval.core.evaluator import Evaluator
 from mmm_eval.core.validation_tests_models import ValidationTestNames

@@ -8,6 +8,7 @@ from mmm_eval.data.synth_data_generator import generate_data
 from tests.test_configs.test_configs import SAMPLE_CONFIG_JSON
 
 
+
 def test_cli_e2e_pymc_marketing(tmp_path):
     """End-to-end test for PyMC Marketing framework using Click test runner."""
     # Set up test data
@@ -53,4 +54,6 @@ def test_cli_e2e_pymc_marketing(tmp_path):
     print(f"Output: {result.output}")
     print(f"Exception: {result.exception}")
     # Check that the CLI command succeeded
-    assert result.exit_code == 0, f"CLI command failed with exit code {result.exit_code}. Output: {result.output}"
+    assert (
+        result.exit_code == 0
+    ), f"CLI command failed with exit code {result.exit_code}. Output: {result.output}"

@@ -2,7 +2,6 @@
 Unit tests for validation test result classes.
 """
 
-import pytest
 import pandas as pd
 from datetime import datetime
 from mmm_eval.core.validation_test_results import TestResult, ValidationResult
@@ -27,55 +26,61 @@ class TestTestResult:
         """Test TestResult creation and to_dict conversion."""
         test_scores = AccuracyMetricResults(mape=0.1, r_squared=0.8)
         metric_names = AccuracyMetricNames.metrics_to_list()
-        
+
         result = TestResult(
             test_name=ValidationTestNames.ACCURACY,
             passed=True,
             metric_names=metric_names,
             test_scores=test_scores,
         )
-        
+
         # Test basic properties
         assert result.test_name == ValidationTestNames.ACCURACY
         assert result.passed is True
         assert isinstance(result.timestamp, datetime)
-        
+
         # Test to_dict conversion
         result_dict = result.to_dict()
         assert isinstance(result_dict, dict)
-        assert result_dict[ValidationTestAttributeNames.TEST_NAME] == ValidationTestNames.ACCURACY
+        assert (
+            result_dict[ValidationTestAttributeNames.TEST_NAME]
+            == ValidationTestNames.ACCURACY
+        )
         assert result_dict[ValidationTestAttributeNames.PASSED] is True
         assert ValidationTestAttributeNames.TIMESTAMP in result_dict
 
     def test_test_result_to_dict_with_series_metrics(self):
         """Test TestResult to_dict conversion with Series-based metrics."""
         # Test with RefreshStabilityMetricResults
-        mean_series = pd.Series({'channel_1': 0.1, 'channel_2': 0.05})
-        std_series = pd.Series({'channel_1': 0.02, 'channel_2': 0.01})
+        mean_series = pd.Series({"channel_1": 0.1, "channel_2": 0.05})
+        std_series = pd.Series({"channel_1": 0.02, "channel_2": 0.01})
         test_scores = RefreshStabilityMetricResults(
             mean_percentage_change_for_each_channel=mean_series,
-            std_percentage_change_for_each_channel=std_series
+            std_percentage_change_for_each_channel=std_series,
         )
         metric_names = RefreshStabilityMetricNames.metrics_to_list()
-        
+
         result = TestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=True,
             metric_names=metric_names,
             test_scores=test_scores,
         )
-        
+
         # Test to_dict conversion
         result_dict = result.to_dict()
         assert isinstance(result_dict, dict)
-        assert result_dict[ValidationTestAttributeNames.TEST_NAME] == ValidationTestNames.REFRESH_STABILITY
+        assert (
+            result_dict[ValidationTestAttributeNames.TEST_NAME]
+            == ValidationTestNames.REFRESH_STABILITY
+        )
         assert result_dict[ValidationTestAttributeNames.PASSED] is True
-        
+
         # Check that test_scores are properly serialized
         test_scores_dict = result_dict[ValidationTestAttributeNames.TEST_SCORES]
         assert isinstance(test_scores_dict, dict)
-        assert 'mean_percentage_change_for_each_channel' in test_scores_dict
-        assert 'std_percentage_change_for_each_channel' in test_scores_dict
+        assert "mean_percentage_change_for_each_channel" in test_scores_dict
+        assert "std_percentage_change_for_each_channel" in test_scores_dict
 
 
 class TestValidationResult:
@@ -90,35 +95,37 @@ class TestValidationResult:
             metric_names=AccuracyMetricNames.metrics_to_list(),
             test_scores=AccuracyMetricResults(mape=0.1, r_squared=0.8),
         )
-        
+
         # Create stability result with new field names
-        mean_series = pd.Series({'channel_1': 0.1, 'channel_2': 0.05})
-        std_series = pd.Series({'channel_1': 0.02, 'channel_2': 0.01})
+        mean_series = pd.Series({"channel_1": 0.1, "channel_2": 0.05})
+        std_series = pd.Series({"channel_1": 0.02, "channel_2": 0.01})
         stability_result = TestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=False,
             metric_names=RefreshStabilityMetricNames.metrics_to_list(),
             test_scores=RefreshStabilityMetricResults(
                 mean_percentage_change_for_each_channel=mean_series,
-                std_percentage_change_for_each_channel=std_series
+                std_percentage_change_for_each_channel=std_series,
             ),
         )
-        
+
         test_results = {
             ValidationTestNames.ACCURACY: accuracy_result,
             ValidationTestNames.REFRESH_STABILITY: stability_result,
         }
-        
+
         validation_result = ValidationResult(test_results)
-        
+
         # Test basic properties
         assert validation_result.test_results == test_results
         assert isinstance(validation_result.timestamp, datetime)
-        
+
         # Test get_test_result
-        retrieved_result = validation_result.get_test_result(ValidationTestNames.ACCURACY)
+        retrieved_result = validation_result.get_test_result(
+            ValidationTestNames.ACCURACY
+        )
         assert retrieved_result == accuracy_result
-        
+
         # Test all_passed
         assert validation_result.all_passed() is False
 
@@ -136,43 +143,46 @@ class TestValidationResult:
             metric_names=AccuracyMetricNames.metrics_to_list(),
             test_scores=AccuracyMetricResults(mape=0.1, r_squared=0.8),
         )
-        
+
         test_results = {ValidationTestNames.ACCURACY: accuracy_result}
         validation_result = ValidationResult(test_results)
-        
+
         result_dict = validation_result.to_dict()
-        
+
         assert ValidationResultAttributeNames.TIMESTAMP in result_dict
         assert ValidationResultAttributeNames.ALL_PASSED in result_dict
         assert ValidationResultAttributeNames.RESULTS in result_dict
         assert result_dict[ValidationResultAttributeNames.ALL_PASSED] is True
-        assert ValidationTestNames.ACCURACY in result_dict[ValidationResultAttributeNames.RESULTS]
+        assert (
+            ValidationTestNames.ACCURACY
+            in result_dict[ValidationResultAttributeNames.RESULTS]
+        )
 
     def test_validation_result_to_dict_with_series_metrics(self):
         """Test ValidationResult to_dict conversion with Series-based metrics."""
         # Create test result with Series-based metrics
-        percentage_change_series = pd.Series({'TV': 0.03, 'Radio': 0.07})
+        percentage_change_series = pd.Series({"TV": 0.03, "Radio": 0.07})
         perturbation_result = TestResult(
             test_name=ValidationTestNames.PERTURBATION,
             passed=True,
-            metric_names=['percentage_change_for_each_channel'],
+            metric_names=["percentage_change_for_each_channel"],
             test_scores=PerturbationMetricResults(
                 percentage_change_for_each_channel=percentage_change_series
             ),
         )
-        
+
         test_results = {ValidationTestNames.PERTURBATION: perturbation_result}
         validation_result = ValidationResult(test_results)
-        
+
         result_dict = validation_result.to_dict()
-        
+
         # Check that the result is properly serialized
         assert ValidationResultAttributeNames.RESULTS in result_dict
         results = result_dict[ValidationResultAttributeNames.RESULTS]
         assert ValidationTestNames.PERTURBATION in results
-        
+
         # Check that the test scores are properly serialized
         test_result_dict = results[ValidationTestNames.PERTURBATION]
         test_scores_dict = test_result_dict[ValidationTestAttributeNames.TEST_SCORES]
         assert isinstance(test_scores_dict, dict)
-        assert 'percentage_change_for_each_channel' in test_scores_dict 
+        assert "percentage_change_for_each_channel" in test_scores_dict

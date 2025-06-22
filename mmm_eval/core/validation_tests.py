@@ -3,13 +3,10 @@
 import logging
 import numpy as np
 import pandas as pd
-from typing import Any, Dict, Union
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.constants import PerturbationConstants, ValidationDataframeConstants
-from mmm_eval.core.constants import ValidationTestConstants
+from mmm_eval.core.constants import PerturbationConstants
 from mmm_eval.core.validation_test_results import TestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
-from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
@@ -210,18 +207,14 @@ class RefreshStabilityTest(BaseValidationTest):
 
             # Train model and get coefficients
             adapter.fit(current_data)
-            current_model_rois = (
-                adapter.get_channel_roi(
-                    start_date=common_start_date,
-                    end_date=common_end_date,
-                )
+            current_model_rois = adapter.get_channel_roi(
+                start_date=common_start_date,
+                end_date=common_end_date,
             )
             adapter.fit(refresh_data)
-            refreshed_model_rois = (
-                adapter.get_channel_roi(
-                    start_date=common_start_date,
-                    end_date=common_end_date,
-                )
+            refreshed_model_rois = adapter.get_channel_roi(
+                start_date=common_start_date,
+                end_date=common_end_date,
             )
 
             # calculate the pct change in volume
@@ -297,7 +290,6 @@ class PerturbationTest(BaseValidationTest):
         for spend_col in spend_cols:
             df_copy[spend_col] = df[spend_col] * (1 + noise)
         return df_copy
-
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
         """
