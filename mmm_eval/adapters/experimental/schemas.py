@@ -5,7 +5,7 @@ from pymc_marketing.mmm.components.saturation import SaturationTransformation
 
 
 class PyMCInputDataSchema(BaseModel):
-    """Schema for input CSV data"""
+    """Schema for input CSV data."""
 
     date_column: str = Field(..., description="Column name of the date variable.")
     channel_columns: list[str] = Field(
@@ -90,20 +90,56 @@ class PyMCModelSchema(BaseModel):
     )
     outcome_node: str | None = Field(None, description="Name of the outcome variable.")
 
-    @validator("channel_columns")
+    @field_validator("channel_columns")
     def validate_channel_columns(cls, v):
+        """Validate channel columns are not empty.
+
+        Args:
+            v: Channel columns value
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If channel columns is empty
+
+        """
         if v is not None and not v:
             raise ValueError("channel_columns must not be empty")
         return v
 
-    @validator("adstock")
+    @field_validator("adstock")
     def validate_adstock(cls, v):
+        """Validate adstock component.
+
+        Args:
+            v: Adstock value
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If adstock is not a valid type
+
+        """
         if v is not None:
             assert isinstance(v, AdstockTransformation)
         return v
 
-    @validator("saturation")
+    @field_validator("saturation")
     def validate_saturation(cls, v):
+        """Validate saturation component.
+
+        Args:
+            v: Saturation value
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If saturation is not a valid type
+
+        """
         if v is not None:
             assert isinstance(v, SaturationTransformation)
         return v

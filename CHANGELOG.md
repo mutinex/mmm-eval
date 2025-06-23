@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2025-06-23
+
+### Added
+
+- Data loading pipeline
+
+## [0.1.1] - 2025-06-23
+
+### Added
+
+- Tools version
+- Setup script for environment
+
+### Fixed
+
+- `pyproject.toml` to be Poetry-specific configuratin instead of PEP621 standard metadata
+
+## [0.1.0] - 2025-06-16
+
 ### Added
 
 - Initial project structure
@@ -21,8 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated from setuptools to Poetry for packaging and dependency management
 - Updated development workflow to use Poetry commands
 - Restructured dependency management with Poetry groups
-
-## [0.1.0] - 2024-01-XX
 
 ### Added
 

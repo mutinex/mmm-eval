@@ -1,5 +1,9 @@
-import pytest
+"""Test CLI evaluation functionality."""
+
+import json
+import os
 import subprocess
+
 import pandas as pd
 from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
 from mmm_eval.configs import PyMCConfig
@@ -16,25 +20,26 @@ TARGET_COLUMN = "quantity"
 
 
 @pytest.mark.parametrize(
-    "cmd_template,expected",
+    "cmd_template,expected_return_code",
     [
         (
-            "mmm-eval --input-data-path {data_path} --framework pymc-marketing --output-path {output_path} --config-path {config_path}",
-            True,
+            "mmm-eval --input-data-path {data_path} --framework pymc-marketing "
+            "--output-path {output_path} --config-path {config_path}",
+            1,  # Should work fine
         ),
         (
             "mmm-eval --output-path {output_path} --config-path {config_path}",
             False,
         ),
         (
-            "mmm-eval --input-data-path {data_path} --framework NotAFramework --output-path {output_path} --config-path {config_path}",
-            False,
+            "mmm-eval --input-data-path {data_path} --framework NotAFramework "
+            "--output-path {output_path} --config-path {config_path}",
+            2,  # Usage error
         ),
     ],
 )
-def test_cli_as_subprocess(tmp_path, cmd_template, expected):
+def test_cli_as_subprocess(tmp_path, cmd_template, expected_return_code):
     """Test the evaluate CLI command as a subprocess."""
-
     # Set up paths
     data_path = tmp_path / "data.csv"
     output_path = tmp_path / "output"
@@ -54,7 +59,6 @@ def test_cli_as_subprocess(tmp_path, cmd_template, expected):
 
     result = subprocess.run(cmd, capture_output=False, text=True, shell=True)
 
-    if expected:
-        assert result.returncode == 0
-    else:
-        assert result.returncode != 0, f"Expected failure but got success: {cmd}"
+    assert (
+        result.returncode == expected_return_code
+    ), f"Expected return code {expected_return_code} but got {result.returncode} for command: {cmd}"

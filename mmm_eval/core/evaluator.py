@@ -1,18 +1,15 @@
-"""
-Main evaluator for MMM frameworks.
-"""
+"""Main evaluator for MMM frameworks."""
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
 from pathlib import Path
+from typing import Any
+
+import pandas as pd
+
 from .results import EvaluationResults
 
 
-def _compute_metrics(
-    actual: pd.Series, predicted: pd.Series, metrics: List[str]
-) -> Dict[str, float]:
-    """
-    Compute specified metrics for actual vs predicted values.
+def _compute_metrics(actual: pd.Series, predicted: pd.Series, metrics: list[str]) -> dict[str, float]:
+    """Compute specified metrics for actual vs predicted values.
 
     Args:
         actual: Actual values
@@ -21,6 +18,7 @@ def _compute_metrics(
 
     Returns:
         Dictionary mapping metric names to values
+
     """
     from ..metrics.accuracy import AVAILABLE_METRICS
 
@@ -28,9 +26,7 @@ def _compute_metrics(
 
     for metric in metrics:
         if metric not in AVAILABLE_METRICS:
-            raise ValueError(
-                f"Unknown metric: {metric}. Available metrics: {list(AVAILABLE_METRICS.keys())}"
-            )
+            raise ValueError(f"Unknown metric: {metric}. Available metrics: {list(AVAILABLE_METRICS.keys())}")
 
         metric_func = AVAILABLE_METRICS[metric]
         results[metric] = metric_func(actual, predicted)
@@ -41,19 +37,19 @@ def _compute_metrics(
 def evaluate_framework(
     framework: str,
     data: pd.DataFrame,
-    config: Optional[Dict[str, Any]] = None,
-    metrics: Optional[List[str]] = None,
-    output_path: Optional[Path] = None,
+    config: dict[str, Any] | None = None,
+    metrics: list[str] | None = None,
+    output_path: Path | None = None,
     **kwargs,
 ) -> EvaluationResults:
-    """
-    Evaluate an MMM framework using the unified API.
+    """Evaluate an MMM framework using the unified API.
 
     Args:
         framework: Name of the MMM framework to evaluate
         data: Input data containing media channels, KPI, and other variables
         config: Framework-specific configuration
         metrics: List of metrics to compute (defaults to ["mape", "rmse"])
+        output_path: Optional path to save evaluation results
         **kwargs: Additional framework-specific parameters
 
     Returns:
@@ -77,19 +73,22 @@ def evaluate_framework(
         ...     metrics=["mape", "rmse", "r_squared"]
         ... )
         >>> print(results)
-    """
-    from ..adapters import get_adapter
 
+    """
     if metrics is None:
         metrics = ["mape", "rmse"]
 
-    # Get the appropriate adapter for the framework
-    adapter = get_adapter(framework, data, config)
-    return 0
-
     # TODO: implement fit and evaluate
+    # For now, return a placeholder result
+    return EvaluationResults(
+        framework=framework,
+        metrics={},
+        predictions=pd.Series(),
+        actual=pd.Series(),
+    )
 
     # Use the adapter to fit and evaluate
+    # adapter = get_adapter(framework, config)
     # results = adapter.fit_and_evaluate(
     #     data=data, target_column=target_column, metrics=metrics, **kwargs
     # )

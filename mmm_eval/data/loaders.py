@@ -1,166 +1,66 @@
-"""
-Data loading utilities for MMM evaluation.
-"""
+"""Data loading utilities for MMM evaluation."""
 
-from typing import Dict, Any, Optional, Union
 from pathlib import Path
+
 import pandas as pd
-from mmm_eval.configs.utils import validate_path
 
-
-def load_data(data_path: str) -> pd.DataFrame:
-    """Load data from CSV file."""
-    data_path = validate_path(data_path)
-    if not data_path.suffix.lower() == ".csv":
-        raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
-    return pd.read_csv(data_path)
+from mmm_eval.data.constants import DataLoaderConstants
 
 
 class DataLoader:
+    """Simple data loader for MMM evaluation.
+
+    Takes a data path and loads the data.
     """
-    Base data loader class for MMM evaluation.
 
-    Provides utilities for loading and basic validation of MMM data.
-    """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        """
-        Initialize data loader.
+    def __init__(self, data_path: str | Path):
+        """Initialize data loader with data path.
 
         Args:
-            config: Configuration for data loading
-        """
-        self.config = config or {}
-        self.required_columns = config.get("required_columns", []) if config else []
-        self.date_column = config.get("date_column", "date") if config else "date"
-        self.kpi_column = config.get("kpi_column", "kpi") if config else "kpi"
-
-    def load(self, source: Union[str, Path, pd.DataFrame], **kwargs) -> pd.DataFrame:
-        """
-        Load data from various sources.
-
-        Args:
-            source: Data source (file path, DataFrame, etc.)
-            **kwargs: Additional loading parameters
-
-        Returns:
-            Loaded DataFrame
-        """
-        if isinstance(source, pd.DataFrame):
-            data = source.copy()
-        elif isinstance(source, (str, Path)):
-            if str(source).endswith(".csv"):
-                data = load_csv(source, **kwargs)
-            else:
-                raise ValueError(f"Unsupported file format: {source}")
-        else:
-            raise ValueError(f"Unsupported data source type: {type(source)}")
-
-        return self._validate_data(data)
-
-    def _validate_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """
-        Basic validation of MMM data.
-
-        Args:
-            data: Input DataFrame
-
-        Returns:
-            Validated DataFrame
+            data_path: Path to the data file (CSV, Parquet, etc.)
 
         Raises:
-            ValueError: If validation fails
+            FileNotFoundError: If the data file does not exist.
+
         """
-        # Check required columns
-        missing_cols = [col for col in self.required_columns if col not in data.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
+        self.data_path = Path(data_path)
 
-        # Check if KPI column exists
-        if self.kpi_column not in data.columns:
-            raise ValueError(f"KPI column '{self.kpi_column}' not found in data")
+        if not self.data_path.exists():
+            raise FileNotFoundError(f"Data file not found: {self.data_path}")
 
-        # Check for basic data quality
-        if data.empty:
-            raise ValueError("Data is empty")
+    def load(self) -> pd.DataFrame:
+        """Load data from the specified path.
 
-        # Check for null values in KPI
-        if data[self.kpi_column].isnull().all():
-            raise ValueError(f"All values in KPI column '{self.kpi_column}' are null")
+        Returns
+            Loaded DataFrame
 
-        return data
+        Raises
+            ValueError: If the file format is not supported.
 
+        """
+        ext = self.data_path.suffix.lower().lstrip(".")
+        if ext not in DataLoaderConstants.ValidDataExtensions.all():
+            raise ValueError(f"Unsupported file format: {self.data_path.suffix}")
 
-def load_csv(
-    file_path: Union[str, Path],
-    date_column: Optional[str] = None,
-    parse_dates: bool = True,
-    **kwargs,
-) -> pd.DataFrame:
-    """
-    Load data from CSV file.
+        if ext == DataLoaderConstants.ValidDataExtensions.CSV:
+            return self._load_csv()
+        elif ext == DataLoaderConstants.ValidDataExtensions.PARQUET:
+            return self._load_parquet()
 
-    Args:
-        file_path: Path to CSV file
-        date_column: Name of date column to parse
-        parse_dates: Whether to parse date columns
-        **kwargs: Additional pandas.read_csv parameters
+    def _load_csv(self) -> pd.DataFrame:
+        """Load CSV data.
 
-    Returns:
-        Loaded DataFrame
-    """
-    # Set default parameters for MMM data
-    default_kwargs = {
-        "index_col": None,
-        "encoding": "utf-8",
-    }
-    default_kwargs.update(kwargs)
+        Returns
+            Loaded DataFrame
 
-    # Load data
-    data = pd.read_csv(file_path, **default_kwargs)
+        """
+        return pd.read_csv(self.data_path)
 
-    # Parse dates if specified
-    if parse_dates and date_column and date_column in data.columns:
-        data[date_column] = pd.to_datetime(data[date_column])
-        data = data.sort_values(date_column).reset_index(drop=True)
+    def _load_parquet(self) -> pd.DataFrame:
+        """Load Parquet data.
 
-    return data
+        Returns
+            Loaded DataFrame
 
-
-def load_from_database(
-    connection_string: str, query: str, date_column: Optional[str] = None, **kwargs
-) -> pd.DataFrame:
-    """
-    Load data from database.
-
-    Args:
-        connection_string: Database connection string
-        query: SQL query to execute
-        date_column: Name of date column to parse
-        **kwargs: Additional pandas.read_sql parameters
-
-    Returns:
-        Loaded DataFrame
-
-    Note:
-        Requires appropriate database drivers to be installed.
-    """
-    try:
-        import sqlalchemy
-    except ImportError:
-        raise ImportError(
-            "sqlalchemy is required for database loading. Install with: pip install sqlalchemy"
-        )
-
-    # Create engine
-    engine = sqlalchemy.create_engine(connection_string)
-
-    # Load data
-    data = pd.read_sql(query, engine, **kwargs)
-
-    # Parse dates if specified
-    if date_column and date_column in data.columns:
-        data[date_column] = pd.to_datetime(data[date_column])
-        data = data.sort_values(date_column).reset_index(drop=True)
-
-    return data
+        """
+        return pd.read_parquet(self.data_path)

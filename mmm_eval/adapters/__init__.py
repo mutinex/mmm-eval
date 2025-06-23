@@ -1,11 +1,11 @@
-"""
-Framework adapters for MMM evaluation.
-"""
+"""Adapters for different MMM frameworks."""
 
 from typing import Dict, Any, Optional
 import pandas as pd
 from .pymc import PyMCAdapter
 
+from .base import BaseAdapter
+from .experimental.pymc import PyMCAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
@@ -25,16 +25,14 @@ def get_adapter(
         config: Framework-specific configuration
 
     Returns:
-        Adapter instance for the framework
+        Adapter instance
 
     Raises:
         ValueError: If framework is not supported
-    """
-    framework = framework.lower()
 
+    """
     if framework not in ADAPTER_REGISTRY:
-        available = list(ADAPTER_REGISTRY.keys())
-        raise ValueError(f"Unsupported framework: {framework}. Available: {available}")
+        raise ValueError(f"Unsupported framework: {framework}. Available: {list(ADAPTER_REGISTRY.keys())}")
 
     adapter_class = ADAPTER_REGISTRY[framework]
     return adapter_class(config, data)

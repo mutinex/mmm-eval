@@ -48,27 +48,31 @@ logger = logging.getLogger(__name__)
     help="Enable verbose logging",
 )
 def main(
-    config_path: Optional[str],
+    config_path: str | None,
     input_data_path: str,
-    metrics: Optional[tuple[str, ...]],
+    metrics: tuple[str, ...],
     framework: str,
-    output_path: Optional[str],
-    verbose: Optional[bool],
+    output_path: str | None,
+    verbose: bool,
 ):
-    """An open source tool for MMM evaluation."""
+    """Evaluate MMM frameworks using the unified API."""
     # logging
     log_level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(level=log_level)
 
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
-    data = load_data(input_data_path)
 
     config = get_config(framework, config_path)
 
-    output_path_obj = (
-        Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
-    )
+    data = DataPipeline(
+        data_path=input_data_path,
+        date_column=config["date_column"],
+        response_column=config["response_column"],
+        revenue_column=config["revenue_column"],
+    ).run()
+
+    output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
 
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
@@ -83,4 +87,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pyright: ignore[reportCallIssue]
