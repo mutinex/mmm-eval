@@ -115,9 +115,6 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self._channel_roi_df is None:
             raise RuntimeError("Model must be fit before computing ROI.")
 
-        if not isinstance(self._channel_roi_df.index, pd.DatetimeIndex):
-            raise ValueError("Channel ROI DataFrame must have DatetimeIndex")
-
         _validate_start_end_dates(start_date, end_date, self._channel_roi_df.index)
 
         # Filter the contribution DataFrame by date range
@@ -126,8 +123,7 @@ class PyMCAdapter(BaseAdapter):
         if date_range_df.empty:
             raise ValueError(f"No data found for date range {start_date} to {end_date}")
 
-        rois_dict = self._calculate_rois(date_range_df)
-        return pd.Series(rois_dict)
+        return pd.Series(self._calculate_rois(date_range_df))
 
     def _compute_channel_contributions(self, data: pd.DataFrame) -> pd.DataFrame:
         """Compute channel contributions and return the DataFrame for ROI calculations.
@@ -206,14 +202,11 @@ def _validate_start_end_dates(
     if start_date is not None and end_date is not None and start_date >= end_date:
         raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
 
-    min_date = date_range.min()
-    max_date = date_range.max()
+    if start_date is not None and start_date < date_range.min():
+        logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
 
-    if start_date is not None and isinstance(min_date, pd.Timestamp) and start_date < min_date:
-        logger.info(f"Start date is before the first date in the training data: {min_date}")
-
-    if end_date is not None and isinstance(max_date, pd.Timestamp) and end_date > max_date:
-        logger.info(f"End date is after the last date in the training data: {max_date}")
+    if end_date is not None and end_date > date_range.max():
+        logger.info(f"End date is after the last date in the training data: {date_range.max()}")
 
 
 def _check_columns_in_data(

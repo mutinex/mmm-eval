@@ -19,33 +19,28 @@ class PyMCAdapter(BaseAdapter):
             config: Configuration dictionary
 
         """
-        super().__init__(config)
-        self._channel_rois: dict[str, float] = {}
+        pass
 
-    def fit(self, data: pd.DataFrame, **kwargs) -> None:
+    def fit(self, data: pd.DataFrame) -> None:
         """Fit the PyMC model to data.
 
         Args:
             data: Training data
-            **kwargs: Additional fitting parameters
 
         """
         # Placeholder implementation
-        self.is_fitted = True
+        pass
 
-    def predict(self, data: pd.DataFrame, **kwargs) -> np.ndarray:
+    def predict(self, data: pd.DataFrame) -> np.ndarray:
         """Make predictions using the fitted model.
 
         Args:
             data: Input data for prediction
-            **kwargs: Additional prediction parameters
 
         Returns:
             Predicted values
 
         """
-        if not self.is_fitted:
-            raise RuntimeError("Model must be fit before prediction")
         # Placeholder implementation
         return np.zeros(len(data))
 
@@ -64,9 +59,7 @@ class PyMCAdapter(BaseAdapter):
             Series containing ROI estimates for each channel
 
         """
-        if not self.is_fitted:
-            raise RuntimeError("Model must be fit before computing ROI")
-        return pd.Series(self._channel_rois)
+        return pd.Series()
 
     def _compute_rois(self, data: pd.DataFrame) -> None:
         """Estimate ROIs based on the marginal contribution of each channel.
