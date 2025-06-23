@@ -37,16 +37,10 @@ class TestBaseValidationTest:
                 InputDataframeConstants.DATE_COL: pd.date_range(
                     "2023-01-01", periods=21
                 ),
-                InputDataframeConstants.MEDIA_CHANNEL_COL: ["TV", "Radio", "Digital"]
-                * 7,
+                "media_channel": ["TV", "Radio", "Digital"] * 7,
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220, 330] * 7,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [160, 260, 360] * 7,
-                InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL: [
-                    55,
-                    55,
-                    55,
-                ]
-                * 7,
+                "volume_contribution": [55, 55, 55] * 7,
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL: [
                     0.1,
                     0.2,
@@ -62,11 +56,10 @@ class TestBaseValidationTest:
                 InputDataframeConstants.DATE_COL: pd.date_range(
                     "2023-01-01", periods=10
                 ),
-                InputDataframeConstants.MEDIA_CHANNEL_COL: ["TV", "Radio"] * 5,
+                "media_channel": ["TV", "Radio"] * 5,
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [100, 200] * 5,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [150, 250] * 5,
-                InputDataframeConstants.MEDIA_CHANNEL_VOLUME_CONTRIBUTION_COL: [50, 50]
-                * 5,
+                "volume_contribution": [50, 50] * 5,
             }
         )
 

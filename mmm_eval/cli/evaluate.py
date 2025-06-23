@@ -84,14 +84,17 @@ def main(
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
 
-    # I think this needs to be changed to a class method?
-    evaluator = Evaluator()
+    # Create instance of evaluator with everything that will be common to evaluate a framework
+    evaluator = Evaluator(
+        data=data,
+        output_path=output_path_obj,
+        test_names=test_names,
+    )
+
+    # Evaluate the tests for the chosen framework and config. This is left as a method as future adaptions will likely allow for multiple frameworks to be evaluated at once.
     evaluator.evaluate_framework(
         framework=framework,
-        data=data,
         config=config,
-        test_names=test_names,
-        output_path=output_path_obj,
     )
 
 

@@ -11,10 +11,8 @@ __email__ = "your.email@example.com"
 # Core functionality
 from .core.evaluator import Evaluator
 from .core.validation_tests_models import ValidationTestNames
-from .core.validation_test_results import ValidationResult
 from .core.base_validation_test import BaseValidationTest
 from .core.validation_test_results import TestResult, ValidationResult
-from .core.base_validation_test import BaseValidationTest
 
 # Metrics
 from .metrics.accuracy_functions import (

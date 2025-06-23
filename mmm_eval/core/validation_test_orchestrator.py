@@ -2,7 +2,7 @@
 Test orchestrator for MMM validation framework.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Type
 import pandas as pd
 import logging
 
@@ -31,7 +31,7 @@ class ValidationTestOrchestrator:
 
     def __init__(self):
         """Initialize the validator with standard tests pre-registered."""
-        self.tests: Dict[ValidationTestNames, BaseValidationTest] = {
+        self.tests: Dict[ValidationTestNames, Type[BaseValidationTest]] = {
             ValidationTestNames.ACCURACY: AccuracyTest,
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
             ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,

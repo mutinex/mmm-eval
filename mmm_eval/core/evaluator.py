@@ -23,9 +23,12 @@ class Evaluator:
     using standardized validation tests.
     """
 
-    def __init__(self):
+    def __init__(self, data: pd.DataFrame, output_path: Optional[Path] = None, test_names: Optional[List[str]] = None):
         """Initialize the evaluator."""
         self.validation_orchestrator = ValidationTestOrchestrator()
+        self.data = data
+        self.output_path = output_path
+        self.test_names = test_names
 
     def _get_test_names(self, test_names: List[str]) -> List[ValidationTestNames]:
         """
@@ -55,11 +58,7 @@ class Evaluator:
     def evaluate_framework(
         self,
         framework: str,
-        data: pd.DataFrame,
-        config: Optional[Dict[str, Any]] = None,
-        test_names: Optional[List[str]] = None,
-        output_path: Optional[Path] = None,
-        **kwargs,
+        config: Optional[Dict[str, Any]] = None,    
     ) -> ValidationResult:
         """
         Evaluate an MMM framework using the unified API.
@@ -80,8 +79,8 @@ class Evaluator:
         """
         # Parse test names to enum objects if needed
         test_names = (
-            self._get_test_names(test_names)
-            if test_names
+            self._get_test_names(self.test_names)
+            if self.test_names
             else self.validation_orchestrator._get_all_test_names()
         )
 
@@ -91,12 +90,12 @@ class Evaluator:
         # Run validation tests
         validation_results = self.validation_orchestrator.validate(
             adapter=adapter,
-            data=data,
+            data=self.data,
             test_names=test_names,
         )
 
         # Save results if output path is provided
-        if output_path:
+        if self.output_path:
             # TODO: Implement result saving logic
             pass
 

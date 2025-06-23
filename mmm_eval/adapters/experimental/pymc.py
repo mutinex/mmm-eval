@@ -154,7 +154,7 @@ class PyMCAdapter(BaseAdapter):
 
         return contribution_df
 
-    def _calculate_rois(self, contribution_df: pd.DataFrame) -> dict[str, float]:
+    def _calculate_rois(self, contribution_df: pd.DataFrame) -> pd.Series:
         """Calculate ROIs from a contribution DataFrame.
 
         Args:
