@@ -1,12 +1,10 @@
-"""
-PyMC MMM framework adapter.
+"""PyMC MMM framework adapter.
 
 N.B. we expect control variables to be scaled to 0-1 using maxabs scaling BEFORE being
 passed to the PyMCAdapter.
 """
 
 import logging
-from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -26,6 +24,7 @@ class PyMCAdapter(BaseAdapter):
         Args:
             config: Dictionary containing the configuration for the PyMCAdapter adhering
                 to the PyMCConfigSchema.
+
         """
         super().__init__(config)
         PyMCConfigSchema.model_validate(config)
@@ -54,6 +53,7 @@ class PyMCAdapter(BaseAdapter):
 
         Args:
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
+
         """
         # TODO: this may be redundant after an upstream schema check, remove if so
         _check_columns_in_data(
@@ -68,6 +68,7 @@ class PyMCAdapter(BaseAdapter):
 
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
+        # assert isinstance(y, pd.Series), f"Expected Series, got {type(y)}"
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
@@ -76,8 +77,16 @@ class PyMCAdapter(BaseAdapter):
         self.is_fitted = True
 
     def predict(self, data: pd.DataFrame) -> np.ndarray:
-        """Predict the response variable for new data."""
-        if not self.is_fitted:
+        """Predict the response variable for new data.
+
+        Args:
+            data: Input data for prediction
+
+        Returns:
+            Predicted values
+
+        """
+        if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
         # TODO: this may be redundant after an upstream schema check, remove if so
@@ -85,16 +94,27 @@ class PyMCAdapter(BaseAdapter):
 
         if self.response_col in data.columns:
             data = data.drop(columns=[self.response_col])
-        return self.model.predict(data, extend_idata=False)
+        predictions = self.model.predict(data, extend_idata=False)
+        return predictions
 
     def get_channel_roi(
         self,
-        start_date: Optional[pd.Timestamp] = None,
-        end_date: Optional[pd.Timestamp] = None,
+        start_date: pd.Timestamp | None = None,
+        end_date: pd.Timestamp | None = None,
     ) -> pd.Series:
-        """Return the ROIs for each channel, optionally within a given date range."""
-        if not self.is_fitted:
+        """Return the ROIs for each channel, optionally within a given date range.
+
+        Args:
+            start_date: Optional start date for ROI calculation
+            end_date: Optional end date for ROI calculation
+
+        Returns:
+            Series containing ROI estimates for each channel
+
+        """
+        if not self.is_fitted or self._channel_roi_df is None:
             raise RuntimeError("Model must be fit before computing ROI.")
+
         _validate_start_end_dates(start_date, end_date, self._channel_roi_df.index)
 
         # Filter the contribution DataFrame by date range
@@ -113,12 +133,12 @@ class PyMCAdapter(BaseAdapter):
 
         Returns:
             DataFrame containing channel contributions and spend data
+
         """
-        channel_contribution = (
-            self.model.compute_channel_contribution_original_scale().mean(
-                dim=["chain", "draw"]
-            )
-        )
+        if self.model is None:
+            raise RuntimeError("Model must be fit before computing channel contributions")
+
+        channel_contribution = self.model.compute_channel_contribution_original_scale().mean(dim=["chain", "draw"])
 
         contribution_df = pd.DataFrame(
             channel_contribution,
@@ -142,7 +162,7 @@ class PyMCAdapter(BaseAdapter):
 
         return contribution_df
 
-    def _calculate_rois(self, contribution_df: pd.DataFrame) -> Dict[str, float]:
+    def _calculate_rois(self, contribution_df: pd.DataFrame) -> dict[str, float]:
         """Calculate ROIs from a contribution DataFrame.
 
         Args:
@@ -150,26 +170,22 @@ class PyMCAdapter(BaseAdapter):
 
         Returns:
             dictionary mapping channel names to ROI percentages.
+
         """
-        avg_rev_per_unit = (
-            contribution_df[self.revenue_col] / contribution_df[self.response_col]
-        )
+        avg_rev_per_unit = contribution_df[self.revenue_col] / contribution_df[self.response_col]
 
         rois = {}
         for channel in self.channel_spend_cols:
             channel_revenue = contribution_df[f"{channel}_units"] * avg_rev_per_unit
             # return as a percentage
-            rois[channel] = (
-                100
-                * (channel_revenue.sum() / contribution_df[channel].sum() - 1).item()
-            )
+            rois[channel] = 100 * (channel_revenue.sum() / contribution_df[channel].sum() - 1).item()
 
         return rois
 
 
 def _validate_start_end_dates(
-    start_date: Optional[pd.Timestamp],
-    end_date: Optional[pd.Timestamp],
+    start_date: pd.Timestamp | None,
+    end_date: pd.Timestamp | None,
     date_range: pd.DatetimeIndex,
 ) -> None:
     """Validate start/end dates passed to `get_channel_roi`.
@@ -181,21 +197,16 @@ def _validate_start_end_dates(
 
     Raises:
         ValueError: If start_date is not before end_date.
+
     """
     if start_date is not None and end_date is not None and start_date >= end_date:
-        raise ValueError(
-            f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}"
-        )
+        raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
 
     if start_date is not None and start_date < date_range.min():
-        logger.info(
-            f"Start date is before the first date in the training data: {date_range.min()}"
-        )
+        logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
 
     if end_date is not None and end_date > date_range.max():
-        logger.info(
-            f"End date is after the last date in the training data: {date_range.max()}"
-        )
+        logger.info(f"End date is after the last date in the training data: {date_range.max()}")
 
 
 def _check_columns_in_data(
@@ -210,10 +221,9 @@ def _check_columns_in_data(
 
     Raises:
         ValueError: If not all column(s) in `column_set` are found in `data`.
+
     """
     for column_set in column_sets:
         column_set = [column_set] if isinstance(column_set, str) else column_set
         if set(column_set) - set(data.columns) != set():
-            raise ValueError(
-                f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`"
-            )
+            raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")

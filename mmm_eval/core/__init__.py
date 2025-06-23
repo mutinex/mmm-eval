@@ -1,6 +1,4 @@
-"""
-Core evaluation functionality for MMM frameworks.
-"""
+"""Core evaluation functionality."""
 
 from .evaluator import evaluate_framework
 from .results import EvaluationResults

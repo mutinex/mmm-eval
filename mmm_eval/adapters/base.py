@@ -1,53 +1,62 @@
-"""
-Base adapter class for MMM frameworks.
-"""
+"""Base adapter class for MMM frameworks."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any
+
+import numpy as np
 import pandas as pd
 
 
 class BaseAdapter(ABC):
-    """
-    Abstract base class for MMM framework adapters.
+    """Base class for MMM framework adapters."""
 
-    All framework adapters must inherit from this class and implement
-    the required methods to provide a unified interface.
-    """
-
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
-        self.model = None
-        self.is_fitted = False
-        self.config = config or None
-
-    @abstractmethod
-    def fit(self, data: pd.DataFrame, **kwargs) -> None:
-        """
-        Fit the MMM model to the provided data.
+    def __init__(self, config: dict[str, Any] | None = None):
+        """Initialize the base adapter.
 
         Args:
-            data: Input data containing media channels, KPI, and other variables
-            **kwargs: Additional framework-specific parameters
+            config: Configuration dictionary
+
+        """
+        self.config = config or {}
+        self.is_fitted = False
+
+    @abstractmethod
+    def fit(self, data: pd.DataFrame) -> None:
+        """Fit the model to the data.
+
+        Args:
+            data: Training data
+
         """
         pass
 
     @abstractmethod
-    def predict(self, data: pd.DataFrame, **kwargs) -> pd.Series:
-        """
-        Generate predictions using the fitted model.
+    def predict(self, data: pd.DataFrame) -> np.ndarray:
+        """Make predictions on new data.
 
         Args:
             data: Input data for prediction
-            **kwargs: Additional framework-specific parameters
 
         Returns:
-            Predicted values as a pandas Series
+            Predicted values
+
         """
         pass
 
     @abstractmethod
-    def get_channel_roi(self) -> Dict[str, float]:
-        """
-        Return ROI by channel.
+    def get_channel_roi(
+        self,
+        start_date: pd.Timestamp | None = None,
+        end_date: pd.Timestamp | None = None,
+    ) -> pd.Series:
+        """Get channel ROI estimates.
+
+        Args:
+            start_date: Optional start date for ROI calculation
+            end_date: Optional end date for ROI calculation
+
+        Returns:
+            Series containing ROI estimates for each channel
+
         """
         pass
