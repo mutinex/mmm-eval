@@ -6,6 +6,7 @@ import ast
 import numpy as np
 import re
 
+
 class ConfigRehydrator:
     """
     Rehydrate a string config dictionary with PyMC objects.
@@ -40,8 +41,11 @@ class ConfigRehydrator:
         Fix space-separated numbers inside brackets (NumPy-style) to comma-separated,
         e.g., "[1.0 2.0]" => "[1.0, 2.0]"
         """
-        return re.sub(r"\[([\d\.\s\-eE]+)\]", lambda m: "[" + ", ".join(m.group(1).split()) + "]", s)
-
+        return re.sub(
+            r"\[([\d\.\s\-eE]+)\]",
+            lambda m: "[" + ", ".join(m.group(1).split()) + "]",
+            s,
+        )
 
     def safe_eval(self, value: str) -> Any:
         """Try literal_eval first, then fallback to eval with class registry."""
@@ -69,8 +73,8 @@ class ConfigRehydrator:
         self.hydrated_config = new_config
         return self.hydrated_config
 
+
 class PyMCConfigRehydrator(ConfigRehydrator):
     def __init__(self, config):
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
-        

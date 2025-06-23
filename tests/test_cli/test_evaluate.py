@@ -1,8 +1,18 @@
 import pytest
 import subprocess
 import pandas as pd
-import json
-import os
+from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
+from mmm_eval.configs import PyMCConfig
+
+DUMMY_MODEL = MMM(
+    date_column="date_week",
+    channel_columns=["channel_1", "channel_2"],
+    adstock=GeometricAdstock(l_max=4),
+    saturation=LogisticSaturation(),
+    yearly_seasonality=2,
+)
+FIT_KWARGS = {"target_accept": 0.9, "chains": 4}
+TARGET_COLUMN = "quantity"
 
 
 @pytest.mark.parametrize(
@@ -17,10 +27,6 @@ import os
             False,
         ),
         (
-            "mmm-eval --input-data-path {data_path} --framework meridian",
-            True,
-        ),
-        (
             "mmm-eval --input-data-path {data_path} --framework NotAFramework --output-path {output_path} --config-path {config_path}",
             False,
         ),
@@ -31,14 +37,13 @@ def test_cli_as_subprocess(tmp_path, cmd_template, expected):
 
     # Set up paths
     data_path = tmp_path / "data.csv"
-    config_path = tmp_path / "test_config.json"
     output_path = tmp_path / "output"
 
     # Create dummy input files
     pd.DataFrame({"kpi": [1, 2, 3]}).to_csv(data_path, index=False)
-    with open(config_path, "w") as f:
-        json.dump({"dummy": "config"}, f)
-    os.makedirs(output_path, exist_ok=True)
+    config = PyMCConfig(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, target_column=TARGET_COLUMN)
+    config.save_config(tmp_path, "test_config")
+    config_path = tmp_path / "test_config.json"
 
     # Format command string with actual file paths
     cmd = cmd_template.format(
@@ -47,7 +52,7 @@ def test_cli_as_subprocess(tmp_path, cmd_template, expected):
         output_path=str(output_path),
     )
 
-    result = subprocess.run(cmd, capture_output=True, text=True, shell=True)
+    result = subprocess.run(cmd, capture_output=False, text=True, shell=True)
 
     if expected:
         assert result.returncode == 0

@@ -10,29 +10,19 @@ import pandas as pd
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
-from mmm_eval.configs import PyMCConfigRehydrator
-from mmm_eval.adapters.experimental.schemas import PyMCConfigEvalSchema
+from mmm_eval.configs import PyMCConfig
 
 
 class PyMCAdapter(BaseAdapter):
-    def __init__(self, config: dict):
+    def __init__(self, config: PyMCConfig):
         # Rehydrate the config dictionary
-        self.config = PyMCConfigRehydrator(config).rehydrate_config()
-        PyMCConfigEvalSchema.model_validate(self.config)
+        self.config = config
 
         # Store explicitly needed pieces
-        self.response_col = config["response_column"]
-        self.date_col = config["date_column"]
-        self.channel_spend_cols = config["channel_columns"]
-        self.revenue_col = config.pop("revenue_column")
-
-        # Pass everything else (after extracting response_col) to MMM constructor
-        self.model_kwargs = {
-            k: v
-            for k, v in config.items()
-            if k != "response_column" and k != "fit_kwargs"
-        }
-        self.fit_kwargs = config.get("fit_kwargs", {})
+        self.model_config = self.config.model_config.config
+        self.fit_config = self.config.fit_config.config
+        self.target_column = self.config.target_column
+        self.response_col = self.config.response_column
 
         self.model = None
         self.trace = None
@@ -40,11 +30,11 @@ class PyMCAdapter(BaseAdapter):
 
     def fit(self, data: pd.DataFrame, metadata: dict = None):
         """Fit the model and compute ROIs."""
-        X = data.drop(columns=[self.response_col, self.revenue_col])
-        y = data[self.response_col]
+        X = data.drop(columns=[self.target_column])
+        y = data[self.target_column]
 
-        self.model = MMM(**self.model_kwargs)
-        self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
+        self.model = MMM(**self.model_config)
+        self.trace = self.model.fit(X=X, y=y, **self.fit_config)
 
         self._compute_rois(data)
         self.is_fitted = True

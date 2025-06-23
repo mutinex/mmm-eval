@@ -5,6 +5,7 @@ from typing import Optional
 
 from mmm_eval import evaluate_framework, load_data
 from mmm_eval.metrics import AVAILABLE_METRICS
+from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option(
     "--framework",
-    type=click.Choice(["meridian", "pymc-marketing"]),
+    type=click.Choice(list(ADAPTER_REGISTRY.keys())),
     required=True,
     help="Open source MMM framework to evaluate",
 )

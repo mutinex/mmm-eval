@@ -13,7 +13,9 @@ ADAPTER_REGISTRY = {
 }
 
 
-def get_adapter(framework: str, data: pd.DataFrame, config: Optional[Dict[str, Any]] = None):
+def get_adapter(
+    framework: str, data: pd.DataFrame, config: Optional[Dict[str, Any]] = None
+):
     """
     Get an adapter instance for the specified framework.
 

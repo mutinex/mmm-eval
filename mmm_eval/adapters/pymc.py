@@ -10,9 +10,10 @@ import pandas as pd
 
 from mmm_eval.adapters.base import BaseAdapter
 
+
 # TODO: update this class once PyMCAdapter is promoted out of experimental
 class PyMCAdapter(BaseAdapter):
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, data: pd.DataFrame):
         pass
 
     def fit(self: str):

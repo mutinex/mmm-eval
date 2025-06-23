@@ -85,8 +85,6 @@ def evaluate_framework(
 
     # Get the appropriate adapter for the framework
     adapter = get_adapter(framework, data, config)
-    adapter.fit()
-
     return 0
 
     # TODO: implement fit and evaluate

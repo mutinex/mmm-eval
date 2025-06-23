@@ -25,8 +25,15 @@ from .adapters import (
 # Data utilities
 from .data.loaders import load_csv, load_from_database, DataLoader, load_data
 
-# 
-from .configs import get_config, save_config, load_config, PyMCConfig, EvalConfig, Config, PyMCConfigRehydrator
+#
+from .configs import (
+    save_config,
+    load_config,
+    PyMCConfig,
+    EvalConfig,
+    Config,
+    PyMCConfigRehydrator,
+)
 
 
 __all__ = [

@@ -38,7 +38,6 @@ __all__ = [
     "symmetric_mape",
     # Adapters
     "get_adapter",
-    # "MeridianAdapter",
     "PyMCAdapter",
     # Data utilities
     "load_csv",

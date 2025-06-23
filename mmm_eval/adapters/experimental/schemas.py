@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, validator, InstanceOf
 from typing import Annotated, Optional, Any
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
-import pandas as pd
+
 
 class PyMCInputDataSchema(BaseModel):
     """Schema for input CSV data"""
@@ -113,6 +113,7 @@ class PyMCModelSchema(BaseModel):
         "extra": "allow",  # Allow extra fields not defined in schema
         "coerce_types_to_string": False,  # Allow type coercion
     }
+
 
 class PyMCStringConfigSchema(BaseModel):
     """Schema for PyMC Evaluation Config Dictionary"""

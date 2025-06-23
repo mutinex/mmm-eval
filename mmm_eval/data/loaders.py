@@ -7,13 +7,13 @@ from pathlib import Path
 import pandas as pd
 from mmm_eval.configs.utils import validate_path
 
+
 def load_data(data_path: str) -> pd.DataFrame:
     """Load data from CSV file."""
     data_path = validate_path(data_path)
     if not data_path.suffix.lower() == ".csv":
         raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
     return pd.read_csv(data_path)
-
 
 
 class DataLoader:
