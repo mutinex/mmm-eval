@@ -20,6 +20,7 @@ pytensor = "^2.18.0"
 pandera = "^0.24.0"
 pydantic = "^2.5"
 click = "^8.1.7"
+pyarrow = "^20.0.0"
 
 [tool.poetry.scripts]
 mmm-eval = "mmm_eval.cli.evaluate:main"

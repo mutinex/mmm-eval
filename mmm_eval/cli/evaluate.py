@@ -8,47 +8,12 @@ from pathlib import Path
 from typing import Any
 
 import click
-import pandas as pd
 
 from mmm_eval import evaluate_framework
 from mmm_eval.data.pipeline import DataPipeline
 from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
-
-def validate_path(path: str) -> Path:
-    """Validate path is a valid file path."""
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"Invalid path:{path}")
-    return path
-
-def load_config(config_path: str) -> Dict[str, Any]:
-    """Load config from JSON file."""
-    config_path = validate_path(config_path)
-    if not config_path.suffix.lower() == ".json":
-        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
-    with open(config_path_obj) as f:
-        return json.load(f)
-
-
-def load_data(data_path: str) -> pd.DataFrame:
-    """Load data from CSV file.
-
-    Args:
-        data_path: Path to CSV data file
-
-    Returns:
-        Loaded DataFrame
-
-    """
-    data_path_obj = validate_path(data_path)
-    if not data_path_obj.suffix.lower() == ".csv":
-        raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
-
-    logger.info(f"Loading input data from {data_path}")
-    return pd.read_csv(data_path_obj)
-
 
 def validate_path(path: str) -> Path:
     """Validate path is a valid file path.
@@ -67,6 +32,15 @@ def validate_path(path: str) -> Path:
     if not path_obj.exists():
         raise FileNotFoundError(f"Invalid path:{path}")
     return path_obj
+
+def load_config(config_path: str) -> dict[str, Any]:
+    """Load config from JSON file."""
+    config_path_obj = validate_path(config_path)
+    if not config_path_obj.suffix.lower().lstrip(".") == "json":
+        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
+    with open(config_path_obj) as f:
+        return json.load(f)
+
 
 
 @click.command()
