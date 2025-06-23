@@ -43,7 +43,6 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path con
 mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
 ```
 
-
 ## Development Setup
 
 This project uses [asdf](https://asdf-vm.com/) for Python version management and [Poetry](https://python-poetry.org/) for dependency management.
@@ -51,22 +50,26 @@ This project uses [asdf](https://asdf-vm.com/) for Python version management and
 ### Prerequisites
 
 1. **Install asdf**:
+
    ```bash
    brew install asdf
    ```
 
-2. **Add asdf to your shell config** (add to `~/.zshrc` or `~/.bashrc`):
+1. **Add asdf to your shell config** (add to `~/.zshrc` or `~/.bashrc`):
+
    ```bash
    . "$HOME/.asdf/asdf.sh"
    . "$HOME/.asdf/completions/asdf.zsh"  # for zsh
    ```
 
-3. **Restart your terminal** or reload your shell config:
+1. **Restart your terminal** or reload your shell config:
+
    ```bash
    source ~/.zshrc
    ```
 
-4. **Install asdf Python plugin**:
+1. **Install asdf Python plugin**:
+
    ```bash
    asdf plugin add python
    ```
@@ -87,22 +90,26 @@ chmod +x scripts/setup.sh
 If you prefer to set up manually:
 
 1. **Install Python version** (specified in `.tool-versions`):
+
    ```bash
    asdf install
    ```
 
-2. **Install Poetry** (if not already installed):
+1. **Install Poetry** (if not already installed):
+
    ```bash
    curl -sSL https://install.python-poetry.org | python3 -
    poetry self add poetry-plugin-shell
    ```
 
-3. **Configure Poetry to use asdf Python**:
+1. **Configure Poetry to use asdf Python**:
+
    ```bash
    poetry env use $(asdf which python)
    ```
 
-4. **Install dependencies**:
+1. **Install dependencies**:
+
    ```bash
    poetry install
    ```
@@ -120,7 +127,6 @@ poetry shell
 ```bash
 tox
 ```
-
 
 ## Supported Frameworks
 
