@@ -207,6 +207,7 @@ def test_predict_method_real_pymc():
     # Verify prediction results
     assert isinstance(predictions, np.ndarray)
     assert len(predictions) == len(data)
+    assert not np.all(np.isnan(predictions))  # Should have some non-NaN predictions
 
 
 @pytest.mark.integration
