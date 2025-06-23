@@ -1,8 +1,9 @@
 """Main evaluator for MMM frameworks."""
 
-from typing import Dict, List, Any, Optional
-import pandas as pd
 from pathlib import Path
+from typing import Any, Optional
+
+import pandas as pd
 
 import pandas as pd
 
@@ -11,28 +12,26 @@ from .validation_test_results import ValidationResult
 from mmm_eval.adapters import get_adapter
 from mmm_eval.core.exceptions import InvalidTestNameError
 from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
+from mmm_eval.core.validation_test_results import ValidationResults
 from mmm_eval.core.validation_tests_models import ValidationTestNames
-from mmm_eval.core.validation_test_results import ValidationResult
 
 
 class Evaluator:
-    """
-    Main evaluator class for MMM frameworks.
+    """Main evaluator class for MMM frameworks.
 
     This class provides a unified interface for evaluating different MMM frameworks
     using standardized validation tests.
     """
 
-    def __init__(self, data: pd.DataFrame, output_path: Optional[Path] = None, test_names: Optional[List[str]] = None):
+    def __init__(self, data: pd.DataFrame, output_path: Optional[Path] = None, test_names: Optional[list[str]] = None):
         """Initialize the evaluator."""
         self.validation_orchestrator = ValidationTestOrchestrator()
         self.data = data
         self.output_path = output_path
         self.test_names = test_names
 
-    def _get_test_names(self, test_names: List[str]) -> List[ValidationTestNames]:
-        """
-        Parse test names from strings to ValidationTestNames enum objects.
+    def _get_test_names(self, test_names: list[str]) -> list[ValidationTestNames]:
+        """Parse test names from strings to ValidationTestNames enum objects.
 
         Args:
             test_names: List of test names as strings or enum objects
@@ -42,8 +41,8 @@ class Evaluator:
 
         Raises:
             ValueError: If any test name is invalid
+        
         """
-
         converted_names = []
         for test_name in test_names:
             try:
@@ -58,10 +57,9 @@ class Evaluator:
     def evaluate_framework(
         self,
         framework: str,
-        config: Optional[Dict[str, Any]] = None,    
-    ) -> ValidationResult:
-        """
-        Evaluate an MMM framework using the unified API.
+        config: Optional[dict[str, Any]] = None,
+    ) -> ValidationResults:
+        """Evaluate an MMM framework using the unified API.
 
         Args:
             framework: Name of the MMM framework to evaluate
@@ -76,6 +74,7 @@ class Evaluator:
 
         Raises:
             ValueError: If any test name is invalid
+        
         """
         # Parse test names to enum objects if needed
         test_names = (

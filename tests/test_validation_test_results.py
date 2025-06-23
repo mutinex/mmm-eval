@@ -1,25 +1,26 @@
+"""Unit tests for validation test result classes.
 """
-Unit tests for validation test result classes.
-"""
+
+from datetime import datetime
 
 import pandas as pd
-from datetime import datetime
-from mmm_eval.core.validation_test_results import TestResult, ValidationResult
+
+from mmm_eval.core.validation_test_results import ValidationTestResult, ValidationResults
 from mmm_eval.core.validation_tests_models import (
-    ValidationTestNames,
-    ValidationTestAttributeNames,
     ValidationResultAttributeNames,
+    ValidationTestAttributeNames,
+    ValidationTestNames,
 )
 from mmm_eval.metrics.metric_models import (
-    AccuracyMetricResults,
-    RefreshStabilityMetricResults,
-    PerturbationMetricResults,
     AccuracyMetricNames,
+    AccuracyMetricResults,
+    PerturbationMetricResults,
     RefreshStabilityMetricNames,
+    RefreshStabilityMetricResults,
 )
 
 
-class TestTestResult:
+class TestValidationTestResult:
     """Test cases for TestResult class."""
 
     def test_test_result_creation_and_to_dict(self):
@@ -27,7 +28,7 @@ class TestTestResult:
         test_scores = AccuracyMetricResults(mape=0.1, r_squared=0.8)
         metric_names = AccuracyMetricNames.metrics_to_list()
 
-        result = TestResult(
+        result = ValidationTestResult(
             test_name=ValidationTestNames.ACCURACY,
             passed=True,
             metric_names=metric_names,
@@ -42,10 +43,7 @@ class TestTestResult:
         # Test to_dict conversion
         result_dict = result.to_dict()
         assert isinstance(result_dict, dict)
-        assert (
-            result_dict[ValidationTestAttributeNames.TEST_NAME]
-            == ValidationTestNames.ACCURACY
-        )
+        assert result_dict[ValidationTestAttributeNames.TEST_NAME] == ValidationTestNames.ACCURACY
         assert result_dict[ValidationTestAttributeNames.PASSED] is True
         assert ValidationTestAttributeNames.TIMESTAMP in result_dict
 
@@ -60,7 +58,7 @@ class TestTestResult:
         )
         metric_names = RefreshStabilityMetricNames.metrics_to_list()
 
-        result = TestResult(
+        result = ValidationTestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=True,
             metric_names=metric_names,
@@ -70,10 +68,7 @@ class TestTestResult:
         # Test to_dict conversion
         result_dict = result.to_dict()
         assert isinstance(result_dict, dict)
-        assert (
-            result_dict[ValidationTestAttributeNames.TEST_NAME]
-            == ValidationTestNames.REFRESH_STABILITY
-        )
+        assert result_dict[ValidationTestAttributeNames.TEST_NAME] == ValidationTestNames.REFRESH_STABILITY
         assert result_dict[ValidationTestAttributeNames.PASSED] is True
 
         # Check that test_scores are properly serialized
@@ -83,13 +78,13 @@ class TestTestResult:
         assert "std_percentage_change_for_each_channel" in test_scores_dict
 
 
-class TestValidationResult:
-    """Test cases for ValidationResult class."""
+class TestValidationResults:
+    """Test cases for ValidationResults class."""
 
-    def test_validation_result_creation_and_basic_operations(self):
-        """Test ValidationResult creation and basic operations."""
+    def test_validation_results_creation_and_basic_operations(self):
+        """Test ValidationResults creation and basic operations."""
         # Create test results
-        accuracy_result = TestResult(
+        accuracy_result = ValidationTestResult(
             test_name=ValidationTestNames.ACCURACY,
             passed=True,
             metric_names=AccuracyMetricNames.metrics_to_list(),
@@ -99,7 +94,7 @@ class TestValidationResult:
         # Create stability result with new field names
         mean_series = pd.Series({"channel_1": 0.1, "channel_2": 0.05})
         std_series = pd.Series({"channel_1": 0.02, "channel_2": 0.01})
-        stability_result = TestResult(
+        stability_result = ValidationTestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=False,
             metric_names=RefreshStabilityMetricNames.metrics_to_list(),
@@ -114,16 +109,14 @@ class TestValidationResult:
             ValidationTestNames.REFRESH_STABILITY: stability_result,
         }
 
-        validation_result = ValidationResult(test_results)
+        validation_result = ValidationResults(test_results)
 
         # Test basic properties
         assert validation_result.test_results == test_results
         assert isinstance(validation_result.timestamp, datetime)
 
         # Test get_test_result
-        retrieved_result = validation_result.get_test_result(
-            ValidationTestNames.ACCURACY
-        )
+        retrieved_result = validation_result.get_test_result(ValidationTestNames.ACCURACY)
         assert retrieved_result == accuracy_result
 
         # Test all_passed
@@ -132,12 +125,12 @@ class TestValidationResult:
     def test_all_passed_empty(self):
         """Test all_passed with no test results."""
         test_results = {}
-        validation_result = ValidationResult(test_results)
+        validation_result = ValidationResults(test_results)
         assert validation_result.all_passed() is True
 
     def test_validation_result_to_dict(self):
-        """Test ValidationResult to_dict conversion."""
-        accuracy_result = TestResult(
+        """Test ValidationResults to_dict conversion."""
+        accuracy_result = ValidationTestResult(
             test_name=ValidationTestNames.ACCURACY,
             passed=True,
             metric_names=AccuracyMetricNames.metrics_to_list(),
@@ -145,7 +138,7 @@ class TestValidationResult:
         )
 
         test_results = {ValidationTestNames.ACCURACY: accuracy_result}
-        validation_result = ValidationResult(test_results)
+        validation_result = ValidationResults(test_results)
 
         result_dict = validation_result.to_dict()
 
@@ -153,26 +146,21 @@ class TestValidationResult:
         assert ValidationResultAttributeNames.ALL_PASSED in result_dict
         assert ValidationResultAttributeNames.RESULTS in result_dict
         assert result_dict[ValidationResultAttributeNames.ALL_PASSED] is True
-        assert (
-            ValidationTestNames.ACCURACY
-            in result_dict[ValidationResultAttributeNames.RESULTS]
-        )
+        assert ValidationTestNames.ACCURACY in result_dict[ValidationResultAttributeNames.RESULTS]
 
     def test_validation_result_to_dict_with_series_metrics(self):
-        """Test ValidationResult to_dict conversion with Series-based metrics."""
+        """Test ValidationResults to_dict conversion with Series-based metrics."""
         # Create test result with Series-based metrics
         percentage_change_series = pd.Series({"TV": 0.03, "Radio": 0.07})
-        perturbation_result = TestResult(
+        perturbation_result = ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             passed=True,
             metric_names=["percentage_change_for_each_channel"],
-            test_scores=PerturbationMetricResults(
-                percentage_change_for_each_channel=percentage_change_series
-            ),
+            test_scores=PerturbationMetricResults(percentage_change_for_each_channel=percentage_change_series),
         )
 
         test_results = {ValidationTestNames.PERTURBATION: perturbation_result}
-        validation_result = ValidationResult(test_results)
+        validation_result = ValidationResults(test_results)
 
         result_dict = validation_result.to_dict()
 

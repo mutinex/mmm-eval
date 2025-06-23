@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Dict, Any
+from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
@@ -16,9 +16,8 @@ class MetricNamesBase(Enum):
     """Base class for metric name enums"""
 
     @classmethod
-    def metrics_to_list(cls) -> List[str]:
-        """
-        Convert the enum to a list of strings.
+    def metrics_to_list(cls) -> list[str]:
+        """Convert the enum to a list of strings.
         """
         return [member.value for member in cls]
 
@@ -57,13 +56,11 @@ class MetricResults(BaseModel):
     """Define the results of the metrics"""
 
     def check_test_passed(self) -> bool:
+        """Check if the tests passed.
         """
-        Check if the tests passed.
-        """
-
         raise NotImplementedError("Child classes must implement test_passed()")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert the class of test results to dictionary format."""
         return self.model_dump()
 
@@ -75,13 +72,9 @@ class AccuracyMetricResults(MetricResults):
     r_squared: float
 
     def check_test_passed(self) -> bool:
+        """Check if the tests passed.
         """
-        Check if the tests passed.
-        """
-        return (
-            self.mape <= AccuracyThresholdConstants.MAPE
-            and self.r_squared > AccuracyThresholdConstants.R_SQUARED
-        )
+        return self.mape <= AccuracyThresholdConstants.MAPE and self.r_squared > AccuracyThresholdConstants.R_SQUARED
 
 
 class CrossValidationMetricResults(MetricResults):
@@ -93,8 +86,7 @@ class CrossValidationMetricResults(MetricResults):
     std_r_squared: float
 
     def check_test_passed(self) -> bool:
-        """
-        Check if the tests passed.
+        """Check if the tests passed.
         """
         return (
             self.mean_mape <= CrossValidationThresholdConstants.MEAN_MAPE
@@ -112,8 +104,7 @@ class RefreshStabilityMetricResults(MetricResults):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def check_test_passed(self) -> bool:
-        """
-        Check if the tests passed.
+        """Check if the tests passed.
         """
         return bool(
             (
@@ -131,12 +122,8 @@ class PerturbationMetricResults(MetricResults):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def check_test_passed(self) -> bool:
-        """
-        Check if the tests passed.
+        """Check if the tests passed.
         """
         return bool(
-            (
-                self.percentage_change_for_each_channel
-                <= PerturbationThresholdConstants.MEAN_PERCENTAGE_CHANGE
-            ).all()
+            (self.percentage_change_for_each_channel <= PerturbationThresholdConstants.MEAN_PERCENTAGE_CHANGE).all()
         )

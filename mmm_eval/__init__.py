@@ -9,21 +9,6 @@ __author__ = "King Kang and the Jungle Boys"
 __email__ = "your.email@example.com"
 
 # Core functionality
-from .core.evaluator import Evaluator
-from .core.validation_tests_models import ValidationTestNames
-from .core.base_validation_test import BaseValidationTest
-from .core.validation_test_results import TestResult, ValidationResult
-
-# Metrics
-from .metrics.accuracy_functions import (
-    calculate_mape,
-    calculate_r_squared,
-    calculate_means_for_series_across_cross_validation_folds,
-    calculate_stds_for_series_across_cross_validation_folds,
-    calculate_mean_for_singular_values_across_cross_validation_folds,
-    calculate_std_for_singular_values_across_cross_validation_folds,
-)
-
 # Adapters
 from .adapters import get_adapter
 from .adapters.experimental.pymc import PyMCAdapter
@@ -33,6 +18,12 @@ from .adapters import (
 )
 from .configs import PyMCConfig, PyMCConfigRehydrator
 from .core.evaluator import Evaluator
+from .adapters.experimental.pymc import PyMCAdapter
+from .adapters.meridian import MeridianAdapter
+from .core.base_validation_test import BaseValidationTest
+from .core.evaluator import Evaluator
+from .core.validation_test_results import ValidationTestResult, ValidationResults
+from .core.validation_tests_models import ValidationTestNames
 
 # Data utilities
 from .data import (
@@ -40,6 +31,16 @@ from .data import (
     DataPipeline,
     DataProcessor,
     DataValidator,
+)
+
+# Metrics
+from .metrics.accuracy_functions import (
+    calculate_mape,
+    calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_means_for_series_across_cross_validation_folds,
+    calculate_r_squared,
+    calculate_std_for_singular_values_across_cross_validation_folds,
+    calculate_stds_for_series_across_cross_validation_folds,
 )
 
 __all__ = [
@@ -52,8 +53,8 @@ __all__ = [
     "EvaluationResults",
     # Core API
     "Evaluator",
-    "TestResult",
-    "ValidationResult",
+    "ValidationTestResult",
+    "ValidationResults",
     "BaseValidationTest",
     "ValidationTestNames",
     # Metrics

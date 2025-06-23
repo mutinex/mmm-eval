@@ -1,14 +1,13 @@
-"""
-Core validation functionality for MMM frameworks.
+"""Core validation functionality for MMM frameworks.
 """
 
-from .validation_test_orchestrator import ValidationTestOrchestrator
 from .base_validation_test import BaseValidationTest
-from .validation_test_results import TestResult, ValidationResult
+from .validation_test_orchestrator import ValidationTestOrchestrator
+from .validation_test_results import ValidationTestResult, ValidationResults
 
 __all__ = [
     "ValidationTestOrchestrator",
     "BaseValidationTest",
-    "TestResult",
-    "ValidationResult",
+    "ValidationTestResult",
+    "ValidationResults",
 ]

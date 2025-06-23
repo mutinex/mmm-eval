@@ -3,7 +3,6 @@
 # todo(): Possibly move to the constants file
 
 from enum import StrEnum
-from typing import List
 
 
 class ValidationTestNames(StrEnum):
@@ -15,12 +14,12 @@ class ValidationTestNames(StrEnum):
     PERTURBATION = "perturbation"
 
     @classmethod
-    def all_tests(cls) -> List["ValidationTestNames"]:
+    def all_tests(cls) -> list["ValidationTestNames"]:
         """Return all validation test names as a list."""
         return list(cls)
 
     @classmethod
-    def all_tests_as_str(cls) -> List[str]:
+    def all_tests_as_str(cls) -> list[str]:
         """Return all validation test names as a list of strings."""
         return [test.value for test in cls]
 

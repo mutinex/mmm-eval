@@ -8,7 +8,6 @@ from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
 from mmm_eval.data.pipeline import DataPipeline
 import pandas as pd
-from typing import Optional, Dict, Any, List
 
 from mmm_eval.core.evaluator import Evaluator
 from mmm_eval.core.validation_tests_models import ValidationTestNames
@@ -55,7 +54,7 @@ logger = logging.getLogger(__name__)
 def main(
     config_path: str,
     input_data_path: str,
-    test_names: List[str],
+    test_names: list[str],
     framework: str,
     output_path: str | None,
     verbose: bool,

@@ -154,7 +154,7 @@ class PyMCAdapter(BaseAdapter):
 
         return contribution_df
 
-    def _calculate_rois(self, contribution_df: pd.DataFrame) -> pd.Series:
+    def _calculate_rois(self, contribution_df: pd.DataFrame) -> dict[str, float]:
         """Calculate ROIs from a contribution DataFrame.
 
         Args:
@@ -186,7 +186,7 @@ class PyMCAdapter(BaseAdapter):
             # return as a percentage
             rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
 
-        return pd.Series(rois)
+        return rois
 
 
 def _validate_start_end_dates(

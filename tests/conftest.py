@@ -1,8 +1,8 @@
-"""
-Pytest configuration for mmm-eval tests.
+"""Pytest configuration for mmm-eval tests.
 """
 
 import logging
+
 import pytest
 
 

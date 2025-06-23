@@ -1,22 +1,24 @@
 # This file defines the validation tests for the MMM framework.
 
 import logging
+
 import numpy as np
 import pandas as pd
+
+from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.base_validation_test import BaseValidationTest
 from mmm_eval.core.constants import PerturbationConstants
-from mmm_eval.core.validation_test_results import TestResult
+from mmm_eval.core.validation_test_results import ValidationTestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
-from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
     calculate_mape,
-    calculate_r_squared,
     calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_means_for_series_across_cross_validation_folds,
+    calculate_r_squared,
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
-    calculate_means_for_series_across_cross_validation_folds,
 )
 from mmm_eval.metrics.metric_models import (
     AccuracyMetricNames,
@@ -33,8 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class AccuracyTest(BaseValidationTest):
-    """
-    Validation test for model accuracy using holdout validation.
+    """Validation test for model accuracy using holdout validation.
 
     This test evaluates model performance by splitting data into train/test sets
     and calculating MAPE and R-squared metrics on the test set.
@@ -44,7 +45,7 @@ class AccuracyTest(BaseValidationTest):
     def test_name(self) -> str:
         return ValidationTestNames.ACCURACY
 
-    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
         train, test = self._split_data_holdout(data)
         adapter.fit(train)  # fit() modifies model in-place, returns None
         predictions = adapter.predict(test)  # predict() on same model instance
@@ -63,7 +64,7 @@ class AccuracyTest(BaseValidationTest):
 
         logger.info(f"Saving the test results for {self.test_name} test")
 
-        return TestResult(
+        return ValidationTestResult(
             test_name=ValidationTestNames.ACCURACY,
             passed=test_scores.check_test_passed(),
             metric_names=AccuracyMetricNames.metrics_to_list(),
@@ -72,17 +73,15 @@ class AccuracyTest(BaseValidationTest):
 
 
 class CrossValidationTest(BaseValidationTest):
-    """
-    Validation test for the cross-validation of the MMM framework.
+    """Validation test for the cross-validation of the MMM framework.
     """
 
     @property
     def test_name(self) -> str:
         return ValidationTestNames.CROSS_VALIDATION
 
-    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
-        """
-        Run the cross-validation test using time-series splits.
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the cross-validation test using time-series splits.
 
         Args:
             model: Model to validate
@@ -90,6 +89,7 @@ class CrossValidationTest(BaseValidationTest):
 
         Returns:
             TestResult containing cross-validation metrics
+        
         """
         # Initialize cross-validation splitter
         cv_splits = self._split_data_time_series_cv(data)
@@ -142,7 +142,7 @@ class CrossValidationTest(BaseValidationTest):
 
         logger.info(f"Saving the test results for {self.test_name} test")
 
-        return TestResult(
+        return ValidationTestResult(
             test_name=ValidationTestNames.CROSS_VALIDATION,
             passed=test_scores.check_test_passed(),
             metric_names=CrossValidationMetricNames.metrics_to_list(),
@@ -151,8 +151,7 @@ class CrossValidationTest(BaseValidationTest):
 
 
 class RefreshStabilityTest(BaseValidationTest):
-    """
-    Validation test for the stability of the MMM framework.
+    """Validation test for the stability of the MMM framework.
     """
 
     @property
@@ -163,7 +162,6 @@ class RefreshStabilityTest(BaseValidationTest):
         self, baseline_data: pd.DataFrame, comparison_data: pd.DataFrame
     ) -> tuple[pd.Timestamp, pd.Timestamp]:
         """Filter the data to the common dates for stability comparison."""
-
         common_start_date = max(
             baseline_data[InputDataframeConstants.DATE_COL].min(),
             comparison_data[InputDataframeConstants.DATE_COL].min(),
@@ -175,11 +173,9 @@ class RefreshStabilityTest(BaseValidationTest):
 
         return common_start_date, common_end_date
 
-    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the stability test.
         """
-        Run the stability test.
-        """
-
         # Initialize cross-validation splitter
         cv_splits = self._split_data_time_series_cv(data)
 
@@ -189,16 +185,12 @@ class RefreshStabilityTest(BaseValidationTest):
         # Run cross-validation
         for i, (train_idx, refresh_idx) in enumerate(cv_splits):
 
-            logger.info(
-                f"Running refresh stability test fold {i+1} of {len(cv_splits)}"
-            )
+            logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
 
             # Get train/test data
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat(
-                [current_data, data.iloc[refresh_idx]], ignore_index=True
-            )
+            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
             # Get common dates for roi stability comparison
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,
@@ -237,7 +229,7 @@ class RefreshStabilityTest(BaseValidationTest):
 
         logger.info(f"Saving the test results for {self.test_name} test")
 
-        return TestResult(
+        return ValidationTestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             passed=test_scores.check_test_passed(),
             metric_names=RefreshStabilityMetricNames.metrics_to_list(),
@@ -246,8 +238,7 @@ class RefreshStabilityTest(BaseValidationTest):
 
 
 class PerturbationTest(BaseValidationTest):
-    """
-    Validation test for the perturbation of the MMM framework.
+    """Validation test for the perturbation of the MMM framework.
     """
 
     @property
@@ -255,14 +246,14 @@ class PerturbationTest(BaseValidationTest):
         return ValidationTestNames.PERTURBATION
 
     def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Generate Gaussian noise for perturbation testing.
+        """Generate Gaussian noise for perturbation testing.
 
         Args:
             df: Input dataframe to determine noise size
 
         Returns:
             Array of Gaussian noise values
+        
         """
         return np.random.normal(
             PerturbationConstants.GAUSSIAN_NOISE_LOC,
@@ -275,8 +266,7 @@ class PerturbationTest(BaseValidationTest):
         df: pd.DataFrame,
         spend_cols: list[str],
     ) -> pd.DataFrame:
-        """
-        Add Gaussian noise to spend data for perturbation testing.
+        """Add Gaussian noise to spend data for perturbation testing.
 
         Args:
             df: Input dataframe
@@ -284,6 +274,7 @@ class PerturbationTest(BaseValidationTest):
 
         Returns:
             Dataframe with noise added to spend column
+        
         """
         df_copy = df.copy()
         noise = self._get_percent_gaussian_noise(df)
@@ -291,11 +282,9 @@ class PerturbationTest(BaseValidationTest):
             df_copy[spend_col] = df[spend_col] * (1 + noise)
         return df_copy
 
-    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> TestResult:
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the perturbation test.
         """
-        Run the perturbation test.
-        """
-
         # Train model on original data
         adapter.fit(data)
         original_model = adapter.get_channel_roi()
@@ -321,7 +310,7 @@ class PerturbationTest(BaseValidationTest):
 
         logger.info(f"Saving the test results for {self.test_name} test")
 
-        return TestResult(
+        return ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             passed=test_scores.check_test_passed(),
             metric_names=PerturbationMetricNames.metrics_to_list(),

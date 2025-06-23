@@ -2,8 +2,7 @@
 
 
 class InputDataframeConstants:
-    """
-    Constants for the dataframe
+    """Constants for the dataframe
     """
 
     DATE_COL = "date_week"
