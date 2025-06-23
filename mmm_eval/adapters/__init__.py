@@ -4,14 +4,10 @@ from typing import Any
 
 from .base import BaseAdapter
 from .experimental.pymc import PyMCAdapter
-from .meridian import MeridianAdapter
-from .pymc import PyMCAdapter as LegacyPyMCAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY: dict[str, type[BaseAdapter]] = {
-    "meridian": MeridianAdapter,
     "pymc-marketing": PyMCAdapter,
-    "pymc": LegacyPyMCAdapter,
 }
 
 
@@ -37,7 +33,6 @@ def get_adapter(framework: str, config: dict[str, Any] | None = None) -> BaseAda
 
 
 __all__ = [
-    "MeridianAdapter",
     "PyMCAdapter",
     "get_adapter",
     "ADAPTER_REGISTRY",
