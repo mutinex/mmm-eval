@@ -8,49 +8,12 @@ from pathlib import Path
 from typing import Any
 
 import click
-import pandas as pd
 
 from mmm_eval import evaluate_framework
+from mmm_eval.data.pipeline import DataPipeline
 from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
-
-
-def load_config(config_path: str | None) -> dict[str, Any] | None:
-    """Load config from JSON file if provided.
-
-    Args:
-        config_path: Path to JSON config file
-
-    Returns:
-        Configuration dictionary or None if no path provided
-
-    """
-    if not config_path:
-        return None
-    config_path_obj = validate_path(config_path)
-    if not config_path_obj.suffix.lower() == ".json":
-        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
-    with open(config_path_obj) as f:
-        return json.load(f)
-
-
-def load_data(data_path: str) -> pd.DataFrame:
-    """Load data from CSV file.
-
-    Args:
-        data_path: Path to CSV data file
-
-    Returns:
-        Loaded DataFrame
-
-    """
-    data_path_obj = validate_path(data_path)
-    if not data_path_obj.suffix.lower() == ".csv":
-        raise ValueError(f"Invalid data path: {data_path}. Must be a CSV file.")
-
-    logger.info(f"Loading input data from {data_path}")
-    return pd.read_csv(data_path_obj)
 
 
 def validate_path(path: str) -> Path:
@@ -70,6 +33,15 @@ def validate_path(path: str) -> Path:
     if not path_obj.exists():
         raise FileNotFoundError(f"Invalid path:{path}")
     return path_obj
+
+
+def load_config(config_path: str) -> dict[str, Any]:
+    """Load config from JSON file."""
+    config_path_obj = validate_path(config_path)
+    if not config_path_obj.suffix.lower().lstrip(".") == "json":
+        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
+    with open(config_path_obj) as f:
+        return json.load(f)
 
 
 @click.command()
@@ -123,9 +95,18 @@ def main(
 
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
-    data = load_data(input_data_path)
 
+    # This should be validated in its own config pipeline class in another pr
+    if not config_path:
+        raise ValueError("Config path is required")
     config = load_config(config_path)
+
+    data = DataPipeline(
+        data_path=input_data_path,
+        date_column=config["date_column"],
+        response_column=config["response_column"],
+        revenue_column=config["revenue_column"],
+    ).run()
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
 

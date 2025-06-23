@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mmm-eval"
-version = "0.1.1"
+version = "0.1.2"
 description = "Open-source evaluation of marketing mix model (MMM) performance"
 authors = ["Joseph Kang <joseph.kang@mutinex.co>",
            "Phil Clark <phil.clark@mutinex.co>",
@@ -17,9 +17,10 @@ google-meridian = "^1.1.0"
 pymc-marketing = "^0.14.0"
 scipy = ">=1.13.1,<2.0.0"
 pytensor = "^2.18.0"
-pandera = "^0.18"
+pandera = "^0.24.0"
 pydantic = "^2.5"
 click = "^8.1.7"
+pyarrow = "^20.0.0"
 
 [tool.poetry.scripts]
 mmm-eval = "mmm_eval.cli.evaluate:main"
