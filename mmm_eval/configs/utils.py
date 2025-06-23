@@ -4,7 +4,8 @@ import json
 
 def save_config(config: dict[str, Any], save_path: str, file_name: str):
     Path(save_path).mkdir(parents=True, exist_ok=True)
-    json.dump(config, open(f"{save_path}/{file_name}.json", "w"))
+    with open(f"{save_path}/{file_name}.json", "w") as f:
+        json.dump(config, f)
     return config
 
 def load_config(config_path: Optional[str]) -> Optional[Dict[str, Any]]:

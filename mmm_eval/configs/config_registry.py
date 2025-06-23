@@ -1,12 +1,11 @@
 """
 Framework configs for MMM evaluation.
 """
-from .configs import PyMCConfig, MeridianConfig, EvalConfig, Config
+from .configs import PyMCConfig, EvalConfig, Config
 
 
 # Registry of available configs
 CONFIG_REGISTRY = {
-    "meridian": MeridianConfig,
     "pymc-marketing": PyMCConfig,
 }
 
@@ -37,8 +36,8 @@ def get_config(framework: str, config_path: str) -> EvalConfig:
 
 __all__ = [
     "EvalConfig",
-    "MeridianConfig",
     "PyMCConfig",
+    "Config",
     "get_config",
     "CONFIG_REGISTRY",
 ]

@@ -9,23 +9,16 @@ from typing import Dict
 import pandas as pd
 
 from mmm_eval.adapters.base import BaseAdapter
-from mmm_eval.configs import PyMCConfig
-from pymc_marketing.mmm import MMM
 
 # TODO: update this class once PyMCAdapter is promoted out of experimental
 class PyMCAdapter(BaseAdapter):
-    def __init__(self, config: PyMCConfig, data: pd.DataFrame):
-        self.config = config
-        self.data = data
-        self.is_fitted = False
+    def __init__(self, config: dict):
+        pass
 
     def fit(self: str):
-        X = self.data.drop(columns=[self.config.target_column])
-        y = self.data[self.config.target_column]
+        pass
 
-        MMM(**self.config.model_config.config).fit(X=X, y=y, **self.config.fit_config.config)
-
-    def predict(self, data: pd.DataFrame) -> pd.Series:
+    def predict(self) -> pd.Series:
         pass
 
     def get_channel_roi(self) -> Dict[str, float]:

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, validator, InstanceOf
-from typing import Annotated, Optional
+from typing import Annotated, Optional, Any
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
 import pandas as pd
@@ -111,5 +111,18 @@ class PyMCModelSchema(BaseModel):
     model_config = {
         "arbitrary_types_allowed": True,
         "extra": "allow",  # Allow extra fields not defined in schema
+        "coerce_types_to_string": False,  # Allow type coercion
+    }
+
+class PyMCStringConfigSchema(BaseModel):
+    """Schema for PyMC Evaluation Config Dictionary"""
+
+    model_config: dict[str, Any] = Field(..., description="Model configuration.")
+    fit_config: dict[str, Any] = Field(..., description="Fit configuration.")
+    target_column: str = Field(..., description="Name of the target column.")
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
         "coerce_types_to_string": False,  # Allow type coercion
     }

@@ -10,7 +10,7 @@ import pandas as pd
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
-from mmm_eval.utils import PyMCConfigRehydrator
+from mmm_eval.configs import PyMCConfigRehydrator
 from mmm_eval.adapters.experimental.schemas import PyMCConfigEvalSchema
 
 

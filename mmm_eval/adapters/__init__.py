@@ -4,13 +4,11 @@ Framework adapters for MMM evaluation.
 
 from typing import Dict, Any, Optional
 import pandas as pd
-from .meridian import MeridianAdapter
 from .pymc import PyMCAdapter
 
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
-    "meridian": MeridianAdapter,
     "pymc-marketing": PyMCAdapter,
 }
 
@@ -41,7 +39,6 @@ def get_adapter(framework: str, data: pd.DataFrame, config: Optional[Dict[str, A
 
 
 __all__ = [
-    "MeridianAdapter",
     "PyMCAdapter",
     "get_adapter",
     "ADAPTER_REGISTRY",

@@ -19,15 +19,14 @@ from .metrics.accuracy import mape, rmse, mae, r_squared, symmetric_mape
 # Adapters
 from .adapters import (
     get_adapter,
-    MeridianAdapter,
     PyMCAdapter,
 )
 
 # Data utilities
 from .data.loaders import load_csv, load_from_database, DataLoader, load_data
 
-# Configs
-from .configs import get_config, save_config, load_config, PyMCConfig, MeridianConfig, EvalConfig, Config, PyMCConfigRehydrator
+# 
+from .configs import get_config, save_config, load_config, PyMCConfig, EvalConfig, Config, PyMCConfigRehydrator
 
 
 __all__ = [
@@ -42,14 +41,12 @@ __all__ = [
     "symmetric_mape",
     # Adapters
     "get_adapter",
-    "MeridianAdapter",
     "PyMCAdapter",
     # Data utilities
     "load_csv",
     "load_from_database",
     "DataLoader",
     "PyMCConfig",
-    "MeridianConfig",
     "EvalConfig",
     "Config",
     "PyMCConfigRehydrator",

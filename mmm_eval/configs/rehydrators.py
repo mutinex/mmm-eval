@@ -73,3 +73,4 @@ class PyMCConfigRehydrator(ConfigRehydrator):
     def __init__(self, config):
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
+        

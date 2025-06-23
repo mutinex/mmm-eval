@@ -1,5 +1,5 @@
 import pytest
-from mmm_eval.adapters.pymc import PyMCAdapter
+from mmm_eval.adapters.experimental.pymc import PyMCAdapter
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
