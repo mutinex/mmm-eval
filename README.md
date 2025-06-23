@@ -8,7 +8,7 @@ mmm-eval provides a standardized way to evaluate and compare different MMM frame
 
 ## Features
 
-- **Multi-framework support**: Evaluate Meridian, PyMC-Marketing, and other MMM frameworks
+- **Multi-framework support**: Evaluate , PyMC-Marketing, and other MMM frameworks
 - **Comprehensive validation tests**: Accuracy, cross-validation, refresh stability, and perturbation tests
 - **Standardized metrics**: MAPE, RMSE, R-squared, and other industry-standard metrics
 - **Flexible data handling**: Support for custom column names and data formats
@@ -37,7 +37,7 @@ poetry add mmm-eval
 mmm-eval --input-data-path data.csv --framework pymc-marketing
 
 # With custom configuration
-mmm-eval --input-data-path data.csv --framework meridian --config-path config.json --output-path results/
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run specific tests only
 mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
@@ -124,7 +124,6 @@ tox
 
 ## Supported Frameworks
 
-- **Meridian**: Google's open-source MMM framework
 - **PyMC-Marketing**: Bayesian MMM framework using PyMC
 
 ## Contributing
