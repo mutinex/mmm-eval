@@ -30,7 +30,7 @@ class TestDataValidator:
         df = pd.DataFrame()
         
         validator = DataValidator()
-        with pytest.raises(EmptyDataFrameError):  # Should raise EmptyDataFrameError for empty data
+        with pytest.raises(EmptyDataFrameError):
             validator.run_validations(df)
     
     def test_insufficient_data_size(self):
@@ -42,7 +42,7 @@ class TestDataValidator:
         })
         
         validator = DataValidator(min_data_size=21)
-        with pytest.raises(DataValidationError):  # Should raise exception for small data
+        with pytest.raises(DataValidationError):
             validator.run_validations(df)
     
     def test_pandera_schema_null_validation(self):

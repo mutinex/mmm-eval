@@ -112,5 +112,5 @@ class TestDataPipeline:
             min_data_size=21
         )
         
-        with pytest.raises(DataValidationError):  # Should fail due to insufficient data
+        with pytest.raises(DataValidationError):
             pipeline.run()

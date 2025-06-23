@@ -5,7 +5,7 @@ Unit tests for DataProcessor.
 import pytest
 import pandas as pd
 from mmm_eval.data import DataProcessor
-from mmm_eval.data.exceptions import InvalidDateFormatError, DataValidationError, MissingRequiredColumnsError
+from mmm_eval.data.exceptions import InvalidDateFormatError, MissingRequiredColumnsError
 from mmm_eval.data.constants import InputDataframeConstants
 
 
@@ -83,7 +83,7 @@ class TestDataProcessor:
         })
         
         processor = DataProcessor()
-        with pytest.raises(MissingRequiredColumnsError):  # Should raise MissingRequiredColumnsError for missing column
+        with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
     
     def test_missing_response_column(self):
@@ -94,7 +94,7 @@ class TestDataProcessor:
         })
         
         processor = DataProcessor()
-        with pytest.raises(MissingRequiredColumnsError):  # Should raise MissingRequiredColumnsError for missing column
+        with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
     
     def test_missing_revenue_column(self):
@@ -105,7 +105,7 @@ class TestDataProcessor:
         })
         
         processor = DataProcessor()
-        with pytest.raises(MissingRequiredColumnsError):  # Should raise MissingRequiredColumnsError for missing column
+        with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
     
     def test_invalid_date_format(self):
@@ -121,5 +121,5 @@ class TestDataProcessor:
             response_column='custom_response',
             revenue_column='custom_revenue'
         )
-        with pytest.raises(InvalidDateFormatError):  # Should raise InvalidDateFormatError for unparseable dates
+        with pytest.raises(InvalidDateFormatError):
             processor.process(df)
