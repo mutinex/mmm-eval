@@ -17,7 +17,7 @@ class DataLoaderConstants:
         PARQUET = "parquet"
         
         @classmethod
-        def to_list(cls):
+        def all(cls):
             """Return list of all supported file extensions."""
             return [cls.CSV, cls.PARQUET]
         

@@ -16,21 +16,17 @@ from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
 
+def validate_path(path: str) -> Path:
+    """Validate path is a valid file path."""
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(f"Invalid path:{path}")
+    return path
 
-def load_config(config_path: str | None) -> dict[str, Any] | None:
-    """Load config from JSON file if provided.
-
-    Args:
-        config_path: Path to JSON config file
-
-    Returns:
-        Configuration dictionary or None if no path provided
-
-    """
-    if not config_path:
-        return None
-    config_path_obj = validate_path(config_path)
-    if not config_path_obj.suffix.lower() == ".json":
+def load_config(config_path: str) -> Dict[str, Any]:
+    """Load config from JSON file."""
+    config_path = validate_path(config_path)
+    if not config_path.suffix.lower() == ".json":
         raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
     with open(config_path_obj) as f:
         return json.load(f)
@@ -125,7 +121,10 @@ def main(
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
 
-    config = load_config(config_path) ## I think we need to validate the config here, requiring the date, response, and revenue columns
+    # This should be validated in its own config pipeline class in another pr
+    if not config_path:
+        raise ValueError("Config path is required")
+    config = load_config(config_path)
 
     data = DataPipeline(
         data_path=input_data_path,

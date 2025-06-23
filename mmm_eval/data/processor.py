@@ -2,12 +2,10 @@
 Data processing utilities for MMM evaluation.
 """
 
-from typing import List, Optional
 import pandas as pd
 
 from mmm_eval.data.exceptions import (
     InvalidDateFormatError,
-    DataValidationError,
     MissingRequiredColumnsError,
 )
 from mmm_eval.data.constants import InputDataframeConstants
@@ -110,10 +108,6 @@ class DataProcessor:
         Returns:
             DataFrame with parsed date columns
         """
-        if date_column not in df.columns:
-            raise MissingRequiredColumnsError(
-                f"Date column '{date_column}' required but not found in DataFrame"
-            )
 
         try:
             df[date_column] = pd.to_datetime(df[date_column], errors="raise")

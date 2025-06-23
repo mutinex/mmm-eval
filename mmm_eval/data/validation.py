@@ -49,7 +49,7 @@ class DataValidator:
         try:
             ValidatedDataSchema.validate(df)
         except pa.errors.SchemaErrors as e:
-            raise DataValidationError(f"DataFrame does not match the schema: {e}")
+            raise DataValidationError(f"DataFrame does not match the schema: {str(e)}") from e
     
     def _validate_not_empty(self, df: pd.DataFrame) -> None:
         """Check if DataFrame is empty."""

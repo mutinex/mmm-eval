@@ -36,7 +36,7 @@ class DataLoader:
 
         """
         ext = self.data_path.suffix.lower().lstrip(".")
-        if ext not in DataLoaderConstants.ValidDataExtensions.to_list():
+        if ext not in DataLoaderConstants.ValidDataExtensions.all():
             raise ValueError(f"Unsupported file format: {self.data_path.suffix}")
         
         if ext == DataLoaderConstants.ValidDataExtensions.CSV:
