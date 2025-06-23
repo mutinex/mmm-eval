@@ -10,7 +10,7 @@ readme = "README.md"
 packages = [{include = "mmm_eval"}]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
+python = "3.11.8"
 numpy = ">=1.17"
 pandas = "^2.0.0"
 google-meridian = "^1.1.0"
@@ -40,7 +40,7 @@ pytest-xdist = "^3.6.1"
 name = "mmm-eval"
 version = "0.1.0"
 description = "Media Mix Modeling Evaluation"
-requires-python = ">=3.11,<3.13"
+requires-python = "3.11.8"
 dependencies = [
     "numpy>=2.0.2",
     "pandas>=2.0.0",
