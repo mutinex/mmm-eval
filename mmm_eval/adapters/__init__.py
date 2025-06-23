@@ -1,10 +1,7 @@
 """Adapters for different MMM frameworks."""
 
-from typing import Dict, Any, Optional
-import pandas as pd
-from .pymc import PyMCAdapter
+from mmm_eval.configs import PyMCConfig
 
-from .base import BaseAdapter
 from .experimental.pymc import PyMCAdapter
 
 # Registry of available adapters
@@ -13,15 +10,11 @@ ADAPTER_REGISTRY = {
 }
 
 
-def get_adapter(
-    framework: str, data: pd.DataFrame, config: Optional[Dict[str, Any]] = None
-):
-    """
-    Get an adapter instance for the specified framework.
+def get_adapter(framework: str, config: PyMCConfig):
+    """Get an adapter instance for the specified framework.
 
     Args:
         framework: Name of the MMM framework
-        data: Input data to run the model on
         config: Framework-specific configuration
 
     Returns:
@@ -35,7 +28,7 @@ def get_adapter(
         raise ValueError(f"Unsupported framework: {framework}. Available: {list(ADAPTER_REGISTRY.keys())}")
 
     adapter_class = ADAPTER_REGISTRY[framework]
-    return adapter_class(config, data)
+    return adapter_class(config)
 
 
 __all__ = [

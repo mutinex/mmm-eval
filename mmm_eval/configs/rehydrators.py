@@ -1,20 +1,26 @@
+import ast
 import inspect
+import re
+from typing import Any
+
+import numpy as np
 import pymc_marketing.mmm as mmm
 import pymc_marketing.prior as prior
-from typing import Any
-import ast
-import numpy as np
-import re
 
 
 class ConfigRehydrator:
-    """
-    Rehydrate a string config dictionary with PyMC objects.
-    """
+    """Rehydrate a string config dictionary."""
 
     def __init__(self, config):
+        """Initialize the ConfigRehydrator.
+
+        Args:
+            config: The config to rehydrate.
+
+        """
         self.init_config = config.copy()
         self.hydrated_config = None
+        self.class_registry = self.build_class_registry()
 
     def build_class_registry(self, *modules):
         """Build a registry of classes from the given modules.
@@ -24,6 +30,7 @@ class ConfigRehydrator:
 
         Returns:
             dict: A dictionary of classes from the given modules.
+
         """
         registry = {}
         for mod in modules:
@@ -37,9 +44,10 @@ class ConfigRehydrator:
         return registry
 
     def fix_numpy_list_syntax(self, s: str) -> str:
-        """
-        Fix space-separated numbers inside brackets (NumPy-style) to comma-separated,
+        """Fix space-separated numbers inside brackets (NumPy-style) to comma-separated.
+
         e.g., "[1.0 2.0]" => "[1.0, 2.0]"
+
         """
         return re.sub(
             r"\[([\d\.\s\-eE]+)\]",
@@ -48,7 +56,15 @@ class ConfigRehydrator:
         )
 
     def safe_eval(self, value: str) -> Any:
-        """Try literal_eval first, then fallback to eval with class registry."""
+        """Try literal_eval first, then fallback to eval with class registry.
+
+        Args:
+            value: The value to evaluate.
+
+        Returns:
+            The evaluated value.
+
+        """
         try:
             return ast.literal_eval(value)
         except (ValueError, SyntaxError):
@@ -59,7 +75,12 @@ class ConfigRehydrator:
                 return value  # leave it as-is if still not evaluable
 
     def rehydrate_config(self) -> dict[str, Any]:
-        """Recursively rehydrate stringified config values."""
+        """Recursively rehydrate stringified config values.
+
+        Returns
+            The rehydrated config.
+
+        """
         new_config = {}
         for key, val in self.init_config.items():
             if isinstance(val, str):
@@ -75,6 +96,14 @@ class ConfigRehydrator:
 
 
 class PyMCConfigRehydrator(ConfigRehydrator):
+    """Rehydrate a config with PyMC objects."""
+
     def __init__(self, config):
+        """Initialize the PyMCConfigRehydrator.
+
+        Args:
+            config: The config to rehydrate.
+
+        """
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)

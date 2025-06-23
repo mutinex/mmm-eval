@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field, validator, InstanceOf
-from typing import Annotated, Optional, Any
+from typing import Annotated, Any
+
+from pydantic import BaseModel, Field, InstanceOf, field_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
 
@@ -8,9 +9,7 @@ class PyMCInputDataSchema(BaseModel):
     """Schema for input CSV data."""
 
     date_column: str = Field(..., description="Column name of the date variable.")
-    channel_columns: list[str] = Field(
-        min_length=1, description="Column names of the media channel variables."
-    )
+    channel_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
     revenue_column: float = Field(description="Revenue column")
 
 
@@ -18,16 +17,10 @@ class PyMCFitSchema(BaseModel):
     draws: int = Field(1000, description="Number of posterior samples to draw.")
     tune: int = Field(1000, description="Number of tuning (warm-up) steps.")
     chains: int = Field(4, description="Number of MCMC chains to run.")
-    target_accept: float = Field(
-        0.8, ge=0.0, le=1.0, description="Target acceptance rate for the sampler."
-    )
-    random_seed: Optional[int] = Field(
-        None, description="Random seed for reproducibility."
-    )
+    target_accept: float = Field(0.8, ge=0.0, le=1.0, description="Target acceptance rate for the sampler.")
+    random_seed: int | None = Field(None, description="Random seed for reproducibility.")
     progress_bar: bool = Field(True, description="Whether to display the progress bar.")
-    return_inferencedata: bool = Field(
-        True, description="Whether to return arviz.InferenceData."
-    )
+    return_inferencedata: bool = Field(True, description="Whether to return arviz.InferenceData.")
 
     model_config = {
         "arbitrary_types_allowed": True,
@@ -37,29 +30,19 @@ class PyMCFitSchema(BaseModel):
 
 
 class PyMCModelSchema(BaseModel):
-    """Schema for PyMC Config Dictionary"""
+    """Schema for PyMC Config Dictionary."""
 
     date_column: str = Field(..., description="Column name of the date variable.")
-    channel_columns: list[str] = Field(
-        min_length=1, description="Column names of the media channel variables."
-    )
-    adstock: InstanceOf[AdstockTransformation] = Field(
-        ..., description="Type of adstock transformation to apply."
-    )
+    channel_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    adstock: InstanceOf[AdstockTransformation] = Field(..., description="Type of adstock transformation to apply.")
     saturation: InstanceOf[SaturationTransformation] = Field(
         ..., description="Type of saturation transformation to apply."
     )
-    time_varying_intercept: bool = Field(
-        False, description="Whether to consider time-varying intercept."
-    )
-    time_varying_media: bool = Field(
-        False, description="Whether to consider time-varying media contributions."
-    )
+    time_varying_intercept: bool = Field(False, description="Whether to consider time-varying intercept.")
+    time_varying_media: bool = Field(False, description="Whether to consider time-varying media contributions.")
     model_config: dict | None = Field(None, description="Model configuration.")
     sampler_config: dict | None = Field(None, description="Sampler configuration.")
-    validate_data: bool = Field(
-        True, description="Whether to validate the data before fitting to model"
-    )
+    validate_data: bool = Field(True, description="Whether to validate the data before fitting to model")
     control_columns: (
         Annotated[
             list[str],
@@ -73,9 +56,7 @@ class PyMCModelSchema(BaseModel):
     yearly_seasonality: (
         Annotated[
             int,
-            Field(
-                gt=0, description="Number of Fourier modes to model yearly seasonality."
-            ),
+            Field(gt=0, description="Number of Fourier modes to model yearly seasonality."),
         ]
         | None
     ) = None
@@ -152,7 +133,7 @@ class PyMCModelSchema(BaseModel):
 
 
 class PyMCStringConfigSchema(BaseModel):
-    """Schema for PyMC Evaluation Config Dictionary"""
+    """Schema for PyMC Evaluation Config Dictionary."""
 
     model_config: dict[str, Any] = Field(..., description="Model configuration.")
     fit_config: dict[str, Any] = Field(..., description="Fit configuration.")

@@ -1,12 +1,13 @@
-import click
 import logging
 from pathlib import Path
-from typing import Optional
 
-from mmm_eval import evaluate_framework, load_data
-from mmm_eval.metrics import AVAILABLE_METRICS
+import click
+
+from mmm_eval import evaluate_framework
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
+from mmm_eval.data import DataPipeline
+from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ logger = logging.getLogger(__name__)
     help="Enable verbose logging",
 )
 def main(
-    config_path: str | None,
+    config_path: str,
     input_data_path: str,
     metrics: tuple[str, ...],
     framework: str,
@@ -67,9 +68,9 @@ def main(
 
     data = DataPipeline(
         data_path=input_data_path,
-        date_column=config["date_column"],
-        response_column=config["response_column"],
-        revenue_column=config["revenue_column"],
+        date_column=config.model_config.config["date_column"],
+        response_column="response",
+        revenue_column=config.target_column,
     ).run()
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None

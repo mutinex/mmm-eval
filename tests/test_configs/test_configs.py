@@ -1,16 +1,19 @@
-import pytest
-import tempfile
 import os
-from mmm_eval.configs.configs import Config, EvalConfig, PyMCConfig
-from mmm_eval.adapters.experimental.schemas import PyMCModelSchema
-from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
+import tempfile
+
+import pytest
 from pydantic import ValidationError
+from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
+
+from mmm_eval.adapters.experimental.schemas import PyMCModelSchema
+from mmm_eval.configs.configs import Config, EvalConfig, PyMCConfig
 
 
 class MockModelObject:
-    """Mock model object for testing"""
+    """Mock model object for testing."""
 
     def __init__(self):
+        """Initialize the MockModelObject."""
         self.date_column = "date_week"
         self.channel_columns = ["channel_1", "channel_2"]
         self.control_columns = ["price", "event_1", "event_2"]
@@ -21,7 +24,7 @@ class MockModelObject:
 
 
 def test_config_validation():
-    """Test Config class validation"""
+    """Test Config class validation."""
     valid_config = {
         "date_column": "date_week",
         "channel_columns": ["channel_1", "channel_2"],
@@ -36,7 +39,7 @@ def test_config_validation():
 
 
 def test_config_validation_invalid():
-    """Test Config class validation with invalid config"""
+    """Test Config class validation with invalid config."""
     invalid_config = {"channel_columns": []}  # Empty list should raise ValueError
 
     with pytest.raises(ValidationError):
@@ -44,14 +47,14 @@ def test_config_validation_invalid():
 
 
 def test_eval_config():
-    """Test EvalConfig base class"""
+    """Test EvalConfig base class."""
     mock_model = MockModelObject()
     eval_config = EvalConfig(mock_model)
     assert eval_config.model_object == mock_model
 
 
 def test_pymc_config_with_model_object():
-    """Test PyMCConfig initialization with model object"""
+    """Test PyMCConfig initialization with model object."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     target_column = "quantity"
@@ -68,7 +71,7 @@ def test_pymc_config_with_model_object():
 
 
 def test_pymc_config_save_and_load():
-    """Test PyMCConfig save and load functionality"""
+    """Test PyMCConfig save and load functionality."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     target_column = "quantity"
@@ -97,14 +100,12 @@ def test_pymc_config_save_and_load():
 
 
 def test_pymc_config_filter_input_to_schema():
-    """Test filtering of input config to schema keys"""
+    """Test filtering of input config to schema keys."""
     mock_model = MockModelObject()
     config = PyMCConfig(mock_model)
 
     # Test that extra fields are filtered out
-    filtered_config = config.filter_input_to_schema(
-        mock_model.__dict__, PyMCModelSchema
-    )
+    filtered_config = config._filter_input_to_schema(mock_model.__dict__, PyMCModelSchema)
 
     assert "extra_field" not in filtered_config
     assert "date_column" in filtered_config
@@ -112,7 +113,7 @@ def test_pymc_config_filter_input_to_schema():
 
 
 def test_pymc_config_partial_initialization():
-    """Test PyMCConfig with partial initialization"""
+    """Test PyMCConfig with partial initialization."""
     # Test with only model_object
     mock_model = MockModelObject()
     config = PyMCConfig(model_object=mock_model)

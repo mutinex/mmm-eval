@@ -14,6 +14,7 @@ from .adapters import (
     PyMCAdapter,
     get_adapter,
 )
+from .configs import EvalConfig, PyMCConfig, PyMCConfigRehydrator
 from .core.evaluator import evaluate_framework
 from .core.results import EvaluationResults
 
@@ -24,7 +25,6 @@ from .data import (
     DataProcessor,
     DataValidator,
 )
-from .configs import PyMCConfig, EvalConfig, PyMCConfigRehydrator
 
 __all__ = [
     # Core API

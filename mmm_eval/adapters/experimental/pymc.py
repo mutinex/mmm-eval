@@ -13,9 +13,17 @@ from pymc_marketing.mmm import MMM
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import PyMCConfig
 
+logger = logging.getLogger(__name__)
+
 
 class PyMCAdapter(BaseAdapter):
     def __init__(self, config: PyMCConfig):
+        """Initialize the PyMCAdapter.
+
+        Args:
+            config: PyMCConfig object
+
+        """
         # Rehydrate the config dictionary
         self.config = config
 
@@ -23,13 +31,13 @@ class PyMCAdapter(BaseAdapter):
         self.model_config = self.config.model_config.config
         self.fit_config = self.config.fit_config.config
         self.target_column = self.config.target_column
-        self.response_col = self.config.response_column
+        self.response_col = "response"
 
         self.model = None
         self.trace = None
         self._channel_roi_df = None
 
-    def fit(self, data: pd.DataFrame, metadata: dict = None):
+    def fit(self, data: pd.DataFrame):
         """Fit the model and compute ROIs."""
         X = data.drop(columns=[self.target_column])
         y = data[self.target_column]
