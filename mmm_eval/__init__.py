@@ -20,9 +20,9 @@ from .core.results import EvaluationResults
 # Data utilities
 from .data import (
     DataLoader,
+    DataPipeline,
     DataProcessor,
     DataValidator,
-    DataPipeline,
 )
 
 __all__ = [
@@ -40,7 +40,7 @@ __all__ = [
     "PyMCAdapter",
     # Data utilities
     "DataLoader",
-    "DataProcessor", 
+    "DataProcessor",
     "DataValidator",
     "DataPipeline",
 ]

@@ -1,34 +1,30 @@
-"""
-Data pipeline for MMM evaluation.
-"""
+"""Data pipeline for MMM evaluation."""
 
-from typing import Union, Optional
-import pandas as pd
 from pathlib import Path
 
+import pandas as pd
+
+from .constants import DataPipelineConstants, InputDataframeConstants
 from .loaders import DataLoader
 from .processor import DataProcessor
 from .validation import DataValidator
-from .constants import DataPipelineConstants, InputDataframeConstants
 
 
 class DataPipeline:
-    """
-    Data pipeline that orchestrates loading, processing, and validation.
+    """Data pipeline that orchestrates loading, processing, and validation.
 
     Provides a simple interface to go from raw data file to validated DataFrame.
     """
 
     def __init__(
         self,
-        data_path: Union[str, Path],
+        data_path: str | Path,
         date_column: str = InputDataframeConstants.DATE_COL,
         response_column: str = InputDataframeConstants.RESPONSE_COL,
         revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
         min_data_size: int = DataPipelineConstants.MIN_DATA_SIZE,
     ):
-        """
-        Initialize data pipeline.
+        """Initialize data pipeline.
 
         Args:
             data_path: Path to the data file
@@ -36,8 +32,8 @@ class DataPipeline:
             min_data_size: Minimum required data size
             response_column: Name of the response column
             revenue_column: Name of the revenue column
-        """
 
+        """
         # Initialize components
         self.loader = DataLoader(data_path)
         self.processor = DataProcessor(
@@ -48,14 +44,14 @@ class DataPipeline:
         self.validator = DataValidator(min_data_size=min_data_size)
 
     def run(self) -> pd.DataFrame:
-        """
-        Run the complete data pipeline: load → process → validate.
+        """Run the complete data pipeline: load → process → validate.
 
-        Returns:
+        Returns
             Validated and processed DataFrame
 
-        Raises:
+        Raises
             Various exceptions from loading, processing, or validation steps
+
         """
         # Step 1: Load data
         raw_df = self.loader.load()

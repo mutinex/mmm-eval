@@ -15,6 +15,7 @@ from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
 
+
 def validate_path(path: str) -> Path:
     """Validate path is a valid file path.
 
@@ -33,6 +34,7 @@ def validate_path(path: str) -> Path:
         raise FileNotFoundError(f"Invalid path:{path}")
     return path_obj
 
+
 def load_config(config_path: str) -> dict[str, Any]:
     """Load config from JSON file."""
     config_path_obj = validate_path(config_path)
@@ -40,7 +42,6 @@ def load_config(config_path: str) -> dict[str, Any]:
         raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
     with open(config_path_obj) as f:
         return json.load(f)
-
 
 
 @click.command()

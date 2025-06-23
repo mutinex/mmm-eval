@@ -1,19 +1,16 @@
-"""
-Data processing utilities for MMM evaluation.
-"""
+"""Data processing utilities for MMM evaluation."""
 
 import pandas as pd
 
+from mmm_eval.data.constants import InputDataframeConstants
 from mmm_eval.data.exceptions import (
     InvalidDateFormatError,
     MissingRequiredColumnsError,
 )
-from mmm_eval.data.constants import InputDataframeConstants
 
 
 class DataProcessor:
-    """
-    Simple data processor for MMM evaluation.
+    """Simple data processor for MMM evaluation.
 
     Handles data transformations like datetime casting, column renaming, etc.
     """
@@ -24,25 +21,31 @@ class DataProcessor:
         response_column: str = InputDataframeConstants.RESPONSE_COL,
         revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
     ):
-        """
-        Initialize data processor.
+        """Initialize data processor.
 
         Args:
             date_column: Name of the date column to parse and rename
+            response_column: Name of the response column to parse and rename
+            revenue_column: Name of the revenue column to parse and rename
+
         """
         self.date_column = date_column
         self.response_column = response_column
         self.revenue_column = revenue_column
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Process the DataFrame with configured transformations.
+        """Process the DataFrame with configured transformations.
 
         Args:
             df: Input DataFrame
 
         Returns:
             Processed DataFrame
+
+        Raises:
+            MissingRequiredColumnsError: If the required columns are not present.
+            InvalidDateFormatError: If the date column cannot be parsed.
+
         """
         processed_df = df.copy()
 
@@ -84,19 +87,16 @@ class DataProcessor:
 
         Returns:
             None
+
         """
         if date_column not in df.columns:
-            raise MissingRequiredColumnsError(
-                f"Date column '{date_column}' required but not found in DataFrame"
-            )
+            raise MissingRequiredColumnsError(f"Date column '{date_column}' required but not found in DataFrame")
         if response_column not in df.columns:
             raise MissingRequiredColumnsError(
                 f"Response column '{response_column}' required but not found in DataFrame"
             )
         if revenue_column not in df.columns:
-            raise MissingRequiredColumnsError(
-                f"Revenue column '{revenue_column}' required but not found in DataFrame"
-            )
+            raise MissingRequiredColumnsError(f"Revenue column '{revenue_column}' required but not found in DataFrame")
 
     def _parse_date_columns(self, df: pd.DataFrame, date_column: str) -> pd.DataFrame:
         """Parse date columns to datetime.
@@ -107,14 +107,15 @@ class DataProcessor:
 
         Returns:
             DataFrame with parsed date columns
-        """
 
+        Raises:
+            InvalidDateFormatError: If the date column cannot be parsed.
+
+        """
         try:
             df[date_column] = pd.to_datetime(df[date_column], errors="raise")
         except Exception as e:
-            raise InvalidDateFormatError(
-                f"Failed to parse date column '{date_column}': {e}"
-            )
+            raise InvalidDateFormatError(f"Failed to parse date column '{date_column}': {e}") from e
 
         return df
 
@@ -135,6 +136,10 @@ class DataProcessor:
 
         Returns:
             DataFrame with renamed columns
+
+        Raises:
+            MissingRequiredColumnsError: If the required columns are not present.
+
         """
         df = df.rename(
             columns={
