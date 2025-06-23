@@ -3,7 +3,6 @@
 from typing import Any
 
 import numpy as np
-import pandas as pd
 
 
 class EvaluationResults:
@@ -13,8 +12,8 @@ class EvaluationResults:
         self,
         framework: str,
         metrics: dict[str, float],
-        predictions: pd.Series | np.ndarray,
-        actual: pd.Series | np.ndarray,
+        predictions: np.ndarray,
+        actual: np.ndarray,
         additional_info: dict[str, Any] | None = None,
     ):
         """Initialize evaluation results.

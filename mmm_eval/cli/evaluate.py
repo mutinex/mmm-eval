@@ -142,6 +142,4 @@ def main(
 
 
 if __name__ == "__main__":
-    # This is a Click command, so it should be called from command line
-    # The main() function will be called automatically by Click
-    pass
+    main()  # pyright: ignore[reportCallIssue]
