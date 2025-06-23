@@ -21,10 +21,6 @@ import pytest
             False,
         ),
         (
-            "mmm-eval --input-data-path {data_path} --framework meridian",
-            True,
-        ),
-        (
             "mmm-eval --input-data-path {data_path} --framework NotAFramework "
             "--output-path {output_path} --config-path {config_path}",
             False,

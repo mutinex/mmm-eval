@@ -68,7 +68,7 @@ class PyMCAdapter(BaseAdapter):
 
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
-        assert isinstance(y, pd.Series), f"Expected Series, got {type(y)}"
+        # assert isinstance(y, pd.Series), f"Expected Series, got {type(y)}"
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)

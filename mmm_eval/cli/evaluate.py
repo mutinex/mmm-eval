@@ -75,7 +75,7 @@ def validate_path(path: str) -> Path:
 @click.command()
 @click.option(
     "--framework",
-    type=click.Choice(["meridian", "pymc-marketing"]),
+    type=click.Choice(["pymc-marketing"]),
     required=True,
     help="Open source MMM framework to evaluate",
 )
