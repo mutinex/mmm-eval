@@ -34,6 +34,7 @@ tox = "^4.11.0"
 ruff = "^0.1.0"
 pyright = "^1.1.377"
 pytest-cov = "^6.2.1"
+pytest-xdist = "^3.6.1"
 
 [project]
 name = "mmm-eval"
@@ -62,16 +63,92 @@ dev = [
 ]
 
 [tool.black]
-line-length = 88
+line-length = 120
 target-version = ["py39"]
 include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-line_length = 88
+line_length = 120
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-ra -q"
+markers = [
+    "integration: mark a test as an integration test that requires external dependencies",
+]
+
+[tool.pyright]
+reportMissingImports = false
+reportAttributeAccessIssue = "warning"
+
+[tool.ruff]
+# Enable the following linters 
+select = [
+    "E", # pycodestyle
+    "F", # Pyflakes
+    "I", # isort
+    "B", # flake8-bugbear
+    "UP", # pyupgrade
+    "D" # pydocstyle
+]
+
+ignore = [
+    # pydocstyle
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D104", # Missing docstring in public package
+    "D203", # one-blank-line-before-class
+    "D213", # multi-line-summary-second-line
+    "D407", # Missing dashed underline after section ("Args")
+]
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+unfixable = []
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Same as Black.
+line-length = 120
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.11.
+target-version = "py311"
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"] # imported but unused
+
+[tool.ruff.mccabe]
+# Unlike Flake8, default to a complexity level of 10.
+max-complexity = 10
+
+[tool.ruff.isort]
+case-sensitive = true

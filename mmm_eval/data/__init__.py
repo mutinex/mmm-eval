@@ -1,11 +1,8 @@
-"""
-Data management utilities for MMM evaluation.
-"""
+"""Data loading and processing utilities."""
 
-from .loaders import load_csv, load_from_database, DataLoader
+from .loaders import DataLoader, load_csv
 
 __all__ = [
     "load_csv",
-    "load_from_database",
     "DataLoader",
 ]

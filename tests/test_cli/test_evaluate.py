@@ -1,15 +1,19 @@
-import pytest
-import subprocess
-import pandas as pd
+"""Test CLI evaluation functionality."""
+
 import json
 import os
+import subprocess
+
+import pandas as pd
+import pytest
 
 
 @pytest.mark.parametrize(
     "cmd_template,expected",
     [
         (
-            "mmm-eval --input-data-path {data_path} --framework pymc-marketing --output-path {output_path} --config-path {config_path}",
+            "mmm-eval --input-data-path {data_path} --framework pymc-marketing "
+            "--output-path {output_path} --config-path {config_path}",
             True,
         ),
         (
@@ -21,14 +25,14 @@ import os
             True,
         ),
         (
-            "mmm-eval --input-data-path {data_path} --framework NotAFramework --output-path {output_path} --config-path {config_path}",
+            "mmm-eval --input-data-path {data_path} --framework NotAFramework "
+            "--output-path {output_path} --config-path {config_path}",
             False,
         ),
     ],
 )
 def test_cli_as_subprocess(tmp_path, cmd_template, expected):
     """Test the evaluate CLI command as a subprocess."""
-
     # Set up paths
     data_path = tmp_path / "data.csv"
     config_path = tmp_path / "test_config.json"

@@ -10,6 +10,12 @@ from pymc_marketing.mmm.transformers import geometric_adstock, logistic_saturati
 
 
 def generate_data():
+    """Generate synthetic MMM data for testing purposes.
+
+    Returns
+        DataFrame containing synthetic MMM data with media channels, controls, and response variables
+
+    """
     seed: int = sum(map(ord, "mmm"))
     rng: np.random.Generator = np.random.default_rng(seed=seed)
 
@@ -17,9 +23,7 @@ def generate_data():
     min_date = pd.to_datetime("2018-04-01")
     max_date = pd.to_datetime("2021-09-01")
 
-    df = pd.DataFrame(
-        data={"date_week": pd.date_range(start=min_date, end=max_date, freq="W-MON")}
-    ).assign(
+    df = pd.DataFrame(data={"date_week": pd.date_range(start=min_date, end=max_date, freq="W-MON")}).assign(
         year=lambda x: x["date_week"].dt.year,
         month=lambda x: x["date_week"].dt.month,
         dayofyear=lambda x: x["date_week"].dt.dayofyear,
@@ -39,32 +43,20 @@ def generate_data():
     alpha2: float = 0.2
 
     df["channel_1_adstock"] = (
-        geometric_adstock(
-            x=df["channel_1"].to_numpy(), alpha=alpha1, l_max=8, normalize=True
-        )
-        .eval()
-        .flatten()
+        geometric_adstock(x=df["channel_1"].to_numpy(), alpha=alpha1, l_max=8, normalize=True).eval().flatten()
     )
 
     df["channel_2_adstock"] = (
-        geometric_adstock(
-            x=df["channel_2"].to_numpy(), alpha=alpha2, l_max=8, normalize=True
-        )
-        .eval()
-        .flatten()
+        geometric_adstock(x=df["channel_2"].to_numpy(), alpha=alpha2, l_max=8, normalize=True).eval().flatten()
     )
 
     # apply saturation transformation
     lam1: float = 4.0
     lam2: float = 3.0
 
-    df["channel_1_adstock_saturated"] = logistic_saturation(
-        x=df["channel_1_adstock"].to_numpy(), lam=lam1
-    ).eval()
+    df["channel_1_adstock_saturated"] = logistic_saturation(x=df["channel_1_adstock"].to_numpy(), lam=lam1).eval()
 
-    df["channel_2_adstock_saturated"] = logistic_saturation(
-        x=df["channel_2_adstock"].to_numpy(), lam=lam2
-    ).eval()
+    df["channel_2_adstock_saturated"] = logistic_saturation(x=df["channel_2_adstock"].to_numpy(), lam=lam2).eval()
 
     # trend + seasonal
     df["trend"] = (np.linspace(start=0.0, stop=50, num=n) + 10) ** (1 / 4) - 1

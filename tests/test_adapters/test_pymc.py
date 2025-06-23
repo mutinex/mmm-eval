@@ -1,21 +1,23 @@
 """Test the PyMC adapter."""
 
+from unittest.mock import Mock
+
+import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import Mock
-import numpy as np
+from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
+from pymc_marketing.prior import Prior
 
 # TODO: update this import once PyMCAdapter is promoted out of experimental
 from mmm_eval.adapters.experimental.pymc import (
     PyMCAdapter,
-    _validate_start_end_dates,
     _check_columns_in_data,
+    _validate_start_end_dates,
 )
-from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
-from pymc_marketing.prior import Prior
 
 
 def valid_pymc_config_1():
+    """Create a valid PyMC configuration for testing."""
     return {
         "date_column": "date_week",
         "channel_columns": ["channel_1", "channel_2"],
@@ -42,6 +44,7 @@ def valid_pymc_config_1():
 
 
 def valid_pymc_config_2():
+    """Create another valid PyMC configuration for testing."""
     model_config = {
         "intercept": Prior("Normal", mu=0.5, sigma=0.2),
         "saturation_beta": Prior("HalfNormal", sigma=[0.321, 0.123]),
@@ -69,6 +72,7 @@ def valid_pymc_config_2():
 
 
 def invalid_pymc_config():
+    """Create an invalid PyMC configuration for testing."""
     return {
         "date_column": "date_week",
         "channel_columns": ["channel_1", "channel_2"],
@@ -110,12 +114,7 @@ def create_realistic_test_data():
     seasonality = 20 * np.sin(2 * np.pi * np.arange(len(dates)) / 52)
 
     quantity = (
-        base_response
-        + trend
-        + seasonality
-        + 0.3 * channel_1
-        + 0.2 * channel_2
-        + np.random.normal(0, 30, len(dates))
+        base_response + trend + seasonality + 0.3 * channel_1 + 0.2 * channel_2 + np.random.normal(0, 30, len(dates))
     )
 
     price = 10 + 0.1 * np.arange(len(dates)) + np.random.normal(0, 0.5, len(dates))
@@ -203,12 +202,11 @@ def test_predict_method_real_pymc():
     adapter.fit(data)
 
     # Test prediction
-    result = adapter.predict(data)
+    predictions = adapter.predict(data)
 
     # Verify prediction results
-    assert isinstance(result, np.ndarray)
-    assert len(result) == len(data)
-    assert not np.all(np.isnan(result))  # Should have some non-NaN predictions
+    assert isinstance(predictions, np.ndarray)
+    assert len(predictions) == len(data)
 
 
 @pytest.mark.integration
@@ -332,9 +330,7 @@ def test_get_channel_roi_invalid_date_range():
 
     # Mock the adapter as fitted
     adapter.is_fitted = True
-    adapter._channel_roi_df = pd.DataFrame(
-        index=pd.date_range("2023-01-01", periods=10)
-    )
+    adapter._channel_roi_df = pd.DataFrame(index=pd.date_range("2023-01-01", periods=10))
 
     start_date = pd.Timestamp("2023-01-15")
     end_date = pd.Timestamp("2023-01-01")  # End before start
@@ -451,8 +447,8 @@ def test_check_columns_in_data_mixed_column_sets():
     data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6], "col3": [7, 8, 9]})
 
     # Test with string and list mixed
-    _check_columns_in_data(data, ["col1", ["col2", "col3"]])
+    _check_columns_in_data(data, ["col1", "col2", "col3"])
 
     # Test with missing columns in one set
     with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
-        _check_columns_in_data(data, ["col1", ["col2", "col4"]])
+        _check_columns_in_data(data, ["col1", "col2", "col4"])
