@@ -22,14 +22,14 @@ class DataPipeline:
         date_column: str = InputDataframeConstants.DATE_COL,
         response_column: str = InputDataframeConstants.RESPONSE_COL,
         revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
-        min_data_size: int = DataPipelineConstants.MIN_DATA_SIZE,
+        min_number_observations: int = DataPipelineConstants.MIN_NUMBER_OBSERVATIONS,
     ):
         """Initialize data pipeline.
 
         Args:
             data_path: Path to the data file
             date_column: Name of the date column
-            min_data_size: Minimum required data size
+            min_number_observations: Minimum required number of observations
             response_column: Name of the response column
             revenue_column: Name of the revenue column
 
@@ -41,7 +41,7 @@ class DataPipeline:
             response_column=response_column,
             revenue_column=revenue_column,
         )
-        self.validator = DataValidator(min_data_size=min_data_size)
+        self.validator = DataValidator(min_number_observations=min_number_observations)
 
     def run(self) -> pd.DataFrame:
         """Run the complete data pipeline: load → process → validate.

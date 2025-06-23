@@ -28,4 +28,4 @@ class DataLoaderConstants:
 class DataPipelineConstants:
     """Constants for the data pipeline."""
 
-    MIN_DATA_SIZE = 21
+    MIN_NUMBER_OBSERVATIONS = 21

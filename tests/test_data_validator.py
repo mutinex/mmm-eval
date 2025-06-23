@@ -23,7 +23,7 @@ class TestDataValidator:
             }
         )
 
-        validator = DataValidator(min_data_size=21)
+        validator = DataValidator(min_number_observations=21)
         validator.run_validations(df)  # Should not raise any exceptions
 
     def test_empty_dataframe(self):
@@ -44,7 +44,7 @@ class TestDataValidator:
             }
         )
 
-        validator = DataValidator(min_data_size=21)
+        validator = DataValidator(min_number_observations=21)
         with pytest.raises(DataValidationError):
             validator.run_validations(df)
 

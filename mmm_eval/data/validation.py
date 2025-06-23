@@ -11,14 +11,14 @@ from .schemas import ValidatedDataSchema
 class DataValidator:
     """Validator for MMM data with configurable validation rules."""
 
-    def __init__(self, min_data_size: int = DataPipelineConstants.MIN_DATA_SIZE):
+    def __init__(self, min_number_observations: int = DataPipelineConstants.MIN_NUMBER_OBSERVATIONS):
         """Initialize validator with validation rules.
 
         Args:
-            min_data_size: Minimum required data size for time series CV
+            min_number_observations: Minimum required number of observations for time series CV
 
         """
-        self.min_data_size = min_data_size
+        self.min_number_observations = min_number_observations
 
     def run_validations(self, df: pd.DataFrame) -> None:
         """Run all validations on the DataFrame.
@@ -49,7 +49,7 @@ class DataValidator:
 
     def _validate_data_size(self, df: pd.DataFrame) -> None:
         """Check minimum data size."""
-        if len(df) < self.min_data_size:
+        if len(df) < self.min_number_observations:
             raise DataValidationError(
-                f"Data has {len(df)} rows, but time series CV requires at least {self.min_data_size} rows"
+                f"Data has {len(df)} rows, but time series CV requires at least {self.min_number_observations} rows"
             )

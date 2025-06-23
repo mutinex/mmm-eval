@@ -35,7 +35,7 @@ class TestDataPipeline:
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
-            min_data_size=21,
+            min_number_observations=21,
         )
         result = pipeline.run()
 
@@ -62,7 +62,7 @@ class TestDataPipeline:
         df.to_csv(csv_path, index=False)
 
         # Run pipeline with default settings
-        pipeline = DataPipeline(data_path=csv_path, min_data_size=21)
+        pipeline = DataPipeline(data_path=csv_path, min_number_observations=21)
         result = pipeline.run()
 
         assert isinstance(result, pd.DataFrame)
@@ -84,7 +84,7 @@ class TestDataPipeline:
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
-            min_data_size=10,
+            min_number_observations=10,
         )
         result = pipeline.run()
 
@@ -108,7 +108,7 @@ class TestDataPipeline:
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
-            min_data_size=21,
+            min_number_observations=21,
         )
 
         with pytest.raises(DataValidationError):
