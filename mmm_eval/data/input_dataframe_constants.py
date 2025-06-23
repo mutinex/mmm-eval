@@ -2,9 +2,8 @@
 
 
 class InputDataframeConstants:
-    """Constants for the dataframe
-    """
+    """Constants for the dataframe."""
 
     DATE_COL = "date_week"
-    MEDIA_CHANNEL_REVENUE_COL = "revenue"
+    RESPONSE_COL = "response"
     MEDIA_CHANNEL_SPEND_COL = "spend"

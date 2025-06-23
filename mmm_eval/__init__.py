@@ -19,10 +19,9 @@ from .adapters import (
 from .configs import PyMCConfig, PyMCConfigRehydrator
 from .core.evaluator import Evaluator
 from .adapters.experimental.pymc import PyMCAdapter
-from .adapters.meridian import MeridianAdapter
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
-from .core.validation_test_results import ValidationTestResult, ValidationResults
+from .core.validation_test_results import ValidationResults, ValidationTestResult
 from .core.validation_tests_models import ValidationTestNames
 
 # Data utilities
@@ -35,10 +34,8 @@ from .data import (
 
 # Metrics
 from .metrics.accuracy_functions import (
-    calculate_mape,
     calculate_mean_for_singular_values_across_cross_validation_folds,
     calculate_means_for_series_across_cross_validation_folds,
-    calculate_r_squared,
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
 )
@@ -58,17 +55,13 @@ __all__ = [
     "BaseValidationTest",
     "ValidationTestNames",
     # Metrics
-    "calculate_mape",
-    "calculate_r_squared",
     "calculate_means_for_series_across_cross_validation_folds",
     "calculate_stds_for_series_across_cross_validation_folds",
-    "calculate_absolute_percentage_change",
     "calculate_mean_for_singular_values_across_cross_validation_folds",
     "calculate_std_for_singular_values_across_cross_validation_folds",
     # Adapters
     "get_adapter",
     "PyMCAdapter",
-    "MeridianAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",

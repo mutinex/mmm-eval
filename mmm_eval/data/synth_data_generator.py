@@ -130,7 +130,7 @@ def generate_data_non_pytensor():
             - revenue: Calculated revenue
             - event_1, event_2: Control variables (events)
             - dayofyear: Day of year for seasonality
-    
+
     """
     # Create date range
     dates = pd.date_range("2023-01-01", periods=50, freq="W-MON")

@@ -1,5 +1,4 @@
-"""Unit tests for base validation test utilities.
-"""
+"""Unit tests for base validation test utilities."""
 
 from unittest.mock import Mock
 
@@ -17,9 +16,11 @@ class ConcreteTestClass(BaseValidationTest):
 
     @property
     def test_name(self) -> str:
+        """Return the name of the test."""
         return "concrete_test"
 
-    def run(self, model, data):
+    def run(self, adapter, data):
+        """Run the test."""
         return Mock()  # Mock result for testing
 
 
@@ -37,7 +38,7 @@ class TestBaseValidationTest:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=21),
                 "media_channel": ["TV", "Radio", "Digital"] * 7,
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220, 330] * 7,
-                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [160, 260, 360] * 7,
+                InputDataframeConstants.RESPONSE_COL: [160, 260, 360] * 7,
                 "volume_contribution": [55, 55, 55] * 7,
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL: [
                     0.1,
@@ -54,7 +55,7 @@ class TestBaseValidationTest:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=10),
                 "media_channel": ["TV", "Radio"] * 5,
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [100, 200] * 5,
-                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [150, 250] * 5,
+                InputDataframeConstants.RESPONSE_COL: [150, 250] * 5,
                 "volume_contribution": [50, 50] * 5,
             }
         )

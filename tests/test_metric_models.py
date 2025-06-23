@@ -1,5 +1,4 @@
-"""Unit tests for metric models.
-"""
+"""Unit tests for metric models."""
 
 import pandas as pd
 

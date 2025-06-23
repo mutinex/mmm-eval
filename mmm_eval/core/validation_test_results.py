@@ -1,8 +1,7 @@
-"""Result containers for MMM validation framework.
-"""
+"""Result containers for MMM validation framework."""
 
 from datetime import datetime
-from typing import Any, Union
+from typing import Any
 
 from mmm_eval.core.validation_tests_models import (
     ValidationResultAttributeNames,
@@ -29,12 +28,12 @@ class ValidationTestResult:
         test_name: ValidationTestNames,
         passed: bool,
         metric_names: list[str],
-        test_scores: Union[
-            AccuracyMetricResults,
-            CrossValidationMetricResults,
-            RefreshStabilityMetricResults,
-            PerturbationMetricResults,
-        ],
+        test_scores: (
+            AccuracyMetricResults
+            | CrossValidationMetricResults
+            | RefreshStabilityMetricResults
+            | PerturbationMetricResults
+        ),
     ):
         """Initialize test results.
 
@@ -43,7 +42,7 @@ class ValidationTestResult:
             passed: Whether the test passed
             metric_names: List of metric names
             test_scores: Computed metric results
-        
+
         """
         self.test_name = test_name
         self.passed = passed
@@ -51,11 +50,12 @@ class ValidationTestResult:
         self.test_scores = test_scores
         self.timestamp = datetime.now()
 
-    def to_dict(self) -> dict[ValidationTestAttributeNames, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert results to dictionary format."""
         return {
             ValidationTestAttributeNames.TEST_NAME.value: self.test_name.value,
-            ValidationTestAttributeNames.PASSED.value: self.passed,  # todo(): Perhaps set as false permanently or dont use if we dont want thresh
+            # todo(): Perhaps set as false permanently or dont use if we dont want thresholds
+            ValidationTestAttributeNames.PASSED.value: self.passed,
             ValidationTestAttributeNames.METRIC_NAMES.value: self.metric_names,
             ValidationTestAttributeNames.TEST_SCORES.value: self.test_scores.to_dict(),
             ValidationTestAttributeNames.TIMESTAMP.value: self.timestamp.isoformat(),
@@ -74,7 +74,7 @@ class ValidationResults:
 
         Args:
             test_results: Dictionary mapping test names to their results
-        
+
         """
         self.test_results = test_results
         self.timestamp = datetime.now()
@@ -87,7 +87,7 @@ class ValidationResults:
         """Check if all tests passed."""
         return all(result.passed for result in self.test_results.values())
 
-    def to_dict(self) -> dict[ValidationResultAttributeNames, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert results to dictionary format."""
         return {
             ValidationResultAttributeNames.TIMESTAMP.value: self.timestamp.isoformat(),

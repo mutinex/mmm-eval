@@ -1,5 +1,4 @@
-"""Custom exceptions for MMM validation framework.
-"""
+"""Custom exceptions for MMM validation framework."""
 
 
 class ValidationError(Exception):

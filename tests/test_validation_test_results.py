@@ -1,11 +1,10 @@
-"""Unit tests for validation test result classes.
-"""
+"""Unit tests for validation test result classes."""
 
 from datetime import datetime
 
 import pandas as pd
 
-from mmm_eval.core.validation_test_results import ValidationTestResult, ValidationResults
+from mmm_eval.core.validation_test_results import ValidationResults, ValidationTestResult
 from mmm_eval.core.validation_tests_models import (
     ValidationResultAttributeNames,
     ValidationTestAttributeNames,

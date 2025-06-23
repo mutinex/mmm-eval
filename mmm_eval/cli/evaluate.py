@@ -37,8 +37,13 @@ logger = logging.getLogger(__name__)
     "--test-names",
     type=click.Choice(ValidationTestNames.all_tests_as_str()),
     multiple=True,
-    default=ValidationTestNames.all_tests_as_str(),
-    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse. Can be a list of test names.",
+    default=tuple(ValidationTestNames.all_tests_as_str()),
+    help=(
+        "Test names to run. Can specify multiple tests as space-separated values "
+        "(e.g. --test-names accuracy cross_validation) or by repeating the flag "
+        "(e.g. --test-names accuracy --test-names cross_validation). "
+        "Defaults to all tests if not specified."
+    ),
 )
 @click.option(
     "--output-path",
@@ -54,7 +59,7 @@ logger = logging.getLogger(__name__)
 def main(
     config_path: str,
     input_data_path: str,
-    test_names: list[str],
+    test_names: tuple[str, ...],
     framework: str,
     output_path: str | None,
     verbose: bool,
@@ -90,7 +95,8 @@ def main(
         test_names=test_names,
     )
 
-    # Evaluate the tests for the chosen framework and config. This is left as a method as future adaptions will likely allow for multiple frameworks to be evaluated at once.
+    # Evaluate the tests for the chosen framework and config. This is left as a method as future adaptions
+    # will likely allow for multiple frameworks to be evaluated at once.
     evaluator.evaluate_framework(
         framework=framework,
         config=config,

@@ -1,14 +1,11 @@
-"""Test orchestrator for MMM validation framework.
-"""
+"""Test orchestrator for MMM validation framework."""
 
 import logging
 
 import pandas as pd
 
-logger = logging.getLogger(__name__)
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.validation_tests_models import ValidationTestNames
 from mmm_eval.core.validation_test_results import ValidationResults, ValidationTestResult
 
 # Import standard tests
@@ -18,13 +15,16 @@ from mmm_eval.core.validation_tests import (
     PerturbationTest,
     RefreshStabilityTest,
 )
+from mmm_eval.core.validation_tests_models import ValidationTestNames
+
+logger = logging.getLogger(__name__)
 
 
 class ValidationTestOrchestrator:
     """Main orchestrator for running validation tests.
 
-    This class manages the test registry and executes tests
-    in sequence, aggregating their results.
+    This class manages the test registry and executes tests in sequence, aggregating their results.
+
     """
 
     def __init__(self):
@@ -52,13 +52,14 @@ class ValidationTestOrchestrator:
             model: Model to validate
             data: Input data for validation
             test_names: List of test names to run
+            adapter: Adapter to use for the test
 
         Returns:
             ValidationResults containing all test results
 
         Raises:
             ValueError: If any requested test is not registered
-        
+
         """
         # Run tests and collect results
         results: dict[ValidationTestNames, ValidationTestResult] = {}

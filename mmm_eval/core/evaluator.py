@@ -1,7 +1,7 @@
 """Main evaluator for MMM frameworks."""
 
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -23,66 +23,57 @@ class Evaluator:
     using standardized validation tests.
     """
 
-    def __init__(self, data: pd.DataFrame, output_path: Optional[Path] = None, test_names: Optional[list[str]] = None):
+    def __init__(self, data: pd.DataFrame, output_path: Path | None = None, test_names: tuple[str, ...] | None = None):
         """Initialize the evaluator."""
         self.validation_orchestrator = ValidationTestOrchestrator()
         self.data = data
         self.output_path = output_path
-        self.test_names = test_names
+        self.test_names = (
+            self._get_test_names(test_names) if test_names else self.validation_orchestrator._get_all_test_names()
+        )
 
-    def _get_test_names(self, test_names: list[str]) -> list[ValidationTestNames]:
+    def _get_test_names(self, test_names: tuple[str, ...]) -> list[ValidationTestNames]:
         """Parse test names from strings to ValidationTestNames enum objects.
 
         Args:
-            test_names: List of test names as strings or enum objects
+            test_names: Tuple of test names as strings
 
         Returns:
             List of ValidationTestNames enum objects
 
         Raises:
             ValueError: If any test name is invalid
-        
+
         """
         converted_names = []
         for test_name in test_names:
             try:
                 converted_names.append(ValidationTestNames(test_name))
-            except ValueError:
+            except ValueError as e:
                 raise InvalidTestNameError(
                     f"Invalid test name: '{test_name}'. Valid names: {ValidationTestNames.all_tests_as_str()}"
-                )
+                ) from e
 
         return converted_names
 
     def evaluate_framework(
         self,
         framework: str,
-        config: Optional[dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ) -> ValidationResults:
         """Evaluate an MMM framework using the unified API.
 
         Args:
             framework: Name of the MMM framework to evaluate
-            data: Input data containing media channels, KPI, and other variables
             config: Framework-specific configuration
-            test_names: List of test names to run (can be strings or ValidationTestNames enum objects)
-            output_path: Path to save results
-            **kwargs: Additional framework-specific parameters
 
         Returns:
             ValidationResult object containing evaluation metrics and predictions
 
         Raises:
             ValueError: If any test name is invalid
-        
-        """
-        # Parse test names to enum objects if needed
-        test_names = (
-            self._get_test_names(self.test_names)
-            if self.test_names
-            else self.validation_orchestrator._get_all_test_names()
-        )
 
+        """
         # Initialize the adapter
         adapter = get_adapter(framework, config)
 
@@ -90,7 +81,7 @@ class Evaluator:
         validation_results = self.validation_orchestrator.validate(
             adapter=adapter,
             data=self.data,
-            test_names=test_names,
+            test_names=self.test_names,
         )
 
         # Save results if output path is provided

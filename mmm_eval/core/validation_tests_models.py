@@ -6,7 +6,7 @@ from enum import StrEnum
 
 
 class ValidationTestNames(StrEnum):
-    """Define the names of the validation tests"""
+    """Define the names of the validation tests."""
 
     ACCURACY = "accuracy"
     CROSS_VALIDATION = "cross_validation"
@@ -25,7 +25,7 @@ class ValidationTestNames(StrEnum):
 
 
 class ValidationTestAttributeNames(StrEnum):
-    """Define the names of the validation test attributes"""
+    """Define the names of the validation test attributes."""
 
     TEST_NAME = "test_name"
     PASSED = "passed"
@@ -35,7 +35,7 @@ class ValidationTestAttributeNames(StrEnum):
 
 
 class ValidationResultAttributeNames(StrEnum):
-    """Define the names of the validation result attributes"""
+    """Define the names of the validation result attributes."""
 
     TIMESTAMP = "timestamp"
     ALL_PASSED = "all_passed"

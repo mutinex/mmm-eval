@@ -13,10 +13,8 @@ from mmm_eval.core.validation_tests_models import ValidationTestNames
 from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
-    calculate_mape,
     calculate_mean_for_singular_values_across_cross_validation_folds,
     calculate_means_for_series_across_cross_validation_folds,
-    calculate_r_squared,
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
 )
@@ -42,24 +40,21 @@ class AccuracyTest(BaseValidationTest):
     """
 
     @property
-    def test_name(self) -> str:
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
         return ValidationTestNames.ACCURACY
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the accuracy test."""
+        # Split data into train/test sets
         train, test = self._split_data_holdout(data)
         adapter.fit(train)  # fit() modifies model in-place, returns None
         predictions = adapter.predict(test)  # predict() on same model instance
 
-        # Calculate metrics and convert to expected format
-        test_scores = AccuracyMetricResults(
-            mape=calculate_mape(
-                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
-                predicted=predictions,
-            ),
-            r_squared=calculate_r_squared(
-                actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
-                predicted=predictions,
-            ),
+        # Calculate metrics
+        test_scores = AccuracyMetricResults.populate_object_with_metrics(
+            actual=test[InputDataframeConstants.RESPONSE_COL],
+            predicted=predictions,
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -73,11 +68,11 @@ class AccuracyTest(BaseValidationTest):
 
 
 class CrossValidationTest(BaseValidationTest):
-    """Validation test for the cross-validation of the MMM framework.
-    """
+    """Validation test for the cross-validation of the MMM framework."""
 
     @property
-    def test_name(self) -> str:
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
         return ValidationTestNames.CROSS_VALIDATION
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
@@ -85,11 +80,12 @@ class CrossValidationTest(BaseValidationTest):
 
         Args:
             model: Model to validate
+            adapter: Adapter to use for the test
             data: Input data
 
         Returns:
             TestResult containing cross-validation metrics
-        
+
         """
         # Initialize cross-validation splitter
         cv_splits = self._split_data_time_series_cv(data)
@@ -112,15 +108,9 @@ class CrossValidationTest(BaseValidationTest):
 
             # Add in fold results
             fold_metrics.append(
-                AccuracyMetricResults(
-                    mape=calculate_mape(
-                        actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
-                        predicted=predictions,
-                    ),
-                    r_squared=calculate_r_squared(
-                        actual=test[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
-                        predicted=predictions,
-                    ),
+                AccuracyMetricResults.populate_object_with_metrics(
+                    actual=test[InputDataframeConstants.RESPONSE_COL],
+                    predicted=predictions,
                 )
             )
 
@@ -151,11 +141,11 @@ class CrossValidationTest(BaseValidationTest):
 
 
 class RefreshStabilityTest(BaseValidationTest):
-    """Validation test for the stability of the MMM framework.
-    """
+    """Validation test for the stability of the MMM framework."""
 
     @property
-    def test_name(self) -> str:
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
         return ValidationTestNames.REFRESH_STABILITY
 
     def _get_common_dates(
@@ -174,8 +164,7 @@ class RefreshStabilityTest(BaseValidationTest):
         return common_start_date, common_end_date
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
-        """Run the stability test.
-        """
+        """Run the stability test."""
         # Initialize cross-validation splitter
         cv_splits = self._split_data_time_series_cv(data)
 
@@ -238,11 +227,11 @@ class RefreshStabilityTest(BaseValidationTest):
 
 
 class PerturbationTest(BaseValidationTest):
-    """Validation test for the perturbation of the MMM framework.
-    """
+    """Validation test for the perturbation of the MMM framework."""
 
     @property
-    def test_name(self) -> str:
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
         return ValidationTestNames.PERTURBATION
 
     def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -253,7 +242,7 @@ class PerturbationTest(BaseValidationTest):
 
         Returns:
             Array of Gaussian noise values
-        
+
         """
         return np.random.normal(
             PerturbationConstants.GAUSSIAN_NOISE_LOC,
@@ -270,11 +259,11 @@ class PerturbationTest(BaseValidationTest):
 
         Args:
             df: Input dataframe
-            spend_col: Column name for spend data
+            spend_cols: Column names for spend data
 
         Returns:
             Dataframe with noise added to spend column
-        
+
         """
         df_copy = df.copy()
         noise = self._get_percent_gaussian_noise(df)
@@ -283,8 +272,7 @@ class PerturbationTest(BaseValidationTest):
         return df_copy
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
-        """Run the perturbation test.
-        """
+        """Run the perturbation test."""
         # Train model on original data
         adapter.fit(data)
         original_model = adapter.get_channel_roi()

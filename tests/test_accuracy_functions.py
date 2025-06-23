@@ -1,5 +1,4 @@
-"""Unit tests for accuracy functions.
-"""
+"""Unit tests for accuracy functions."""
 
 import numpy as np
 import pandas as pd

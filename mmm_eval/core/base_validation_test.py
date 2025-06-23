@@ -1,10 +1,10 @@
-"""Abstract base classes for MMM validation framework.
-"""
+"""Abstract base classes for MMM validation framework."""
 
 import logging
 from abc import ABC, abstractmethod
 
 import pandas as pd
+from numpy import ndarray
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 
 from mmm_eval.adapters.base import BaseAdapter
@@ -40,16 +40,16 @@ class BaseValidationTest(ABC):
             DataValidationError: If data validation fails
             MetricCalculationError: If metric calculation fails
             TestExecutionError: If test execution fails
-        
+
         """
         try:
             return self.run(adapter, data)
         except (KeyError, IndexError, ValueError) as e:
-            raise DataValidationError(f"Data validation error in {self.test_name} test: {str(e)}")
+            raise DataValidationError(f"Data validation error in {self.test_name} test: {str(e)}") from e
         except (ZeroDivisionError, TypeError) as e:
-            raise MetricCalculationError(f"Metric calculation error in {self.test_name} test: {str(e)}")
+            raise MetricCalculationError(f"Metric calculation error in {self.test_name} test: {str(e)}") from e
         except Exception as e:
-            raise TestExecutionError(f"Unexpected error in {self.test_name} test: {str(e)}")
+            raise TestExecutionError(f"Unexpected error in {self.test_name} test: {str(e)}") from e
 
     @abstractmethod
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> "ValidationTestResult":
@@ -61,7 +61,7 @@ class BaseValidationTest(ABC):
 
         Returns:
             TestResult object containing test results
-        
+
         """
         pass
 
@@ -72,7 +72,7 @@ class BaseValidationTest(ABC):
 
         Returns
             Test name (e.g., 'accuracy', 'stability')
-        
+
         """
         pass
 
@@ -85,7 +85,7 @@ class BaseValidationTest(ABC):
         Returns:
             train: The train data
             test: The test data
-        
+
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
@@ -97,16 +97,15 @@ class BaseValidationTest(ABC):
 
         return train, test
 
-    def _split_data_time_series_cv(self, data: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def _split_data_time_series_cv(self, data: pd.DataFrame) -> list[tuple[ndarray, ndarray]]:
         """Split the data into train and test sets using time series cross-validation.
 
         Args:
             data: The data to split
 
         Returns:
-            train: The train data
-            test: The test data
-        
+            list of tuples, each containing the train and test indices
+
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
