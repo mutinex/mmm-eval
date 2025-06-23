@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mmm-eval"
-version = "0.1.1"
+version = "0.1.2"
 description = "Open-source evaluation of marketing mix model (MMM) performance"
 authors = ["Joseph Kang <joseph.kang@mutinex.co>",
            "Phil Clark <phil.clark@mutinex.co>",
