@@ -3,6 +3,8 @@ import tempfile
 
 import pytest
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
+from pymc_marketing.prior import Prior
+
 
 from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs.configs import PyMCConfig
@@ -21,6 +23,31 @@ class MockModelObject:
         self.yearly_seasonality = 2
         self.extra_field = "should_be_filtered_out"
 
+def valid_hydration_config_1():
+    """Create a valid hydration configuration for testing."""
+    return {
+        "response_column": "quantity",
+        "revenue_column": "revenue",
+        "model_config": {
+            "intercept": Prior("Normal", mu=0.5, sigma=0.2),
+            "saturation_beta": Prior("HalfNormal", sigma=[0.321, 0.123]),
+            "gamma_control": Prior("Normal", mu=0, sigma=0.05),
+            "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
+            "adstock": GeometricAdstock(l_max=4),
+            "saturation": LogisticSaturation(),
+            "yearly_seasonality": 2,
+            "control_columns": ["price", "event_1", "event_2"],
+            "date_column": "date_week",
+            "channel_columns": ["channel_1", "channel_2"],
+        },
+        "fit_config": {
+            "target_accept": 0.9,
+            "draws": 50,
+            "tune": 50,
+            "chains": 1,
+            "random_seed": 123,
+        },
+    }
 
 # JSON config for e2e testing
 SAMPLE_CONFIG_JSON = {

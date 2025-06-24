@@ -45,8 +45,8 @@ class DataValidator:
         # Run each validation in order
         self._validate_not_empty(df)
         self._validate_schema(df)
-        self._validate_wide_columns_in_data(df)
-        self._validate_wide_columns_non_null(df)
+        # self._validate_wide_columns_in_data(df)
+        # self._validate_wide_columns_non_null(df)
         self._validate_data_size(df)
 
         if self.control_columns:
@@ -59,17 +59,17 @@ class DataValidator:
         except pa.errors.SchemaErrors as e:
             raise DataValidationError(f"DataFrame does not match the schema: {str(e)}") from e
         
-    def _validate_wide_columns_in_data(self, df: pd.DataFrame) -> None:
-        """Check if wide columns are in the DataFrame."""
-        missing_columns = [col for col in self.channel_spend_columns if col not in df.columns]
-        if missing_columns:
-            raise DataValidationError(f"Wide columns {missing_columns} not found in DataFrame")
+    # def _validate_wide_columns_in_data(self, df: pd.DataFrame) -> None:
+    #     """Check if wide columns are in the DataFrame."""
+    #     missing_columns = [col for col in self.channel_spend_columns if col not in df.columns]
+    #     if missing_columns:
+    #         raise DataValidationError(f"Wide columns {missing_columns} not found in DataFrame")
         
-    def _validate_wide_columns_non_null(self, df: pd.DataFrame) -> None:
-        """Check if wide columns are not null."""
-        for col in self.channel_spend_columns:
-            if df[col].isnull().any():
-                raise DataValidationError(f"Wide column {col} has null values")
+    # def _validate_wide_columns_non_null(self, df: pd.DataFrame) -> None:
+    #     """Check if wide columns are not null."""
+    #     for col in self.channel_spend_columns:
+    #         if df[col].isnull().any():
+    #             raise DataValidationError(f"Wide column {col} has null values")
 
     def _validate_not_empty(self, df: pd.DataFrame) -> None:
         """Check if DataFrame is empty."""

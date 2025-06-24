@@ -12,9 +12,7 @@ from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import PyMCConfig
-from mmm_eval.adapters.experimental.schemas import PyMCConfigSchema
 from mmm_eval.data.constants import InputDataframeConstants
-from mmm_eval.utils import PyMCConfigRehydrator
 
 logger = logging.getLogger(__name__)
 
@@ -141,16 +139,16 @@ class PyMCAdapter(BaseAdapter):
             index=channel_contribution["date"].to_numpy(),
         )
         contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_columns]
+        data = data.filter(items=[
+            self.date_col,
+            InputDataframeConstants.RESPONSE_COL,
+            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+            *self.channel_spend_cols,
+        ]).set_index(self.date_col)
+
         contribution_df = pd.merge(
             contribution_df,
-            data[
-                [
-                    self.date_column,
-                    InputDataframeConstants.RESPONSE_COL,
-                    InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
-                    *self.channel_spend_cols,
-                ]
-            ].set_index(self.date_column),
+            data,
             left_index=True,
             right_index=True,
         )

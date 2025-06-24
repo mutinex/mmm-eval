@@ -101,7 +101,7 @@ def main(
     # will likely allow for multiple frameworks to be evaluated at once.
     evaluator.evaluate_framework(
         framework=framework,
-        config=config_loader.framework_config,
+        config=config
     )
 
 

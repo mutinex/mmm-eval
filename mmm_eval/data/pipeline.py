@@ -41,7 +41,6 @@ class DataPipeline:
         # Initialize components
         self.loader = DataLoader(data_path)
         self.processor = DataProcessor(
-            date_column=date_column,
             response_column=response_column,
             revenue_column=revenue_column,
             control_columns=control_columns,

@@ -149,16 +149,19 @@ class RefreshStabilityTest(BaseValidationTest):
         return ValidationTestNames.REFRESH_STABILITY
 
     def _get_common_dates(
-        self, baseline_data: pd.DataFrame, comparison_data: pd.DataFrame
+        self,
+        baseline_data: pd.DataFrame,
+        comparison_data: pd.DataFrame,
+        date_column: str,
     ) -> tuple[pd.Timestamp, pd.Timestamp]:
         """Filter the data to the common dates for stability comparison."""
         common_start_date = max(
-            baseline_data[self.].min(),
-            comparison_data[self.date_column].min(),
+            baseline_data[date_column].min(),
+            comparison_data[date_column].min(),
         )
         common_end_date = min(
-            baseline_data[self.date_column].max(),
-            comparison_data[self.date_column].max(),
+            baseline_data[date_column].max(),
+            comparison_data[date_column].max(),
         )
 
         return common_start_date, common_end_date
@@ -174,17 +177,21 @@ class RefreshStabilityTest(BaseValidationTest):
         # Run cross-validation
         for i, (train_idx, refresh_idx) in enumerate(cv_splits):
 
-            logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
+            logger.info(
+                f"Running refresh stability test fold {i+1} of {len(cv_splits)}"
+            )
 
             # Get train/test data
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
+            refresh_data = pd.concat(
+                [current_data, data.iloc[refresh_idx]], ignore_index=True
+            )
             # Get common dates for roi stability comparison
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,
                 comparison_data=refresh_data,
-                common_date_column=adapter,
+                date_column=adapter.date_column,
             )
 
             # Train model and get coefficients
