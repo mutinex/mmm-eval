@@ -68,7 +68,6 @@ class PyMCAdapter(BaseAdapter):
 
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
-        # assert isinstance(y, pd.Series), f"Expected Series, got {type(y)}"
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
@@ -176,9 +175,16 @@ class PyMCAdapter(BaseAdapter):
 
         rois = {}
         for channel in self.channel_spend_cols:
+            total_spend = contribution_df[channel].sum()
+            # handle edge case where total spend is zero for the time period selected
+            # (possible to have non-zero attribution due to adstock effect)
+            if total_spend == 0:
+                rois[channel] = np.nan
+                continue
+
             channel_revenue = contribution_df[f"{channel}_units"] * avg_rev_per_unit
             # return as a percentage
-            rois[channel] = 100 * (channel_revenue.sum() / contribution_df[channel].sum() - 1).item()
+            rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
 
         return rois
 
