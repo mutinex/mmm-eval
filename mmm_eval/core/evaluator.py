@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from mmm_eval.configs.configs import PyMCConfig
+from mmm_eval.configs.base import BaseConfig
 from mmm_eval.adapters import get_adapter
 from mmm_eval.core.exceptions import InvalidTestNameError
 from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
@@ -55,7 +55,7 @@ class Evaluator:
     def evaluate_framework(
         self,
         framework: str,
-        config: PyMCConfig
+        config: BaseConfig
     ) -> ValidationResults:
         """Evaluate an MMM framework using the unified API.
 

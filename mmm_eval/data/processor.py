@@ -33,6 +33,7 @@ class DataProcessor:
             revenue_column: Name of the revenue column to parse and rename
 
         """
+        self.date_column = date_column
         self.response_column = response_column
         self.revenue_column = revenue_column
         self.control_columns = control_columns
@@ -57,6 +58,7 @@ class DataProcessor:
         # Validate that all required columns exist
         self._validate_required_columns_present(
             df=processed_df,
+            date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
             control_columns=self.control_columns,
@@ -64,11 +66,12 @@ class DataProcessor:
         )
 
         # Parse date columns
-        # processed_df = self._parse_date_columns(processed_df, self.date_column)
+        processed_df = self._parse_date_columns(processed_df, self.date_column)
 
         # Rename required columns
         processed_df = self._rename_required_columns(
             df=processed_df,
+            date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
         )
@@ -78,6 +81,7 @@ class DataProcessor:
     def _validate_required_columns_present(
         self,
         df: pd.DataFrame,
+        date_column: str,
         response_column: str,
         revenue_column: str,
         channel_columns: list[str],
@@ -145,6 +149,7 @@ class DataProcessor:
     def _rename_required_columns(
         self,
         df: pd.DataFrame,
+        date_column: str,
         response_column: str,
         revenue_column: str,
     ) -> pd.DataFrame:
@@ -165,6 +170,7 @@ class DataProcessor:
         """
         df = df.rename(
             columns={
+                # date_column: InputDataframeConstants.DATE_COL,
                 response_column: InputDataframeConstants.RESPONSE_COL,
                 revenue_column: InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             }

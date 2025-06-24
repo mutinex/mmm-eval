@@ -84,10 +84,9 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        if self.response_column in data.columns:
-            data = data.drop(columns=[self.response_column])
-
-        predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
+        if InputDataframeConstants.RESPONSE_COL in data.columns:
+            data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
+        predictions = self.model.predict(data, extend_idata=False)
         return predictions
 
     def get_channel_roi(
@@ -140,11 +139,11 @@ class PyMCAdapter(BaseAdapter):
         )
         contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_columns]
         data = data.filter(items=[
-            self.date_col,
+            self.date_column,
             InputDataframeConstants.RESPONSE_COL,
             InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             *self.channel_spend_cols,
-        ]).set_index(self.date_col)
+        ]).set_index(self.date_column)
 
         contribution_df = pd.merge(
             contribution_df,

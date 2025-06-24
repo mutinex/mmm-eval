@@ -23,6 +23,7 @@ class MockModelObject:
         self.yearly_seasonality = 2
         self.extra_field = "should_be_filtered_out"
 
+
 def valid_hydration_config_1():
     """Create a valid hydration configuration for testing."""
     return {
@@ -49,6 +50,7 @@ def valid_hydration_config_1():
         },
     }
 
+
 # JSON config for e2e testing
 SAMPLE_CONFIG_JSON = {
     "pymc_model_config": {
@@ -59,7 +61,13 @@ SAMPLE_CONFIG_JSON = {
         "saturation": "LogisticSaturation()",
         "yearly_seasonality": "2",
     },
-    "fit_config": {"target_accept": "0.9"},
+    "fit_config": {
+        "target_accept": "0.9",
+        "draws": 50,
+        "tune": 50,
+        "chains": 1,
+        "random_seed": 123,
+    },
     "revenue_column": "revenue",
     "response_column": "quantity",
 }
@@ -71,7 +79,9 @@ def test_pymc_config_from_model_object():
     fit_kwargs = {"target_accept": 0.9}
     revenue_column = "revenue"
     response_column = "quantity"
-    config = PyMCConfig.from_model_object(mock_model, fit_kwargs, revenue_column, response_column)
+    config = PyMCConfig.from_model_object(
+        mock_model, fit_kwargs, revenue_column, response_column
+    )
     assert config.pymc_model_config is not None
     assert config.fit_config is not None
     assert config.response_column == response_column
@@ -97,7 +107,9 @@ def test_pymc_config_save_and_load_json():
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     response_column = "quantity"
-    config = PyMCConfig.from_model_object(mock_model, fit_kwargs, "revenue", response_column)
+    config = PyMCConfig.from_model_object(
+        mock_model, fit_kwargs, "revenue", response_column
+    )
     with tempfile.TemporaryDirectory() as temp_dir:
         save_path = temp_dir
         file_name = "test_config"
@@ -134,7 +146,10 @@ def test_pymc_config_direct_instantiation():
     )
     fit_config = PyMCFitSchema(target_accept=0.9)
     config = PyMCConfig(
-        pymc_model_config=pymc_model_config, fit_config=fit_config, revenue_column="revenue", response_column="quantity"
+        pymc_model_config=pymc_model_config,
+        fit_config=fit_config,
+        revenue_column="revenue",
+        response_column="quantity",
     )
     assert config.pymc_model_config == pymc_model_config
     assert config.fit_config == fit_config
