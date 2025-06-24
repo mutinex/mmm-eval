@@ -30,8 +30,8 @@ class PyMCAdapter(BaseAdapter):
         # Store explicitly needed pieces
         self.model_config = self.config.model_config.config
         self.fit_config = self.config.fit_config.config
-        self.target_column = self.config.target_column
-        self.response_col = "response"
+        self.revenue_column = self.config.revenue_column
+        self.response_column = self.config.response_column
 
         self.model = None
         self.trace = None
@@ -39,8 +39,8 @@ class PyMCAdapter(BaseAdapter):
 
     def fit(self, data: pd.DataFrame):
         """Fit the model and compute ROIs."""
-        X = data.drop(columns=[self.target_column])
-        y = data[self.target_column]
+        X = data.drop(columns=[self.response_column])
+        y = data[self.response_column]
 
         self.model = MMM(**self.model_config)
         self.trace = self.model.fit(X=X, y=y, **self.fit_config)

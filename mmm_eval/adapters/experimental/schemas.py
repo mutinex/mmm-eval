@@ -137,7 +137,8 @@ class PyMCStringConfigSchema(BaseModel):
 
     model_config: dict[str, Any] = Field(..., description="Model configuration.")
     fit_config: dict[str, Any] = Field(..., description="Fit configuration.")
-    target_column: str = Field(..., description="Name of the target column.")
+    response_column: str = Field(..., description="Name of the target column.")
+    revenue_column: str | None = Field(None, description="Name of the revenue column.")
 
     model_config = {
         "arbitrary_types_allowed": True,

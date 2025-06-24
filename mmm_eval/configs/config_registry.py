@@ -29,7 +29,7 @@ def get_config(framework: str, config_path: str) -> EvalConfig:
         raise ValueError(f"Unsupported framework: {framework}. Available: {available}")
 
     config_class = CONFIG_REGISTRY[framework]
-    return config_class().load_config(config_path)
+    return config_class.load_config(config_path)
 
 
 __all__ = [

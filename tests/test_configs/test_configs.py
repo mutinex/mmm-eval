@@ -57,13 +57,13 @@ def test_pymc_config_with_model_object():
     """Test PyMCConfig initialization with model object."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
-    target_column = "quantity"
+    response_column = "quantity"
 
-    config = PyMCConfig(mock_model, fit_kwargs, target_column)
+    config = PyMCConfig(mock_model, fit_kwargs, response_column)
 
     assert config.model_config is not None
     assert config.fit_config is not None
-    assert config.target_column == target_column
+    assert config.response_column == response_column
 
     # Check that extra fields are filtered out
     assert "extra_field" not in config.model_config.config
@@ -74,9 +74,9 @@ def test_pymc_config_save_and_load():
     """Test PyMCConfig save and load functionality."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
-    target_column = "quantity"
+    response_column = "quantity"
 
-    config = PyMCConfig(mock_model, fit_kwargs, target_column)
+    config = PyMCConfig(mock_model, fit_kwargs, response_column)
 
     # Create temporary directory for testing
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -96,13 +96,13 @@ def test_pymc_config_save_and_load():
         # Verify loaded config has same structure
         assert loaded_config.model_config is not None
         assert loaded_config.fit_config is not None
-        assert loaded_config.target_column == target_column
+        assert loaded_config.response_column == response_column
 
 
 def test_pymc_config_filter_input_to_schema():
     """Test filtering of input config to schema keys."""
     mock_model = MockModelObject()
-    config = PyMCConfig(mock_model)
+    config = PyMCConfig(mock_model, fit_kwargs={"target_accept": 0.9}, revenue_column="revenue")
 
     # Test that extra fields are filtered out
     filtered_config = config._filter_input_to_schema(mock_model.__dict__, PyMCModelSchema)
@@ -116,20 +116,27 @@ def test_pymc_config_partial_initialization():
     """Test PyMCConfig with partial initialization."""
     # Test with only model_object
     mock_model = MockModelObject()
-    config = PyMCConfig(model_object=mock_model)
-    assert config.model_config is not None
-    assert not hasattr(config, "fit_config")
-    assert not hasattr(config, "target_column")
+    with pytest.raises(TypeError):
+        PyMCConfig(model_object=mock_model)  # pyright: ignore [reportCallIssue]
 
     # Test with only fit_kwargs
     fit_kwargs = {"target_accept": 0.9}
-    config = PyMCConfig(fit_kwargs=fit_kwargs)
-    assert config.fit_config is not None
-    assert not hasattr(config, "model_config")
-    assert not hasattr(config, "target_column")
+    with pytest.raises(TypeError):
+        PyMCConfig(fit_kwargs=fit_kwargs)  # pyright: ignore [reportCallIssue]
 
-    # Test with only target_column
-    config = PyMCConfig(target_column="quantity")
-    assert config.target_column == "quantity"
-    assert not hasattr(config, "model_config")
-    assert not hasattr(config, "fit_config")
+    # Test with only response_column
+    with pytest.raises(TypeError):
+        PyMCConfig(response_column="quantity")  # pyright: ignore [reportCallIssue]
+
+
+def test_impute_revenue_column():
+    """Test that revenue column is imputed from response column."""
+    mock_model = MockModelObject()
+    config = PyMCConfig(model_object=mock_model, fit_kwargs={"target_accept": 0.9}, revenue_column="revenue")
+    assert config.response_column == "revenue"
+
+    config = PyMCConfig(
+        model_object=mock_model, fit_kwargs={"target_accept": 0.9}, response_column="quantity", revenue_column="revenue"
+    )
+    assert config.response_column == "quantity"
+    assert config.revenue_column == "revenue"

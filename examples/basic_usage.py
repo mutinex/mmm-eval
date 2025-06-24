@@ -80,7 +80,7 @@ def main():
             framework="meridian",
             data=data,
             config=meridian_config,
-            target_column="kpi",
+            response_column="kpi",
             metrics=["mape", "rmse", "r_squared"],
         )
 
@@ -123,7 +123,7 @@ def main():
                 framework=framework,
                 data=data,
                 config=framework_configs[framework],
-                target_column="kpi",
+                response_column="kpi",
                 metrics=["mape", "rmse", "r_squared"],
             )
             comparison_results[framework] = result
@@ -145,7 +145,7 @@ def main():
 
         # Fit and evaluate
         pymc_results = pymc_adapter.fit_and_evaluate(
-            data=data, target_column="kpi", metrics=["mape", "r_squared"]
+            data=data, response_column="kpi", metrics=["mape", "r_squared"]
         )
 
         print("PyMC Direct Adapter Results:")
