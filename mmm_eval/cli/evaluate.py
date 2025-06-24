@@ -1,11 +1,12 @@
 import logging
+from logging import config
 from pathlib import Path
 
 import click
 
-from mmm_eval import evaluate_framework
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
+from mmm_eval.config.loaders import ConfigLoader
 from mmm_eval.data.pipeline import DataPipeline
 import pandas as pd
 
@@ -70,10 +71,11 @@ def main(
     logging.basicConfig(level=log_level)
 
     # Load input data
-    logger.info(f"Loading input data from {input_data_path}")
+    logger.info(f"Loading input data...")
 
     config = get_config(framework, config_path)
 
+    # Load data and validate it
     data = DataPipeline(
         data_path=input_data_path,
         date_column=config.date_column,
@@ -99,7 +101,7 @@ def main(
     # will likely allow for multiple frameworks to be evaluated at once.
     evaluator.evaluate_framework(
         framework=framework,
-        config=config,
+        config=config_loader.framework_config,
     )
 
 

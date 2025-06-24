@@ -50,6 +50,7 @@ class DataPipeline:
         self.validator = DataValidator(
             control_columns=control_columns,
             min_number_observations=min_number_observations,
+            channel_spend_columns=channel_columns,
         )
 
     def run(self) -> pd.DataFrame:
