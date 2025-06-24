@@ -153,12 +153,12 @@ class RefreshStabilityTest(BaseValidationTest):
     ) -> tuple[pd.Timestamp, pd.Timestamp]:
         """Filter the data to the common dates for stability comparison."""
         common_start_date = max(
-            baseline_data[InputDataframeConstants.DATE_COL].min(),
-            comparison_data[InputDataframeConstants.DATE_COL].min(),
+            baseline_data[self.].min(),
+            comparison_data[self.date_column].min(),
         )
         common_end_date = min(
-            baseline_data[InputDataframeConstants.DATE_COL].max(),
-            comparison_data[InputDataframeConstants.DATE_COL].max(),
+            baseline_data[self.date_column].max(),
+            comparison_data[self.date_column].max(),
         )
 
         return common_start_date, common_end_date
@@ -184,6 +184,7 @@ class RefreshStabilityTest(BaseValidationTest):
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,
                 comparison_data=refresh_data,
+                common_date_column=adapter,
             )
 
             # Train model and get coefficients
