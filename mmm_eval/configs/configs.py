@@ -52,12 +52,13 @@ class PyMCConfig(BaseConfig):
         return self.fit_config.model_dump()
     
     @property
-    def date_column(self) -> str:
+    def date_col(self) -> str:
         return self.pymc_model_config.date_column
     
     @property
-    def channel_columns(self) -> list[str]:
+    def channel_spend_cols(self) -> list[str]:
         return self.pymc_model_config.channel_columns
+
     
     @classmethod
     def from_model_object(

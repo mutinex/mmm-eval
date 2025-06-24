@@ -28,8 +28,8 @@ class PyMCAdapter(BaseAdapter):
         self.fit_kwargs = config.fit_config_dict
         self.revenue_column = config.revenue_column
         self.response_column = config.response_column
-        self.date_col = config.date_column
-        self.channel_spend_cols = config.channel_columns
+        self.date_col = config.date_col
+        self.channel_spend_cols = config.channel_spend_cols
         self.model = None
         self.trace = None
         self._channel_roi_df = None
