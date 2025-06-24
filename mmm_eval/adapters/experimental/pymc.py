@@ -24,12 +24,12 @@ class PyMCAdapter(BaseAdapter):
             config: PyMCConfig object
 
         """
-        self.model_kwargs = config.pymc_model_config.model_dump()
-        self.fit_kwargs = config.fit_config.model_dump()
+        self.model_kwargs = config.pymc_model_config_dict
+        self.fit_kwargs = config.fit_config_dict
         self.revenue_column = config.revenue_column
         self.response_column = config.response_column
-        self.date_col = self.model_kwargs["date_column"]
-        self.channel_spend_cols = self.model_kwargs["channel_columns"]
+        self.date_col = config.date_column
+        self.channel_spend_cols = config.channel_columns
         self.model = None
         self.trace = None
         self._channel_roi_df = None

@@ -43,6 +43,22 @@ class PyMCConfig(BaseConfig):
             self.channel_columns = self.pymc_model_config.channel_columns
         return self
     
+    @property
+    def pymc_model_config_dict(self) -> dict[str, Any]:
+        return self.pymc_model_config.model_dump()
+    
+    @property
+    def fit_config_dict(self) -> dict[str, Any]:
+        return self.fit_config.model_dump()
+    
+    @property
+    def date_column(self) -> str:
+        return self.pymc_model_config.date_column
+    
+    @property
+    def channel_columns(self) -> list[str]:
+        return self.pymc_model_config.channel_columns
+    
     @classmethod
     def from_model_object(
         cls,
