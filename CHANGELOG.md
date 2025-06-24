@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2025-06-24
+
+### Changed
+
+- Config loading class to use native pydantic for validation
+- `date_column` and `channel_columns` now calculated config fields
+- Changed Config to have an ABC, which pymc and other frameworks can inherit from
+- Simplified logic for parsing model object and saving to json config
+
 ## [0.1.2] - 2025-06-23
 
 ### Added

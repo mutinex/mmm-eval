@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from mmm_eval.configs import EvalConfig
+from mmm_eval.configs.base import BaseConfig
 
 from .results import EvaluationResults
 
@@ -38,7 +38,7 @@ def _compute_metrics(actual: pd.Series, predicted: pd.Series, metrics: list[str]
 def evaluate_framework(
     framework: str,
     data: pd.DataFrame,
-    config: EvalConfig | None = None,
+    config: BaseConfig,
     metrics: list[str] | None = None,
     output_path: Path | None = None,
     **kwargs,

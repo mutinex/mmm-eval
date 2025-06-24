@@ -1,6 +1,6 @@
 """Framework configs for MMM evaluation."""
 
-from .configs import Config, EvalConfig, PyMCConfig
+from .configs import PyMCConfig
 
 # Registry of available configs
 CONFIG_REGISTRY = {
@@ -8,7 +8,7 @@ CONFIG_REGISTRY = {
 }
 
 
-def get_config(framework: str, config_path: str) -> EvalConfig:
+def get_config(framework: str, config_path: str) -> PyMCConfig:
     """Get an config instance for the specified framework.
 
     Args:
@@ -29,13 +29,11 @@ def get_config(framework: str, config_path: str) -> EvalConfig:
         raise ValueError(f"Unsupported framework: {framework}. Available: {available}")
 
     config_class = CONFIG_REGISTRY[framework]
-    return config_class.load_config(config_path)
+    return config_class.load_model_config_from_json(config_path)
 
 
 __all__ = [
-    "EvalConfig",
     "PyMCConfig",
-    "Config",
     "get_config",
     "CONFIG_REGISTRY",
 ]

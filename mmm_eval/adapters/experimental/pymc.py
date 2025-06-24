@@ -24,15 +24,12 @@ class PyMCAdapter(BaseAdapter):
             config: PyMCConfig object
 
         """
-        # Rehydrate the config dictionary
-        self.config = config
-
-        # Store explicitly needed pieces
-        self.model_config = self.config.model_config.config
-        self.fit_config = self.config.fit_config.config
-        self.revenue_column = self.config.revenue_column
-        self.response_column = self.config.response_column
-
+        self.model_kwargs = config.pymc_model_config_dict
+        self.fit_kwargs = config.fit_config_dict
+        self.revenue_column = config.revenue_column
+        self.response_column = config.response_column
+        self.date_col = config.date_column
+        self.channel_spend_cols = config.channel_columns
         self.model = None
         self.trace = None
         self._channel_roi_df = None
@@ -42,8 +39,8 @@ class PyMCAdapter(BaseAdapter):
         X = data.drop(columns=[self.response_column])
         y = data[self.response_column]
 
-        self.model = MMM(**self.model_config)
-        self.trace = self.model.fit(X=X, y=y, **self.fit_config)
+        self.model = MMM(**self.model_kwargs)
+        self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
 
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
@@ -64,8 +61,8 @@ class PyMCAdapter(BaseAdapter):
         # TODO: this may be redundant after an upstream schema check, remove if so
         _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
 
-        if self.response_col in data.columns:
-            data = data.drop(columns=[self.response_col])
+        if self.response_column in data.columns:
+            data = data.drop(columns=[self.response_column])
         predictions = self.model.predict(data, extend_idata=False)
         return predictions
 
@@ -123,8 +120,8 @@ class PyMCAdapter(BaseAdapter):
             data[
                 [
                     self.date_col,
-                    self.response_col,
-                    self.revenue_col,
+                    self.response_column,
+                    self.revenue_column,
                     *self.channel_spend_cols,
                 ]
             ].set_index(self.date_col),
@@ -144,7 +141,7 @@ class PyMCAdapter(BaseAdapter):
             dictionary mapping channel names to ROI percentages.
 
         """
-        avg_rev_per_unit = contribution_df[self.revenue_col] / contribution_df[self.response_col]
+        avg_rev_per_unit = contribution_df[self.revenue_column] / contribution_df[self.response_column]
 
         rois = {}
         for channel in self.channel_spend_cols:
