@@ -177,16 +177,12 @@ class RefreshStabilityTest(BaseValidationTest):
         # Run cross-validation
         for i, (train_idx, refresh_idx) in enumerate(cv_splits):
 
-            logger.info(
-                f"Running refresh stability test fold {i+1} of {len(cv_splits)}"
-            )
+            logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
 
             # Get train/test data
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat(
-                [current_data, data.iloc[refresh_idx]], ignore_index=True
-            )
+            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
             # Get common dates for roi stability comparison
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,

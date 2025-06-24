@@ -1,13 +1,11 @@
 import json
 import os
-from unittest.mock import patch
 
 from click.testing import CliRunner
 
 from mmm_eval.cli.evaluate import main
 from mmm_eval.data.synth_data_generator import generate_data
 from tests.test_configs.test_configs import SAMPLE_CONFIG_JSON
-
 
 
 def test_cli_e2e_pymc_marketing(tmp_path):

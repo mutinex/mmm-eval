@@ -1,17 +1,13 @@
 import logging
-from logging import config
 from pathlib import Path
 
 import click
 
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
-from mmm_eval.config.loaders import ConfigLoader
-from mmm_eval.data.pipeline import DataPipeline
-import pandas as pd
-
 from mmm_eval.core.evaluator import Evaluator
 from mmm_eval.core.validation_tests_models import ValidationTestNames
+from mmm_eval.data.pipeline import DataPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +67,7 @@ def main(
     logging.basicConfig(level=log_level)
 
     # Load input data
-    logger.info(f"Loading input data...")
+    logger.info("Loading input data...")
 
     config = get_config(framework, config_path)
 
@@ -99,10 +95,7 @@ def main(
 
     # Evaluate the tests for the chosen framework and config. This is left as a method as future adaptions
     # will likely allow for multiple frameworks to be evaluated at once.
-    evaluator.evaluate_framework(
-        framework=framework,
-        config=config
-    )
+    evaluator.evaluate_framework(framework=framework, config=config)
 
 
 if __name__ == "__main__":

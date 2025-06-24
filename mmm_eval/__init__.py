@@ -10,15 +10,11 @@ __email__ = "your.email@example.com"
 
 # Core functionality
 # Adapters
-from .adapters import get_adapter
-from .adapters.experimental.pymc import PyMCAdapter
-from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .adapters import (
     get_adapter,
 )
-from .configs import PyMCConfig, PyMCConfigRehydrator
-from .core.evaluator import Evaluator
 from .adapters.experimental.pymc import PyMCAdapter
+from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
 from .core.validation_test_results import ValidationResults, ValidationTestResult

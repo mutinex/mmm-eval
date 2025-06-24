@@ -101,8 +101,8 @@ class DataProcessor:
             None
 
         """
-        # if date_column not in df.columns:
-        #     raise MissingRequiredColumnsError(f"Date column '{date_column}' required but not found in DataFrame")
+        if date_column not in df.columns:
+            raise MissingRequiredColumnsError(f"Date column '{date_column}' required but not found in DataFrame")
         if response_column not in df.columns:
             raise MissingRequiredColumnsError(
                 f"Response column '{response_column}' required but not found in DataFrame"

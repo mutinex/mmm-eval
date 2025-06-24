@@ -27,11 +27,12 @@ class DataValidator:
             control_columns: List of control columns
             min_number_observations: Minimum required number of observations for time series CV
             channel_spend_columns: List of channel spend columns
+
         """
         self.min_number_observations = min_number_observations
         self.control_columns = control_columns
         self.channel_spend_columns = channel_spend_columns
-    
+
     def run_validations(self, df: pd.DataFrame) -> None:
         """Run all validations on the DataFrame.
 
@@ -58,13 +59,13 @@ class DataValidator:
             ValidatedDataSchema.validate(df)
         except pa.errors.SchemaErrors as e:
             raise DataValidationError(f"DataFrame does not match the schema: {str(e)}") from e
-        
+
     def _validate_wide_columns_in_data(self, df: pd.DataFrame) -> None:
         """Check if wide columns are in the DataFrame."""
         missing_columns = [col for col in self.channel_spend_columns if col not in df.columns]
         if missing_columns:
             raise DataValidationError(f"Wide columns {missing_columns} not found in DataFrame")
-        
+
     def _validate_wide_columns_non_null(self, df: pd.DataFrame) -> None:
         """Check if wide columns are not null."""
         for col in self.channel_spend_columns:
