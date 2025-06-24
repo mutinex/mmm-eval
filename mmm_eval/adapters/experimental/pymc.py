@@ -40,6 +40,7 @@ class PyMCAdapter(BaseAdapter):
         self.model = None
         self.trace = None
         self._channel_roi_df = None
+        self.is_fitted = False
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
