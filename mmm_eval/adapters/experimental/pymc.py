@@ -28,7 +28,7 @@ class PyMCAdapter(BaseAdapter):
         self.config = config
 
         # Store explicitly needed pieces
-        # TODO (PC, SM): do really we have to access the config dict like this?
+        # TODO (PC, SM): is there a better way to access the config dict?
         self.date_column = self.config.model_config.config["date_column"]
         self.channel_spend_columns = self.config.model_config.config["channel_columns"]
         self.control_columns = self.config.model_config.config["control_columns"]
@@ -46,23 +46,25 @@ class PyMCAdapter(BaseAdapter):
 
         Args:
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
+
         """
         if self.control_columns:
             _check_vars_in_0_1_range(data, self.control_columns)
+
+        _check_columns_in_data(
+            data, [self.date_column, self.channel_spend_columns, self.response_column, self.revenue_column]
+        )
 
         # Identify channel spend columns that sum to zero and remove them from modelling.
         # We cannot reliabily make any prediction based on these channels when making
         # predictions on new data.
         channel_spend_data = data[self.channel_spend_columns]
         zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
-        
+
         if zero_spend_channels:
             logger.info(f"Dropping channels with zero spend: {zero_spend_channels}")
             # Remove zero-spend channels from the list passed to the MMM constructor
-            self.channel_spend_columns = [
-                col for col in self.channel_spend_columns 
-                if col not in zero_spend_channels
-            ]
+            self.channel_spend_columns = [col for col in self.channel_spend_columns if col not in zero_spend_channels]
             # also update the model config field to reflect the new channel spend columns
             self.model_config["channel_columns"] = self.channel_spend_columns
             data = data.drop(columns=zero_spend_channels)
@@ -89,8 +91,7 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        # TODO (SM, PC): decide whether this is needed in predict and/or fit
-        #_check_columns_in_data(data, [self.date_column, self.channel_spend_columns])
+        _check_columns_in_data(data, [self.date_column, self.channel_spend_columns])
 
         if self.control_columns:
             _check_vars_in_0_1_range(data, self.control_columns)
@@ -98,7 +99,7 @@ class PyMCAdapter(BaseAdapter):
         if self.response_column in data.columns:
             data = data.drop(columns=[self.response_column])
 
-        predictions = self.model.predict(data, extend_idata=False, include_last_observation=True)
+        predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
         return predictions
 
     def get_channel_roi(
@@ -176,13 +177,13 @@ class PyMCAdapter(BaseAdapter):
             dictionary mapping channel names to ROI percentages.
 
         """
-        # if revenue is used as the response, this quotient will be 1, and the math for 
+        # if revenue is used as the response, this quotient will be 1, and the math for
         # calculating channel revenue will still be correct
         avg_rev_per_unit = np.divide(
-            contribution_df[self.revenue_column], 
+            contribution_df[self.revenue_column],
             contribution_df[self.response_column],
             out=np.zeros_like(contribution_df[self.revenue_column]),
-            where=contribution_df[self.response_column] != 0
+            where=contribution_df[self.response_column] != 0,
         )
 
         rois = {}
@@ -253,12 +254,11 @@ def _check_vars_in_0_1_range(data: pd.DataFrame, cols: list[str]) -> None:
     Args:
         data: DataFrame containing the data
         cols: list of columns to check
+
     """
     data_to_check = data[list(cols)]
-    out_of_range_cols = data_to_check.columns[
-        (data_to_check.min() < 0) | (data_to_check.max() > 1)
-    ]
-    
+    out_of_range_cols = data_to_check.columns[(data_to_check.min() < 0) | (data_to_check.max() > 1)]
+
     for col in out_of_range_cols:
         col_min = data_to_check[col].min()
         col_max = data_to_check[col].max()
