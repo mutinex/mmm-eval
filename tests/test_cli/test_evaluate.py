@@ -55,8 +55,8 @@ def test_cli_as_subprocess(tmp_path, cmd_template, expected_return_code):
             "response": np.random.randint(0, 100, size=21),
         }
     ).to_csv(data_path, index=False)
-    config = PyMCConfig(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN)
-    config.save_config(tmp_path, "test_config")
+    config = PyMCConfig.from_model_object(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN)
+    config.save_model_object_to_json(tmp_path, "test_config")
     config_path = tmp_path / "test_config.json"
 
     # Format command string with actual file paths

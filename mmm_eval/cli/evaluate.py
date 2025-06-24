@@ -68,7 +68,7 @@ def main(
 
     data = DataPipeline(
         data_path=input_data_path,
-        date_column=config.model_config.config["date_column"],
+        date_column=config.pymc_model_config.date_column,
         response_column=config.response_column,
         revenue_column=config.revenue_column,
     ).run()

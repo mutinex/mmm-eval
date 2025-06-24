@@ -10,12 +10,10 @@ __email__ = "your.email@example.com"
 
 # Core functionality
 # Adapters
-from .adapters import (
-    PyMCAdapter,
-    get_adapter,
-)
-from .configs import EvalConfig, PyMCConfig, PyMCConfigRehydrator
+from .adapters import get_adapter
+from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .core.evaluator import evaluate_framework
+from .adapters.experimental.pymc import PyMCAdapter
 from .core.results import EvaluationResults
 
 # Data utilities
@@ -27,8 +25,12 @@ from .data import (
 )
 
 __all__ = [
-    # Core API
+    "get_adapter",
+    "PyMCConfig",
+    "PyMCConfigRehydrator",
+    "get_config",
     "evaluate_framework",
+    "PyMCAdapter",
     "EvaluationResults",
     # Metrics
     "mape",
@@ -36,15 +38,9 @@ __all__ = [
     "mae",
     "r_squared",
     "symmetric_mape",
-    # Adapters
-    "get_adapter",
-    "PyMCAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",
     "DataValidator",
     "DataPipeline",
-    "PyMCConfig",
-    "EvalConfig",
-    "PyMCConfigRehydrator",
 ]
