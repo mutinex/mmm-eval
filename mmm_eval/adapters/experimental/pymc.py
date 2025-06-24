@@ -66,6 +66,23 @@ class PyMCAdapter(BaseAdapter):
             ],
         )
 
+        # Identify channel spend columns that sum to zero
+        channel_spend_data = data[self.channel_spend_cols]
+        zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
+        
+        # TODO: ensure that these columns are also removed from the channel names passed to
+        # MMM constructor
+        if zero_spend_channels:
+            logger.info(f"Dropping channels with zero spend: {zero_spend_channels}")
+            # Remove zero-spend channels from the list
+            self.channel_spend_cols = [
+                col for col in self.channel_spend_cols 
+                if col not in zero_spend_channels
+            ]
+            self.model_kwargs["channel_columns"] = self.channel_spend_cols
+            # Drop these columns from the data
+            data = data.drop(columns=zero_spend_channels)
+
         X = data.drop(columns=[self.response_col, self.revenue_col])
         y = data[self.response_col]
 
@@ -90,6 +107,10 @@ class PyMCAdapter(BaseAdapter):
 
         # TODO: this may be redundant after an upstream schema check, remove if so
         _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
+
+        control_cols = set(data.columns) - set(self.channel_spend_cols) - set([self.date_col, self.response_col, self.revenue_col])
+        if control_cols:
+            _check_vars_in_0_1_range(data, control_cols)
 
         if self.response_col in data.columns:
             data = data.drop(columns=[self.response_col])
@@ -144,7 +165,7 @@ class PyMCAdapter(BaseAdapter):
             columns=channel_contribution["channel"].to_numpy(),
             index=channel_contribution["date"].to_numpy(),
         )
-        contribution_df.columns = [f"{col}_units" for col in self.channel_spend_cols]
+        contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_cols]
         contribution_df = pd.merge(
             contribution_df,
             data[
@@ -171,7 +192,14 @@ class PyMCAdapter(BaseAdapter):
             dictionary mapping channel names to ROI percentages.
 
         """
-        avg_rev_per_unit = contribution_df[self.revenue_col] / contribution_df[self.response_col]
+        # if revenue is used as the response, this quotient will be 1, and the math for 
+        # calculating channel revenue will still be correct
+        avg_rev_per_unit = np.divide(
+            contribution_df[self.revenue_col], 
+            contribution_df[self.response_col],
+            out=np.zeros_like(contribution_df[self.revenue_col]),
+            where=contribution_df[self.response_col] != 0
+        )
 
         rois = {}
         for channel in self.channel_spend_cols:
@@ -182,7 +210,7 @@ class PyMCAdapter(BaseAdapter):
                 rois[channel] = np.nan
                 continue
 
-            channel_revenue = contribution_df[f"{channel}_units"] * avg_rev_per_unit
+            channel_revenue = contribution_df[f"{channel}_response_units"] * avg_rev_per_unit
             # return as a percentage
             rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
 
@@ -233,3 +261,25 @@ def _check_columns_in_data(
         column_set = [column_set] if isinstance(column_set, str) else column_set
         if set(column_set) - set(data.columns) != set():
             raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
+
+
+def _check_vars_in_0_1_range(data: pd.DataFrame, cols: list[str]) -> None:
+    """Check if variables are in the 0-1 range.
+
+    Args:
+        data: DataFrame containing the data
+        cols: list of columns to check
+    """
+    data_to_check = data[list(cols)]
+    out_of_range_cols = data_to_check.columns[
+        (data_to_check.min() < 0) | (data_to_check.max() > 1)
+    ]
+    
+    for col in out_of_range_cols:
+        col_min = data_to_check[col].min()
+        col_max = data_to_check[col].max()
+        logger.warning(
+            f"Control column '{col}' has values outside [0, 1] range: "
+            f"min={col_min:.4f}, max={col_max:.4f}. "
+            f"Consider scaling this column to 0-1 range as per PyMC best practices."
+        )
