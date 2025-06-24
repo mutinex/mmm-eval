@@ -14,6 +14,7 @@ from mmm_eval.adapters.experimental.pymc import (
     _check_columns_in_data,
     _validate_start_end_dates,
 )
+from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
 
 
@@ -27,33 +28,38 @@ def valid_pymc_config():
     """
     model_config = {
         "intercept": Prior("Normal", mu=0.5, sigma=0.2),
-        "saturation_beta": Prior("HalfNormal", sigma=[0.321, 0.123]),
+        "saturation_beta": Prior("HalfNormal", sigma=0.321),
         "gamma_control": Prior("Normal", mu=0, sigma=0.05),
         "gamma_fourier": Prior("Laplace", mu=0, b=0.2),
     }
-    config_dict = {
-        "model_config": {
-            "date_column": "date_week",
-            "channel_columns": ["channel_1", "channel_2"],
-            "control_columns": ["price", "event_1", "event_2"],
-            "adstock": GeometricAdstock(l_max=4),
-            "saturation": LogisticSaturation(),
-            "yearly_seasonality": 2,
-            "model_config": model_config,
-            "sampler_config": {
-                "chains": 1,
-                "draws": 10,
-                "tune": 5,
-                "random_seed": 42,
-            },
-        },
-        "fit_config": {
-            "target_accept": 0.9,
-        },
-        "response_column": "quantity",
-        "revenue_column": "revenue",
-    }
-    return PyMCConfig.from_dict(config_dict)
+
+    # Create PyMCModelSchema
+    pymc_model_config = PyMCModelSchema(
+        date_column="date_week",
+        channel_columns=["channel_1", "channel_2"],
+        control_columns=["price", "event_1", "event_2"],
+        adstock=GeometricAdstock(l_max=4),
+        saturation=LogisticSaturation(),
+        yearly_seasonality=2,
+        model_config=model_config,
+    )
+
+    # Create PyMCFitSchema with the sampling parameters moved from sampler_config
+    fit_config = PyMCFitSchema(
+        target_accept=0.9,
+        chains=1,
+        draws=5,
+        tune=5,
+        random_seed=42,
+    )
+
+    # Create PyMCConfig
+    return PyMCConfig(
+        pymc_model_config=pymc_model_config,
+        fit_config=fit_config,
+        response_column="quantity",
+        revenue_column="revenue",
+    )
 
 
 @pytest.fixture(scope="module")
@@ -65,21 +71,24 @@ def invalid_pymc_config():
 
     """
     # Create a config that will pass initial validation but fail when MMM model tries to use it
-    config_dict = {
-        "model_config": {
-            "date_column": "date_week",
-            "channel_columns": ["channel_1", "channel_2"],
-            "control_columns": ["price", "event_1", "event_2"],
-            "adstock": GeometricAdstock(l_max=4),
-            "saturation": LogisticSaturation(),
-            # Add an invalid field that will cause the MMM model to fail
-            "invalid_field": "this_will_cause_an_error",
-        },
-        "fit_config": {},
-        "response_column": "quantity",
-        "revenue_column": "revenue",
-    }
-    return PyMCConfig.from_dict(config_dict)
+    pymc_model_config = PyMCModelSchema(
+        date_column="date_week",
+        channel_columns=["channel_1", "channel_2"],
+        control_columns=["price", "event_1", "event_2"],
+        adstock=GeometricAdstock(l_max=4),
+        saturation=LogisticSaturation(),
+        # Add an invalid field that will cause the MMM model to fail
+        invalid_field="this_will_cause_an_error",
+    )
+
+    fit_config = PyMCFitSchema()
+
+    return PyMCConfig(
+        pymc_model_config=pymc_model_config,
+        fit_config=fit_config,
+        response_column="quantity",
+        revenue_column="revenue",
+    )
 
 
 def create_sample_data():
@@ -90,18 +99,30 @@ def create_sample_data():
 
     """
     dates = pd.date_range("2023-01-01", periods=10, freq="W-MON")
-    return pd.DataFrame(
-        {
-            "date_week": dates,
-            "channel_1": np.random.uniform(50, 200, len(dates)),
-            "channel_2": np.random.uniform(30, 150, len(dates)),
-            "quantity": np.random.uniform(800, 1200, len(dates)),
-            "price": np.random.uniform(8, 12, len(dates)),
-            "revenue": np.random.uniform(6000, 12000, len(dates)),
-            "event_1": np.random.choice([0, 1], len(dates)),
-            "event_2": np.random.choice([0, 1], len(dates)),
-        }
-    )
+
+    # Create raw data
+    raw_data = {
+        "date_week": dates,
+        "channel_1": np.random.uniform(50, 200, len(dates)),
+        "channel_2": np.random.uniform(30, 150, len(dates)),
+        "quantity": np.random.uniform(800, 1200, len(dates)),
+        "price": np.random.uniform(8, 12, len(dates)),
+        "revenue": np.random.uniform(6000, 12000, len(dates)),
+        "event_1": np.random.choice([0, 1], len(dates)),
+        "event_2": np.random.choice([0, 1], len(dates)),
+    }
+
+    df = pd.DataFrame(raw_data)
+
+    # Scale control columns to 0-1 range using maxabs scaling
+    control_columns = ["price", "event_1", "event_2"]
+    for col in control_columns:
+        if col in df.columns:
+            max_abs = np.abs(df[col]).max()
+            if max_abs > 0:
+                df[col] = df[col] / max_abs
+
+    return df
 
 
 @pytest.fixture(scope="function")
@@ -126,7 +147,8 @@ def realistic_test_data():
     price = 10 + 0.1 * np.arange(len(dates)) + np.random.normal(0, 0.5, len(dates))
     revenue = price * quantity
 
-    return pd.DataFrame(
+    # Create DataFrame
+    df = pd.DataFrame(
         {
             "date_week": dates,
             "channel_1": channel_1,
@@ -138,6 +160,16 @@ def realistic_test_data():
             "event_2": np.random.choice([0, 1], len(dates), p=[0.95, 0.05]),
         }
     )
+
+    # Scale control columns to 0-1 range using maxabs scaling
+    control_columns = ["price", "event_1", "event_2"]
+    for col in control_columns:
+        if col in df.columns:
+            max_abs = np.abs(df[col]).max()
+            if max_abs > 0:
+                df[col] = df[col] / max_abs
+
+    return df
 
 
 def test_adapter_instantiation(valid_pymc_config):
@@ -154,7 +186,17 @@ def test_adapter_instantiation(valid_pymc_config):
     assert adapter.channel_spend_columns == ["channel_1", "channel_2"]
     assert adapter.response_column == "quantity"
     assert adapter.revenue_column == "revenue"
-    assert adapter.fit_config == {"target_accept": 0.9}
+    # Check that fit_kwargs contains the expected values from PyMCFitSchema
+    expected_fit_kwargs = {
+        "draws": 5,  # Moved from sampler_config
+        "tune": 5,  # Moved from sampler_config
+        "chains": 1,  # Moved from sampler_config
+        "target_accept": 0.9,  # This is the only value we override
+        "random_seed": 42,  # Moved from sampler_config
+        "progress_bar": True,  # Default from PyMCFitSchema
+        "return_inferencedata": True,  # Default from PyMCFitSchema
+    }
+    assert adapter.fit_kwargs == expected_fit_kwargs
 
 
 def test_adapter_instantiation_config_copy(valid_pymc_config):
@@ -166,18 +208,18 @@ def test_adapter_instantiation_config_copy(valid_pymc_config):
     """
     config = valid_pymc_config
     # Store original attribute values since PyMCConfig objects don't have .copy()
-    original_model_config = config.model_config.config.copy() if config.model_config else None
-    original_fit_config = config.fit_config.config.copy() if config.fit_config else None
+    original_model_config = config.pymc_model_config.model_dump() if config.pymc_model_config else None
+    original_fit_config = config.fit_config.model_dump() if config.fit_config else None
     original_response_column = config.response_column
     original_revenue_column = config.revenue_column
 
     _ = PyMCAdapter(config)
 
     # Check that original config is unchanged (the adapter modifies its copy)
-    if config.model_config:
-        assert config.model_config.config == original_model_config
+    if config.pymc_model_config:
+        assert config.pymc_model_config.model_dump() == original_model_config
     if config.fit_config:
-        assert config.fit_config.config == original_fit_config
+        assert config.fit_config.model_dump() == original_fit_config
     assert config.response_column == original_response_column
     assert config.revenue_column == original_revenue_column
 
@@ -467,7 +509,7 @@ def test_fit_drops_zero_spend_channels(valid_pymc_config, realistic_test_data):
     assert len(adapter.channel_spend_columns) == 1
 
     # Verify that the model config was updated
-    assert adapter.model_config["channel_columns"] == ["channel_2"]
+    assert adapter.model_kwargs["channel_columns"] == ["channel_2"]
 
 
 def test_fit_keeps_non_zero_spend_channels(valid_pymc_config, realistic_test_data):
@@ -500,7 +542,7 @@ def test_fit_keeps_non_zero_spend_channels(valid_pymc_config, realistic_test_dat
     assert len(adapter.channel_spend_columns) == 2
 
     # Verify that the model config was not changed
-    assert adapter.model_config["channel_columns"] == ["channel_1", "channel_2"]
+    assert adapter.model_kwargs["channel_columns"] == ["channel_1", "channel_2"]
 
 
 def test_fit_drops_multiple_zero_spend_channels(valid_pymc_config, realistic_test_data):

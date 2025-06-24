@@ -24,18 +24,16 @@ class PyMCAdapter(BaseAdapter):
             config: PyMCConfig object
 
         """
+        self.model_kwargs = config.pymc_model_config_dict
+        self.fit_kwargs = config.fit_config_dict
+        self.revenue_column = config.revenue_column
+        self.response_column = config.response_column
+        self.date_column = config.date_column
+        self.channel_spend_columns = config.channel_columns
+        self.control_columns = config.pymc_model_config_dict.get("control_columns", [])
+
         # Rehydrate the config dictionary
         self.config = config
-
-        # Store explicitly needed pieces
-        # TODO (PC, SM): is there a better way to access the config dict?
-        self.date_column = self.config.model_config.config["date_column"]
-        self.channel_spend_columns = self.config.model_config.config["channel_columns"]
-        self.control_columns = self.config.model_config.config["control_columns"]
-        self.model_config = self.config.model_config.config
-        self.fit_config = self.config.fit_config.config
-        self.revenue_column = self.config.revenue_column
-        self.response_column = self.config.response_column
 
         self.model = None
         self.trace = None
@@ -67,14 +65,18 @@ class PyMCAdapter(BaseAdapter):
             # Remove zero-spend channels from the list passed to the MMM constructor
             self.channel_spend_columns = [col for col in self.channel_spend_columns if col not in zero_spend_channels]
             # also update the model config field to reflect the new channel spend columns
-            self.model_config["channel_columns"] = self.channel_spend_columns
+            self.model_kwargs["channel_columns"] = self.channel_spend_columns
+
+            # Check for vector priors that might cause shape mismatches
+            _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
+
             data = data.drop(columns=zero_spend_channels)
 
         X = data.drop(columns=[self.response_column, self.revenue_column])
         y = data[self.response_column]
 
-        self.model = MMM(**self.model_config)
-        self.trace = self.model.fit(X=X, y=y, **self.fit_config)
+        self.model = MMM(**self.model_kwargs)
+        self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
 
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
@@ -267,4 +269,41 @@ def _check_vars_in_0_1_range(data: pd.DataFrame, cols: list[str]) -> None:
             f"Control column '{col}' has values outside [0, 1] range: "
             f"min={col_min:.4f}, max={col_max:.4f}. "
             f"Consider scaling this column to 0-1 range as per PyMC best practices."
+        )
+
+
+def _check_vector_priors_when_dropping_channels(model_config: dict, zero_spend_channels: list[str]) -> None:
+    """Check for vector priors that might cause shape mismatches when channels are dropped.
+
+    Args:
+        model_config: The model configuration dictionary containing priors
+        zero_spend_channels: List of channels being dropped due to zero spend
+
+    Warns:
+        UserWarning: If vector priors are found that might cause shape mismatches
+
+    """
+    if not model_config or not zero_spend_channels:
+        return
+
+    vector_priors = []
+
+    # Check common priors that might be vectors
+    for prior_name in ["saturation_beta", "gamma_media", "beta_media"]:
+        if prior_name in model_config:
+            prior = model_config[prior_name]
+            if hasattr(prior, "sigma"):
+                sigma = prior.sigma
+                if hasattr(sigma, "__len__") and len(sigma) > 1:
+                    vector_priors.append(f"{prior_name}.sigma")
+            if hasattr(prior, "mu"):
+                mu = prior.mu
+                if hasattr(mu, "__len__") and len(mu) > 1:
+                    vector_priors.append(f"{prior_name}.mu")
+
+    if vector_priors:
+        logger.warning(
+            "Found vector priors that may cause shape mismatches given that channels are "
+            f"being dropped due to zero spend: {vector_priors}. "
+            "Consider using scalar priors instead to avoid PyTensor broadcasting errors."
         )
