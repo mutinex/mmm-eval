@@ -4,6 +4,7 @@ import json
 
 from mmm_eval.config.config_models import EvaluatorConfig
 from mmm_eval.config.constants import ConfigConstants
+from mmm_eval.data.constants import InputDataframeConstants
 
 
 class ConfigLoader:
@@ -29,9 +30,8 @@ class ConfigLoader:
             Validated evaluator configuration
         """
         return EvaluatorConfig(
-            date_column=self.raw_config["date_column"],
-            response_column=self.raw_config["response_column"],
-            revenue_column=self.raw_config["revenue_column"],
+            response_column=self.raw_config.get("response_column", InputDataframeConstants.RESPONSE_COL),
+            revenue_column=self.raw_config.get("revenue_column", InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL),
         )
     
     def _extract_framework_config(self) -> dict[str, Any]:

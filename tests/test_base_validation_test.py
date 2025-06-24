@@ -8,7 +8,7 @@ import pytest
 from mmm_eval.core.base_validation_test import BaseValidationTest
 from mmm_eval.core.constants import ValidationDataframeConstants
 from mmm_eval.core.exceptions import DataValidationError, MetricCalculationError
-from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
+from mmm_eval.data.constants import InputDataframeConstants
 
 
 class ConcreteTestClass(BaseValidationTest):

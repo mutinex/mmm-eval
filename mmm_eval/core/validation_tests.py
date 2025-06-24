@@ -10,7 +10,7 @@ from mmm_eval.core.base_validation_test import BaseValidationTest
 from mmm_eval.core.constants import PerturbationConstants
 from mmm_eval.core.validation_test_results import ValidationTestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
-from mmm_eval.data.input_dataframe_constants import InputDataframeConstants
+from mmm_eval.data.constants import InputDataframeConstants
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
     calculate_mean_for_singular_values_across_cross_validation_folds,

@@ -146,9 +146,9 @@ class PyMCAdapter(BaseAdapter):
             data[
                 [
                     self.date_column,
-                    self.response_column,
-                    self.revenue_column,
-                    *self.channel_spend_columns,
+                    InputDataframeConstants.RESPONSE_COL,
+                    InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+                    *self.channel_spend_cols,
                 ]
             ].set_index(self.date_column),
             left_index=True,

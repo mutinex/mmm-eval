@@ -58,7 +58,6 @@ class DataProcessor:
         # Validate that all required columns exist
         self._validate_required_columns_present(
             df=processed_df,
-            date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
             control_columns=self.control_columns,
@@ -66,12 +65,12 @@ class DataProcessor:
         )
 
         # Parse date columns
-        processed_df = self._parse_date_columns(processed_df, self.date_column)
+        # processed_df = self._parse_date_columns(processed_df, self.date_column)
 
         # Rename required columns
         processed_df = self._rename_required_columns(
             df=processed_df,
-            date_column=self.date_column,
+            # date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
         )
@@ -81,7 +80,7 @@ class DataProcessor:
     def _validate_required_columns_present(
         self,
         df: pd.DataFrame,
-        date_column: str,
+        # date_column: str,
         response_column: str,
         revenue_column: str,
         channel_columns: list[str],
@@ -101,8 +100,8 @@ class DataProcessor:
             None
 
         """
-        if date_column not in df.columns:
-            raise MissingRequiredColumnsError(f"Date column '{date_column}' required but not found in DataFrame")
+        # if date_column not in df.columns:
+        #     raise MissingRequiredColumnsError(f"Date column '{date_column}' required but not found in DataFrame")
         if response_column not in df.columns:
             raise MissingRequiredColumnsError(
                 f"Response column '{response_column}' required but not found in DataFrame"
@@ -149,7 +148,7 @@ class DataProcessor:
     def _rename_required_columns(
         self,
         df: pd.DataFrame,
-        date_column: str,
+        # date_column: str,
         response_column: str,
         revenue_column: str,
     ) -> pd.DataFrame:
@@ -170,7 +169,7 @@ class DataProcessor:
         """
         df = df.rename(
             columns={
-                date_column: InputDataframeConstants.DATE_COL,
+                # date_column: InputDataframeConstants.DATE_COL,
                 response_column: InputDataframeConstants.RESPONSE_COL,
                 revenue_column: InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             }
