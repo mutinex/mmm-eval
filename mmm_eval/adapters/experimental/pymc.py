@@ -28,6 +28,10 @@ class PyMCAdapter(BaseAdapter):
         self.config = config
 
         # Store explicitly needed pieces
+        # TODO (PC, SM): do really we have to access the config dict like this?
+        self.date_column = self.config.model_config.config["date_column"]
+        self.channel_spend_columns = self.config.model_config.config["channel_columns"]
+        self.control_columns = self.config.model_config.config["control_columns"]
         self.model_config = self.config.model_config.config
         self.fit_config = self.config.fit_config.config
         self.revenue_column = self.config.revenue_column
@@ -43,28 +47,31 @@ class PyMCAdapter(BaseAdapter):
         Args:
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
         """
+        if self.control_columns:
+            _check_vars_in_0_1_range(data, self.control_columns)
 
         # Identify channel spend columns that sum to zero and remove them from modelling.
         # We cannot reliabily make any prediction based on these channels when making
         # predictions on new data.
-        channel_spend_data = data[self.channel_spend_cols]
+        channel_spend_data = data[self.channel_spend_columns]
         zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
         
         if zero_spend_channels:
             logger.info(f"Dropping channels with zero spend: {zero_spend_channels}")
             # Remove zero-spend channels from the list passed to the MMM constructor
-            self.channel_spend_cols = [
-                col for col in self.channel_spend_cols 
+            self.channel_spend_columns = [
+                col for col in self.channel_spend_columns 
                 if col not in zero_spend_channels
             ]
-            self.model_kwargs["channel_columns"] = self.channel_spend_cols
+            # also update the model config field to reflect the new channel spend columns
+            self.model_config["channel_columns"] = self.channel_spend_columns
             data = data.drop(columns=zero_spend_channels)
 
-        X = data.drop(columns=[self.response_col, self.revenue_col])
-        y = data[self.response_col]
+        X = data.drop(columns=[self.response_column, self.revenue_column])
+        y = data[self.response_column]
 
-        self.model = MMM(**self.model_kwargs)
-        self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
+        self.model = MMM(**self.model_config)
+        self.trace = self.model.fit(X=X, y=y, **self.fit_config)
 
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
@@ -82,16 +89,16 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        # TODO: this may be redundant after an upstream schema check, remove if so
-        _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
+        # TODO (SM, PC): decide whether this is needed in predict and/or fit
+        #_check_columns_in_data(data, [self.date_column, self.channel_spend_columns])
 
-        control_cols = set(data.columns) - set(self.channel_spend_cols) - set([self.date_col, self.response_col, self.revenue_col])
-        if control_cols:
-            _check_vars_in_0_1_range(data, control_cols)
+        if self.control_columns:
+            _check_vars_in_0_1_range(data, self.control_columns)
 
-        if self.response_col in data.columns:
-            data = data.drop(columns=[self.response_col])
-        predictions = self.model.predict(data, extend_idata=False)
+        if self.response_column in data.columns:
+            data = data.drop(columns=[self.response_column])
+
+        predictions = self.model.predict(data, extend_idata=False, include_last_observation=True)
         return predictions
 
     def get_channel_roi(
@@ -142,17 +149,17 @@ class PyMCAdapter(BaseAdapter):
             columns=channel_contribution["channel"].to_numpy(),
             index=channel_contribution["date"].to_numpy(),
         )
-        contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_cols]
+        contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_columns]
         contribution_df = pd.merge(
             contribution_df,
             data[
                 [
-                    self.date_col,
-                    self.response_col,
-                    self.revenue_col,
-                    *self.channel_spend_cols,
+                    self.date_column,
+                    self.response_column,
+                    self.revenue_column,
+                    *self.channel_spend_columns,
                 ]
-            ].set_index(self.date_col),
+            ].set_index(self.date_column),
             left_index=True,
             right_index=True,
         )
@@ -172,14 +179,14 @@ class PyMCAdapter(BaseAdapter):
         # if revenue is used as the response, this quotient will be 1, and the math for 
         # calculating channel revenue will still be correct
         avg_rev_per_unit = np.divide(
-            contribution_df[self.revenue_col], 
-            contribution_df[self.response_col],
-            out=np.zeros_like(contribution_df[self.revenue_col]),
-            where=contribution_df[self.response_col] != 0
+            contribution_df[self.revenue_column], 
+            contribution_df[self.response_column],
+            out=np.zeros_like(contribution_df[self.revenue_column]),
+            where=contribution_df[self.response_column] != 0
         )
 
         rois = {}
-        for channel in self.channel_spend_cols:
+        for channel in self.channel_spend_columns:
             total_spend = contribution_df[channel].sum()
             # handle edge case where total spend is zero for the time period selected
             # (possible to have non-zero attribution due to adstock effect)
