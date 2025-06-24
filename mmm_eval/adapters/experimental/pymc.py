@@ -11,67 +11,39 @@ import pandas as pd
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
-from mmm_eval.adapters.experimental.schemas import PyMCConfigSchema
+from mmm_eval.configs import PyMCConfig
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 class PyMCAdapter(BaseAdapter):
-    def __init__(self, config: dict):
+    def __init__(self, config: PyMCConfig):
         """Initialize the PyMCAdapter.
 
         Args:
-            config: Dictionary containing the configuration for the PyMCAdapter adhering
-                to the PyMCConfigSchema.
+            config: PyMCConfig object
 
         """
-        super().__init__(config)
-        PyMCConfigSchema.model_validate(config)
+        # Rehydrate the config dictionary
+        self.config = config
 
-        # copy config to avoid mutating the original
-        config = config.copy()
+        # Store explicitly needed pieces
+        self.model_config = self.config.model_config.config
+        self.fit_config = self.config.fit_config.config
+        self.revenue_column = self.config.revenue_column
+        self.response_column = self.config.response_column
 
-        self.date_col = config["date_column"]
-        self.channel_spend_cols = config["channel_columns"]
-
-        # Pop out items that are not needed for MMM constructor
-        self.response_col = config.pop("response_column")
-        self.revenue_col = config.pop("revenue_column")
-        self.fit_kwargs = config.pop("fit_kwargs", {})
-
-        # Everything else is passed to MMM constructor
-        self.model_kwargs = config
-
-        # initialise fields set in `fit`
         self.model = None
         self.trace = None
         self._channel_roi_df = None
 
-    def fit(self, data: pd.DataFrame) -> None:
-        """Fit the model to data.
+    def fit(self, data: pd.DataFrame):
+        """Fit the model and compute ROIs."""
+        X = data.drop(columns=[self.response_column])
+        y = data[self.response_column]
 
-        Args:
-            data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
-
-        """
-        # TODO: this may be redundant after an upstream schema check, remove if so
-        _check_columns_in_data(
-            data,
-            [
-                self.date_col,
-                self.channel_spend_cols,
-                self.response_col,
-                self.revenue_col,
-            ],
-        )
-
-        X = data.drop(columns=[self.response_col, self.revenue_col])
-        y = data[self.response_col]
-        # assert isinstance(y, pd.Series), f"Expected Series, got {type(y)}"
-
-        self.model = MMM(**self.model_kwargs)
-        self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
+        self.model = MMM(**self.model_config)
+        self.trace = self.model.fit(X=X, y=y, **self.fit_config)
 
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True

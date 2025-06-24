@@ -1,53 +1,21 @@
-# TODO:
-# - Decide how to handle data loading (ie do we load the data w/ dataloader then validate it separately
-#   within each adapter class then call evaluate_framework?)
-
-import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import click
 
 from mmm_eval import evaluate_framework
-from mmm_eval.data.pipeline import DataPipeline
+from mmm_eval.adapters import ADAPTER_REGISTRY
+from mmm_eval.configs import get_config
+from mmm_eval.data import DataPipeline
 from mmm_eval.metrics import AVAILABLE_METRICS
 
 logger = logging.getLogger(__name__)
 
 
-def validate_path(path: str) -> Path:
-    """Validate path is a valid file path.
-
-    Args:
-        path: File path to validate
-
-    Returns:
-        Path object
-
-    Raises:
-        FileNotFoundError: If path doesn't exist
-
-    """
-    path_obj = Path(path)
-    if not path_obj.exists():
-        raise FileNotFoundError(f"Invalid path:{path}")
-    return path_obj
-
-
-def load_config(config_path: str) -> dict[str, Any]:
-    """Load config from JSON file."""
-    config_path_obj = validate_path(config_path)
-    if not config_path_obj.suffix.lower().lstrip(".") == "json":
-        raise ValueError(f"Invalid config path: {config_path}. Must be a JSON file.")
-    with open(config_path_obj) as f:
-        return json.load(f)
-
-
 @click.command()
 @click.option(
     "--framework",
-    type=click.Choice(["pymc-marketing"]),
+    type=click.Choice(list(ADAPTER_REGISTRY.keys())),
     required=True,
     help="Open source MMM framework to evaluate",
 )
@@ -81,7 +49,7 @@ def load_config(config_path: str) -> dict[str, Any]:
     help="Enable verbose logging",
 )
 def main(
-    config_path: str | None,
+    config_path: str,
     input_data_path: str,
     metrics: tuple[str, ...],
     framework: str,
@@ -96,16 +64,13 @@ def main(
     # Load input data
     logger.info(f"Loading input data from {input_data_path}")
 
-    # This should be validated in its own config pipeline class in another pr
-    if not config_path:
-        raise ValueError("Config path is required")
-    config = load_config(config_path)
+    config = get_config(framework, config_path)
 
     data = DataPipeline(
         data_path=input_data_path,
-        date_column=config["date_column"],
-        response_column=config["response_column"],
-        revenue_column=config["revenue_column"],
+        date_column=config.model_config.config["date_column"],
+        response_column=config.response_column,
+        revenue_column=config.revenue_column,
     ).run()
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
