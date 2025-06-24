@@ -11,9 +11,9 @@ __email__ = "your.email@example.com"
 # Core functionality
 # Adapters
 from .adapters import get_adapter
+from .adapters.experimental.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .core.evaluator import evaluate_framework
-from .adapters.experimental.pymc import PyMCAdapter
 from .core.results import EvaluationResults
 
 # Data utilities

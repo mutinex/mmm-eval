@@ -1,6 +1,5 @@
 import json
 import os
-from unittest.mock import patch
 
 from click.testing import CliRunner
 
@@ -32,7 +31,7 @@ def test_cli_e2e_pymc_marketing(tmp_path):
     # valid_config = valid_hydration_config_1()
 
     # with patch("mmm_eval.cli.evaluate.load_config", return_value=valid_config):
-        # Test using Click's test runner (enables debugging)
+    # Test using Click's test runner (enables debugging)
     runner = CliRunner()
     result = runner.invoke(
         main,

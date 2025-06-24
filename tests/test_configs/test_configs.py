@@ -2,11 +2,11 @@ import os
 import tempfile
 
 import pytest
-from pydantic import ValidationError
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 
-from mmm_eval.adapters.experimental.schemas import PyMCModelSchema, PyMCFitSchema
+from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs.configs import PyMCConfig
+
 
 class MockModelObject:
     """Mock model object for testing."""
@@ -21,6 +21,7 @@ class MockModelObject:
         self.yearly_seasonality = 2
         self.extra_field = "should_be_filtered_out"
 
+
 # JSON config for e2e testing
 SAMPLE_CONFIG_JSON = {
     "pymc_model_config": {
@@ -29,16 +30,16 @@ SAMPLE_CONFIG_JSON = {
         "control_columns": ["price", "event_1", "event_2"],
         "adstock": "GeometricAdstock(l_max=4)",
         "saturation": "LogisticSaturation()",
-        "yearly_seasonality": "2"
+        "yearly_seasonality": "2",
     },
-    "fit_config": {
-        "target_accept": "0.9"
-    },
+    "fit_config": {"target_accept": "0.9"},
     "revenue_column": "revenue",
-    "response_column": "quantity"
+    "response_column": "quantity",
 }
 
+
 def test_pymc_config_from_model_object():
+    """Test PyMCConfig from model object."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     revenue_column = "revenue"
@@ -53,6 +54,7 @@ def test_pymc_config_from_model_object():
 
 
 def test_pymc_config_auto_response_column():
+    """Test auto-setting of response column."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     revenue_column = "revenue"
@@ -64,6 +66,7 @@ def test_pymc_config_auto_response_column():
 
 
 def test_pymc_config_save_and_load_json():
+    """Test saving and loading a PyMCConfig to and from a JSON file."""
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     response_column = "quantity"
@@ -84,6 +87,7 @@ def test_pymc_config_save_and_load_json():
 
 
 def test_pymc_config_validation():
+    """Test validation of PyMCConfig."""
     mock_model = MockModelObject()
     with pytest.raises(ValueError, match="`model_object` is required"):
         PyMCConfig.from_model_object(None, {"target_accept": 0.9}, "revenue")
@@ -94,6 +98,7 @@ def test_pymc_config_validation():
 
 
 def test_pymc_config_direct_instantiation():
+    """Test direct instantiation of PyMCConfig."""
     pymc_model_config = PyMCModelSchema(
         date_column="date_week",
         channel_columns=["channel_1", "channel_2"],
@@ -102,10 +107,7 @@ def test_pymc_config_direct_instantiation():
     )
     fit_config = PyMCFitSchema(target_accept=0.9)
     config = PyMCConfig(
-        pymc_model_config=pymc_model_config,
-        fit_config=fit_config,
-        revenue_column="revenue",
-        response_column="quantity"
+        pymc_model_config=pymc_model_config, fit_config=fit_config, revenue_column="revenue", response_column="quantity"
     )
     assert config.pymc_model_config == pymc_model_config
     assert config.fit_config == fit_config
