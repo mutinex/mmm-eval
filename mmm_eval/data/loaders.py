@@ -1,107 +1,66 @@
 """Data loading utilities for MMM evaluation."""
 
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 
+from mmm_eval.data.constants import DataLoaderConstants
+
 
 class DataLoader:
-    """Base data loader class for MMM evaluation.
+    """Simple data loader for MMM evaluation.
 
-    Provides utilities for loading and basic validation of MMM data.
+    Takes a data path and loads the data.
     """
 
-    def __init__(self, config: dict[str, Any] | None = None):
-        """Initialize data loader.
+    def __init__(self, data_path: str | Path):
+        """Initialize data loader with data path.
 
         Args:
-            config: Configuration for data loading
+            data_path: Path to the data file (CSV, Parquet, etc.)
+
+        Raises:
+            FileNotFoundError: If the data file does not exist.
 
         """
-        self.config = config or {}
-        self.required_columns = config.get("required_columns", []) if config else []
-        self.date_column = config.get("date_column", "date") if config else "date"
-        self.kpi_column = config.get("kpi_column", "kpi") if config else "kpi"
+        self.data_path = Path(data_path)
 
-    def load(self, source: Path) -> pd.DataFrame:
-        """Load data from various sources.
+        if not self.data_path.exists():
+            raise FileNotFoundError(f"Data file not found: {self.data_path}")
 
-        Args:
-            source: Data source (file path)
+    def load(self) -> pd.DataFrame:
+        """Load data from the specified path.
 
-        Returns:
+        Returns
+            Loaded DataFrame
+
+        Raises
+            ValueError: If the file format is not supported.
+
+        """
+        ext = self.data_path.suffix.lower().lstrip(".")
+        if ext not in DataLoaderConstants.ValidDataExtensions.all():
+            raise ValueError(f"Unsupported file format: {self.data_path.suffix}")
+
+        if ext == DataLoaderConstants.ValidDataExtensions.CSV:
+            return self._load_csv()
+        elif ext == DataLoaderConstants.ValidDataExtensions.PARQUET:
+            return self._load_parquet()
+
+    def _load_csv(self) -> pd.DataFrame:
+        """Load CSV data.
+
+        Returns
             Loaded DataFrame
 
         """
-        if source.suffix.lower() == ".csv":
-            data = load_csv(source)
-        else:
-            raise ValueError(f"Unsupported file format: {source}")
+        return pd.read_csv(self.data_path)
 
-        return self._validate_data(data)
+    def _load_parquet(self) -> pd.DataFrame:
+        """Load Parquet data.
 
-    def _validate_data(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Validate MMM data for basic quality checks.
-
-        Args:
-            data: Input DataFrame
-
-        Returns:
-            Validated DataFrame
-
-        Raises:
-            ValueError: If validation fails
+        Returns
+            Loaded DataFrame
 
         """
-        # Check required columns
-        missing_cols = [col for col in self.required_columns if col not in data.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
-
-        # Check if KPI column exists
-        if self.kpi_column not in data.columns:
-            raise ValueError(f"KPI column '{self.kpi_column}' not found in data")
-
-        # Check for basic data quality
-        if data.empty:
-            raise ValueError("Data is empty")
-
-        # Check for null values in KPI
-        if data[self.kpi_column].isnull().sum() == len(data):
-            raise ValueError(f"All values in KPI column '{self.kpi_column}' are null")
-
-        return data
-
-
-def load_csv(
-    file_path: str | Path,
-    date_column: str | None = None,
-    parse_dates: bool = True,
-) -> pd.DataFrame:
-    """Load data from CSV file.
-
-    Args:
-        file_path: Path to CSV file
-        date_column: Name of date column to parse
-        parse_dates: Whether to parse date columns
-
-    Returns:
-        Loaded DataFrame
-
-    """
-    # Set default parameters for MMM data
-    default_kwargs = {
-        "index_col": None,
-        "encoding": "utf-8",
-    }
-
-    # Load data
-    data = pd.read_csv(file_path, **default_kwargs)
-
-    # Parse dates if specified
-    if parse_dates and date_column and date_column in data.columns:
-        data[date_column] = pd.to_datetime(data[date_column])
-        data = data.sort_values(date_column).reset_index(drop=True)
-
-    return data
+        return pd.read_parquet(self.data_path)

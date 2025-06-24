@@ -1,22 +1,21 @@
 """Adapters for different MMM frameworks."""
 
-from typing import Any
+from mmm_eval.configs import PyMCConfig
 
-from .base import BaseAdapter
 from .experimental.pymc import PyMCAdapter
 
 # Registry of available adapters
-ADAPTER_REGISTRY: dict[str, type[BaseAdapter]] = {
+ADAPTER_REGISTRY = {
     "pymc-marketing": PyMCAdapter,
 }
 
 
-def get_adapter(framework: str, config: dict[str, Any] | None = None) -> BaseAdapter:
+def get_adapter(framework: str, config: PyMCConfig):
     """Get an adapter instance for the specified framework.
 
     Args:
-        framework: Name of the framework
-        config: Configuration dictionary
+        framework: Name of the MMM framework
+        config: Framework-specific configuration
 
     Returns:
         Adapter instance
@@ -29,7 +28,7 @@ def get_adapter(framework: str, config: dict[str, Any] | None = None) -> BaseAda
         raise ValueError(f"Unsupported framework: {framework}. Available: {list(ADAPTER_REGISTRY.keys())}")
 
     adapter_class = ADAPTER_REGISTRY[framework]
-    return adapter_class(config or {})
+    return adapter_class(config)
 
 
 __all__ = [

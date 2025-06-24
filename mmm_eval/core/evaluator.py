@@ -1,9 +1,10 @@
 """Main evaluator for MMM frameworks."""
 
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
+
+from mmm_eval.configs import EvalConfig
 
 from .results import EvaluationResults
 
@@ -37,7 +38,7 @@ def _compute_metrics(actual: pd.Series, predicted: pd.Series, metrics: list[str]
 def evaluate_framework(
     framework: str,
     data: pd.DataFrame,
-    config: dict[str, Any] | None = None,
+    config: EvalConfig | None = None,
     metrics: list[str] | None = None,
     output_path: Path | None = None,
     **kwargs,
@@ -86,13 +87,3 @@ def evaluate_framework(
         predictions=pd.Series(),
         actual=pd.Series(),
     )
-
-    # Use the adapter to fit and evaluate
-    # adapter = get_adapter(framework, config)
-    # results = adapter.fit_and_evaluate(
-    #     data=data, target_column=target_column, metrics=metrics, **kwargs
-    # )
-
-    # save result to output_path
-
-    # return results
