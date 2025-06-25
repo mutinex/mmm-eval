@@ -2,7 +2,7 @@
 
 from mmm_eval.configs import PyMCConfig
 
-from .experimental.pymc import PyMCAdapter
+from .pymc import PyMCAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
