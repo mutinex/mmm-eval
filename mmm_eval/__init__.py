@@ -25,7 +25,7 @@ from .data import (
 )
 
 # Metrics
-from .metrics.accuracy import mape, rmse, mae, r_squared, symmetric_mape
+from .metrics.accuracy import mae, mape, r_squared, rmse, symmetric_mape
 
 __all__ = [
     "get_adapter",

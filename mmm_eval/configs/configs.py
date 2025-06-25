@@ -2,9 +2,9 @@ from typing import Any
 
 from pydantic import (
     Field,
-    field_validator,
     ValidationInfo,
     computed_field,
+    field_validator,
 )
 from pymc_marketing.mmm import MMM
 
