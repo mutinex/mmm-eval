@@ -122,4 +122,7 @@ def test_cli_scenarios(tmp_path, cli_args, expected_exit_code, test_name):
     # Check that the CLI command returned the expected exit code
     assert (
         result.exit_code == expected_exit_code
-    ), f"Test '{test_name}' failed: Expected exit code {expected_exit_code} but got {result.exit_code}. Args: {formatted_args}. Output: {result.output}"
+    ), f"""Test '{test_name}' failed: Expected exit code {expected_exit_code} but got {result.exit_code}. 
+           Args: {formatted_args}. Output: {result.output}
+           Exception: {result.exception}
+        """

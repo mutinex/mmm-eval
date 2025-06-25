@@ -34,7 +34,7 @@ class PyMCConfig(BaseConfig):
 
     @computed_field
     @property
-    def control_columns(self) -> list[str]:
+    def control_columns(self) -> list[str] | None:
         """Return the control columns."""
         return self.pymc_model_config.control_columns
 
