@@ -15,11 +15,11 @@ class TestDataPipeline:
         """Create test DataFrame."""
         return pd.DataFrame(
             {
-                "custom_date": pd.date_range("2023-01-01", periods=25).strftime("%Y-%m-%d"),
-                "custom_response": [100.0] * 25,
-                "custom_revenue": [1000.0] * 25,
-                "control_var1": [0.5] * 25,  # Control column
-                "facebook": [100.0] * 25,  # Channel column
+                "custom_date": pd.date_range("2023-01-01", periods=40).strftime("%Y-%m-%d"),
+                "custom_response": [100.0] * 40,
+                "custom_revenue": [1000.0] * 40,
+                "facebook": ["facebook"] * 40,
+                "spend": [1000.0] * 40,
             }
         )
 
@@ -37,12 +37,12 @@ class TestDataPipeline:
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
-            min_number_observations=21,
+            min_number_observations=40,
         )
         result = pipeline.run()
 
         assert isinstance(result, pd.DataFrame)
-        assert result.shape == (25, 5)  # 5 columns including the renamed ones
+        assert result.shape == (40, 5)  # 5 columns including the renamed ones
         assert InputDataframeConstants.DATE_COL in result.columns
         assert InputDataframeConstants.RESPONSE_COL in result.columns
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
@@ -53,23 +53,18 @@ class TestDataPipeline:
         # Create test CSV with default column names
         df = pd.DataFrame(
             {
-                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=25).strftime("%Y-%m-%d"),
-                InputDataframeConstants.RESPONSE_COL: [100.0] * 25,
-                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 25,
-                "control_var1": [0.5] * 25,  # Control column
-                "facebook": [100.0] * 25,  # Channel column
+                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=40).strftime("%Y-%m-%d"),
+                InputDataframeConstants.RESPONSE_COL: [100.0] * 40,
+                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 40,
+                "facebook": ["facebook"] * 40,
+                "spend": [1000.0] * 40,
             }
         )
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
 
         # Run pipeline with default settings
-        pipeline = DataPipeline(
-            data_path=csv_path,
-            control_columns=["control_var1"],
-            channel_columns=["facebook"],
-            min_number_observations=21,
-        )
+        pipeline = DataPipeline(data_path=csv_path, min_number_observations=40)
         result = pipeline.run()
 
         assert isinstance(result, pd.DataFrame)
@@ -119,7 +114,7 @@ class TestDataPipeline:
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
-            min_number_observations=21,
+            min_number_observations=40,
         )
 
         with pytest.raises(DataValidationError):

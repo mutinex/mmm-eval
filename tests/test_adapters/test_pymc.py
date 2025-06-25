@@ -126,7 +126,7 @@ def create_sample_data():
 def realistic_test_data():
     """Create more realistic test data for PyMC integration tests."""
     np.random.seed(42)  # For reproducibility
-    dates = pd.date_range("2023-01-01", periods=20, freq="W-MON")
+    dates = pd.date_range("2023-01-01", periods=40, freq="W-MON")
 
     # Create correlated data
     channel_1 = np.random.uniform(50, 200, len(dates))

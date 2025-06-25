@@ -16,9 +16,8 @@ DUMMY_MODEL = MMM(
     saturation=LogisticSaturation(),
     yearly_seasonality=2,
 )
-FIT_KWARGS = {"target_accept": 0.9, "chains": 1, "draws": 10, "tune": 10}
+FIT_KWARGS = {"target_accept": 0.9, "chains": 1, "draws": 50, "tune": 50, "random_seed": 123}
 REVENUE_COLUMN = "revenue"
-
 
 
 def _create_test_data() -> pd.DataFrame:

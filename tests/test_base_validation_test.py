@@ -31,23 +31,23 @@ class TestBaseValidationTest:
         """Set up test data."""
         self.test_instance = ConcreteTestClass()
 
-        # Create comprehensive test data (21 points - minimum for time series CV)
+        # Create comprehensive test data (40 points - minimum for data validation)
         # This serves as the lowest common denominator for all tests
         self.test_data = pd.DataFrame(
             {
-                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=21),
-                "media_channel": ["TV", "Radio", "Digital"] * 7,
-                InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220, 330] * 7,
-                InputDataframeConstants.RESPONSE_COL: [160, 260, 360] * 7,
-                "volume_contribution": [55, 55, 55] * 7,
+                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=40),
+                "media_channel": ["TV", "Radio"] * 20,  # 42 total, but we'll use 40
+                InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220] * 20,
+                InputDataframeConstants.RESPONSE_COL: [160, 260] * 20,
+                "volume_contribution": [55, 55] * 20,
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL: [
                     0.1,
                     0.2,
-                    0.3,
-                ]
-                * 7,
+                ] * 20,
             }
         )
+        # Trim to exactly 40 rows
+        self.test_data = self.test_data.head(40)
 
         # Create insufficient data for time series CV error testing (10 points)
         self.insufficient_data = pd.DataFrame(
