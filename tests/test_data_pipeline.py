@@ -18,8 +18,8 @@ class TestDataPipeline:
                 "custom_date": pd.date_range("2023-01-01", periods=25).strftime("%Y-%m-%d"),
                 "custom_response": [100.0] * 25,
                 "custom_revenue": [1000.0] * 25,
-                "facebook": ["facebook"] * 25,
-                "spend": [1000.0] * 25,
+                "control_var1": [0.5] * 25,  # Control column
+                "facebook": [100.0] * 25,  # Channel column
             }
         )
 
@@ -32,6 +32,8 @@ class TestDataPipeline:
         # Run pipeline
         pipeline = DataPipeline(
             data_path=csv_path,
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
@@ -54,15 +56,20 @@ class TestDataPipeline:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=25).strftime("%Y-%m-%d"),
                 InputDataframeConstants.RESPONSE_COL: [100.0] * 25,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 25,
-                "facebook": ["facebook"] * 25,
-                "spend": [1000.0] * 25,
+                "control_var1": [0.5] * 25,  # Control column
+                "facebook": [100.0] * 25,  # Channel column
             }
         )
         csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
         df.to_csv(csv_path, index=False)
 
         # Run pipeline with default settings
-        pipeline = DataPipeline(data_path=csv_path, min_number_observations=21)
+        pipeline = DataPipeline(
+            data_path=csv_path,
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+            min_number_observations=21,
+        )
         result = pipeline.run()
 
         assert isinstance(result, pd.DataFrame)
@@ -81,6 +88,8 @@ class TestDataPipeline:
         # Run pipeline with custom column names
         pipeline = DataPipeline(
             data_path=csv_path,
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",
@@ -105,6 +114,8 @@ class TestDataPipeline:
         # Run pipeline with strict requirements
         pipeline = DataPipeline(
             data_path=csv_path,
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
             date_column="custom_date",
             response_column="custom_response",
             revenue_column="custom_revenue",

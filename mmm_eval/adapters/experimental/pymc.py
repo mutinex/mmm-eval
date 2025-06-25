@@ -28,13 +28,9 @@ class PyMCAdapter(BaseAdapter):
         self.fit_kwargs = config.fit_config_dict
         self.revenue_column = config.revenue_column
         self.response_column = config.response_column
-        self.date_column = config.date_column
-        self.channel_spend_columns = config.channel_columns
-        self.control_columns = config.pymc_model_config_dict.get("control_columns", [])
-
-        # Rehydrate the config dictionary
-        self.config = config
-
+        self.date_col = config.date_column
+        self.channel_spend_cols = config.channel_columns
+        self.control_cols = config.control_columns
         self.model = None
         self.trace = None
         self._channel_roi_df = None

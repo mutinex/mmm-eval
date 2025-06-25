@@ -19,6 +19,8 @@ class DataPipeline:
     def __init__(
         self,
         data_path: str | Path,
+        control_columns: list[str] | None,
+        channel_columns: list[str],
         date_column: str = InputDataframeConstants.DATE_COL,
         response_column: str = InputDataframeConstants.RESPONSE_COL,
         revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -28,10 +30,12 @@ class DataPipeline:
 
         Args:
             data_path: Path to the data file
+            control_columns: List of control columns
+            channel_columns: List of channel columns
             date_column: Name of the date column
-            min_number_observations: Minimum required number of observations
             response_column: Name of the response column
             revenue_column: Name of the revenue column
+            min_number_observations: Minimum required number of observations
 
         """
         # Initialize components
@@ -40,8 +44,13 @@ class DataPipeline:
             date_column=date_column,
             response_column=response_column,
             revenue_column=revenue_column,
+            control_columns=control_columns,
+            channel_columns=channel_columns,
         )
-        self.validator = DataValidator(min_number_observations=min_number_observations)
+        self.validator = DataValidator(
+            control_columns=control_columns,
+            min_number_observations=min_number_observations,
+        )
 
     def run(self) -> pd.DataFrame:
         """Run the complete data pipeline: load → process → validate.
