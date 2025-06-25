@@ -105,24 +105,24 @@ nav:
 # Plugins
 plugins:
   - search
-  - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          paths: [mmm_eval]
-          options:
-            show_source: true
-            show_root_heading: true
-            show_category_heading: true
-            show_signature_annotations: true
-            show_bases: true
-            show_submodules: true
-            heading_level: 2
-            members_order: source
-            docstring_style: google
-            preload_modules: true
-            filters: ["!^_"]
-            merge_init_into_class: true
+  # - mkdocstrings:
+  #     default_handler: python
+  #     handlers:
+  #       python:
+  #         paths: [mmm_eval]
+  #         options:
+  #           show_source: true
+  #           show_root_heading: true
+  #           show_category_heading: true
+  #           show_signature_annotations: true
+  #           show_bases: true
+  #           show_submodules: true
+  #           heading_level: 2
+  #           members_order: source
+  #           docstring_style: google
+  #           preload_modules: true
+  #           filters: ["!^_"]
+  #           merge_init_into_class: true
   - git-revision-date-localized:
       enable_creation_date: true
   - minify:
