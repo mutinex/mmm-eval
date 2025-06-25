@@ -37,19 +37,18 @@ class BaseValidationTest(ABC):
             TestResult object containing test results
 
         Raises:
-            DataValidationError: If data validation fails
             MetricCalculationError: If metric calculation fails
             TestExecutionError: If test execution fails
 
         """
         try:
             return self.run(adapter, data)
-        except (KeyError, IndexError, ValueError) as e:
-            raise DataValidationError(f"Data validation error in {self.test_name} test: {str(e)}") from e
-        except (ZeroDivisionError, TypeError) as e:
+        except ZeroDivisionError as e:
+            # This is clearly a mathematical calculation issue
             raise MetricCalculationError(f"Metric calculation error in {self.test_name} test: {str(e)}") from e
         except Exception as e:
-            raise TestExecutionError(f"Unexpected error in {self.test_name} test: {str(e)}") from e
+            # All other errors - let individual tests handle specific categorization if needed
+            raise TestExecutionError(f"Test execution error in {self.test_name} test: {str(e)}") from e
 
     @abstractmethod
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> "ValidationTestResult":

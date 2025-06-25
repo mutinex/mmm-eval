@@ -12,13 +12,6 @@ class DataValidationError(ValidationError):
 
     pass
 
-
-class ModelValidationError(ValidationError):
-    """Raised when model validation fails."""
-
-    pass
-
-
 class MetricCalculationError(ValidationError):
     """Raised when metric calculation fails."""
 
@@ -27,12 +20,6 @@ class MetricCalculationError(ValidationError):
 
 class TestExecutionError(ValidationError):
     """Raised when test execution fails."""
-
-    pass
-
-
-class ConfigurationError(ValidationError):
-    """Raised when configuration is invalid."""
 
     pass
 
