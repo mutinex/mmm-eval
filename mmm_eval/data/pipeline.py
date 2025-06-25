@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .constants import DataPipelineConstants, InputDataframeConstants
+from .constants import DataPipelineConstants
 from .loaders import DataLoader
 from .processor import DataProcessor
 from .validation import DataValidator
@@ -21,9 +21,9 @@ class DataPipeline:
         data_path: str | Path,
         control_columns: list[str] | None,
         channel_columns: list[str],
-        date_column: str = InputDataframeConstants.DATE_COL,
-        response_column: str = InputDataframeConstants.RESPONSE_COL,
-        revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+        date_column: str,
+        response_column: str,
+        revenue_column: str,
         min_number_observations: int = DataPipelineConstants.MIN_NUMBER_OBSERVATIONS,
     ):
         """Initialize data pipeline.

@@ -81,7 +81,7 @@ class BaseConfig(BaseModel, ABC):
 
     @property
     @abstractmethod
-    def control_columns(self) -> list[str]:
+    def control_columns(self) -> list[str] | None:
         """Return the control columns."""
         pass
 

@@ -1,15 +1,10 @@
 """Adapters for different MMM frameworks."""
 
 # todo(): remove this once PyMCAdapter is promoted out of experimental
-from typing import Any, Dict, Optional
 
 from mmm_eval.configs import PyMCConfig
 
-# todo(): remove this once PyMCAdapter is promoted out of experimental
 from .base import BaseAdapter
-
-# from .pymc import PyMCAdapter
-# from .pymc import PyMCAdapter
 from .experimental.pymc import (
     PyMCAdapter,
 )

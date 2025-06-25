@@ -41,9 +41,7 @@ __all__ = [
     "PyMCConfig",
     "PyMCConfigRehydrator",
     "get_config",
-    "evaluate_framework",
     "PyMCAdapter",
-    "EvaluationResults",
     # Core API
     "Evaluator",
     "ValidationTestResult",
