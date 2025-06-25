@@ -84,7 +84,7 @@ class PyMCAdapter(BaseAdapter):
 
         if InputDataframeConstants.RESPONSE_COL in data.columns:
             data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
-        predictions = self.model.predict(data, extend_idata=False)
+        predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
         return predictions
 
     def get_channel_roi(

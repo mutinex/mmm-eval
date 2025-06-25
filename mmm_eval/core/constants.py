@@ -9,9 +9,8 @@ class ValidationTestConstants:
     N_SPLITS = 5
     TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4  # 4 representing a 4 week refresh
 
+    class PerturbationConstants:
+        """Constants for the perturbation test."""
 
-class PerturbationConstants:
-    """Constants for the perturbation test."""
-
-    GAUSSIAN_NOISE_SCALE = 0.05
-    GAUSSIAN_NOISE_LOC = 0
+        GAUSSIAN_NOISE_SCALE = 0.05
+        GAUSSIAN_NOISE_LOC = 0

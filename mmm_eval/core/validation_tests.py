@@ -2,12 +2,11 @@
 
 import logging
 
-import numpy as np
 import pandas as pd
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.constants import PerturbationConstants
+from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import ValidationTestResult
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 from mmm_eval.data.constants import InputDataframeConstants
@@ -249,9 +248,9 @@ class PerturbationTest(BaseValidationTest):
             Array of Gaussian noise values
 
         """
-        return np.random.normal(
-            PerturbationConstants.GAUSSIAN_NOISE_LOC,
-            PerturbationConstants.GAUSSIAN_NOISE_SCALE,
+        return self.rng.normal(
+            ValidationTestConstants.PerturbationConstants.GAUSSIAN_NOISE_LOC,
+            ValidationTestConstants.PerturbationConstants.GAUSSIAN_NOISE_SCALE,
             size=len(df),
         )
 

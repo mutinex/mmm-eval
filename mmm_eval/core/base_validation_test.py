@@ -3,8 +3,8 @@
 import logging
 from abc import ABC, abstractmethod
 
+import numpy as np
 import pandas as pd
-from numpy import ndarray
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 
 from mmm_eval.adapters.base import BaseAdapter
@@ -24,6 +24,10 @@ class BaseValidationTest(ABC):
     All validation tests must inherit from this class and implement
     the required methods to provide a unified testing interface.
     """
+
+    def __init__(self):
+        """Initialize the validation test."""
+        self.rng = np.random.default_rng(ValidationTestConstants.RANDOM_STATE)
 
     def run_with_error_handling(self, adapter: BaseAdapter, data: pd.DataFrame) -> "ValidationTestResult":
         """Run the validation test with error handling.
@@ -95,7 +99,7 @@ class BaseValidationTest(ABC):
 
         return train, test
 
-    def _split_data_time_series_cv(self, data: pd.DataFrame) -> list[tuple[ndarray, ndarray]]:
+    def _split_data_time_series_cv(self, data: pd.DataFrame) -> list[tuple[np.ndarray, np.ndarray]]:
         """Split the data into train and test sets using time series cross-validation.
 
         Args:
