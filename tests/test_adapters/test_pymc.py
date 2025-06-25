@@ -1,6 +1,5 @@
 """Test the PyMC adapter."""
 
-from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
@@ -11,7 +10,6 @@ from pymc_marketing.prior import Prior
 # TODO: update this import once PyMCAdapter is promoted out of experimental
 from mmm_eval.adapters.experimental.pymc import (
     PyMCAdapter,
-    _check_columns_in_data,
     _validate_start_end_dates,
 )
 from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
@@ -336,21 +334,6 @@ def test_adapter_integration_real_pymc(valid_pymc_config, realistic_test_data):
     assert len(rois_first_half) == len(adapter.channel_spend_columns)
 
 
-def test_fit_method_missing_columns(valid_pymc_config):
-    """Test fit method with missing columns.
-
-    Args:
-        valid_pymc_config: A valid PyMC configuration fixture.
-
-    """
-    config = valid_pymc_config
-    adapter = PyMCAdapter(config)
-    data = create_sample_data().drop(columns=["channel_1"])
-
-    with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
-        adapter.fit(data)
-
-
 def test_predict_method_not_fitted(valid_pymc_config):
     """Test predict method when model is not fitted.
 
@@ -363,25 +346,6 @@ def test_predict_method_not_fitted(valid_pymc_config):
     data = create_sample_data()
 
     with pytest.raises(RuntimeError, match="Model must be fit before prediction"):
-        adapter.predict(data)
-
-
-def test_predict_method_missing_columns(valid_pymc_config):
-    """Test predict method with missing columns.
-
-    Args:
-        valid_pymc_config: A valid PyMC configuration fixture.
-
-    """
-    config = valid_pymc_config
-    adapter = PyMCAdapter(config)
-    data = create_sample_data().drop(columns=["channel_1"])
-
-    # Mock the adapter as fitted to test the column validation
-    adapter.is_fitted = True
-    adapter.model = Mock()
-
-    with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
         adapter.predict(data)
 
 
@@ -614,41 +578,3 @@ def test_validate_start_end_dates_outside_range():
 
     # Should log info but not raise exception
     _validate_start_end_dates(start_date, end_date, date_range)
-
-
-def test_check_columns_in_data_valid():
-    """Test _check_columns_in_data with valid columns."""
-    data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6], "col3": [7, 8, 9]})
-
-    # Should not raise any exception
-    _check_columns_in_data(data, ["col1", "col2"])
-    _check_columns_in_data(data, ["col1"])
-    _check_columns_in_data(data, ["col1", "col2", "col3"])
-
-
-def test_check_columns_in_data_missing_columns():
-    """Test _check_columns_in_data with missing columns."""
-    data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6]})
-
-    with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
-        _check_columns_in_data(data, ["col1", "col3"])
-
-
-def test_check_columns_in_data_empty_dataframe():
-    """Test _check_columns_in_data with empty DataFrame."""
-    data = pd.DataFrame()
-
-    with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
-        _check_columns_in_data(data, ["col1"])
-
-
-def test_check_columns_in_data_mixed_column_sets():
-    """Test _check_columns_in_data with mixed column sets."""
-    data = pd.DataFrame({"col1": [1, 2, 3], "col2": [4, 5, 6], "col3": [7, 8, 9]})
-
-    # Test with string and list mixed
-    _check_columns_in_data(data, ["col1", ["col2", "col3"]])
-
-    # Test with missing columns in one set
-    with pytest.raises(ValueError, match="Not all column\\(s\\) in"):
-        _check_columns_in_data(data, ["col1", ["col2", "col4"]])

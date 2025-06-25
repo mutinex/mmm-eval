@@ -43,13 +43,6 @@ class PyMCAdapter(BaseAdapter):
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
 
         """
-        if self.control_columns:
-            _check_vars_in_0_1_range(data, self.control_columns)
-
-        _check_columns_in_data(
-            data, [self.date_column, self.channel_spend_columns, self.response_column, self.revenue_column]
-        )
-
         # Identify channel spend columns that sum to zero and remove them from modelling.
         # We cannot reliabily make any prediction based on these channels when making
         # predictions on new data.
@@ -89,11 +82,6 @@ class PyMCAdapter(BaseAdapter):
         """
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
-
-        _check_columns_in_data(data, [self.date_column, self.channel_spend_columns])
-
-        if self.control_columns:
-            _check_vars_in_0_1_range(data, self.control_columns)
 
         if self.response_column in data.columns:
             data = data.drop(columns=[self.response_column])
@@ -225,47 +213,6 @@ def _validate_start_end_dates(
 
     if end_date is not None and end_date > date_range.max():
         logger.info(f"End date is after the last date in the training data: {date_range.max()}")
-
-
-def _check_columns_in_data(
-    data: pd.DataFrame,
-    column_sets: list[str],
-) -> None:
-    """Check if column(s) are in a dataframe.
-
-    Args:
-        data: DataFrame to check
-        column_sets: list of column sets to check
-
-    Raises:
-        ValueError: If not all column(s) in `column_set` are found in `data`.
-
-    """
-    for column_set in column_sets:
-        column_set = [column_set] if isinstance(column_set, str) else column_set
-        if set(column_set) - set(data.columns) != set():
-            raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
-
-
-def _check_vars_in_0_1_range(data: pd.DataFrame, cols: list[str]) -> None:
-    """Check if variables are in the 0-1 range.
-
-    Args:
-        data: DataFrame containing the data
-        cols: list of columns to check
-
-    """
-    data_to_check = data[list(cols)]
-    out_of_range_cols = data_to_check.columns[(data_to_check.min() < 0) | (data_to_check.max() > 1)]
-
-    for col in out_of_range_cols:
-        col_min = data_to_check[col].min()
-        col_max = data_to_check[col].max()
-        logger.warning(
-            f"Control column '{col}' has values outside [0, 1] range: "
-            f"min={col_min:.4f}, max={col_max:.4f}. "
-            f"Consider scaling this column to 0-1 range as per PyMC best practices."
-        )
 
 
 def _check_vector_priors_when_dropping_channels(model_config: dict, zero_spend_channels: list[str]) -> None:
