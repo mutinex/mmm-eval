@@ -21,5 +21,5 @@ class ValidationDataframeConstants:
 class PerturbationConstants:
     """Constants for the perturbation test."""
 
-    NOISE_PERCENTAGE = 0.05
+    GAUSSIAN_NOISE_SCALE = 0.05
     GAUSSIAN_NOISE_LOC = 0

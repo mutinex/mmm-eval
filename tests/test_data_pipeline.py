@@ -90,7 +90,7 @@ class TestDataPipeline:
         result = pipeline.run()
 
         assert isinstance(result, pd.DataFrame)
-        assert "custom_date" in result.columns  # Should be renamed
+        assert "custom_date" in result.columns
         assert InputDataframeConstants.RESPONSE_COL in result.columns  # Should be renamed
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns  # Should be renamed
         assert pd.api.types.is_datetime64_any_dtype(result["custom_date"])

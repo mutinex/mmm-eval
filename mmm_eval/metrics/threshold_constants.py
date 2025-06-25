@@ -1,5 +1,7 @@
 # This file contains the threshold constants for the different tests
 
+# todo(): Review these figures and if we still want to use them before releasing
+
 
 class AccuracyThresholdConstants:
     """Constants for the accuracy threshold."""

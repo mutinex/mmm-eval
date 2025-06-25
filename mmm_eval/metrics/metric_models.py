@@ -72,7 +72,7 @@ class AccuracyMetricResults(MetricResults):
 
     def check_test_passed(self) -> bool:
         """Check if the tests passed."""
-        return self.mape <= AccuracyThresholdConstants.MAPE and self.r_squared > AccuracyThresholdConstants.R_SQUARED
+        return self.mape <= AccuracyThresholdConstants.MAPE and self.r_squared >= AccuracyThresholdConstants.R_SQUARED
 
     @classmethod
     def populate_object_with_metrics(cls, actual: pd.Series, predicted: pd.Series) -> "AccuracyMetricResults":

@@ -180,6 +180,7 @@ class RefreshStabilityTest(BaseValidationTest):
             logger.info(f"Running refresh stability test fold {i+1} of {len(cv_splits)}")
 
             # Get train/test data
+            # todo(): Can we somehow store these training changes in the adapter for use in time series holdout test
             current_data = data.iloc[train_idx]
             # Combine current data with refresh data for retraining
             refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
@@ -250,7 +251,7 @@ class PerturbationTest(BaseValidationTest):
         """
         return np.random.normal(
             PerturbationConstants.GAUSSIAN_NOISE_LOC,
-            PerturbationConstants.NOISE_PERCENTAGE,
+            PerturbationConstants.GAUSSIAN_NOISE_SCALE,
             size=len(df),
         )
 
@@ -279,7 +280,7 @@ class PerturbationTest(BaseValidationTest):
         """Run the perturbation test."""
         # Train model on original data
         adapter.fit(data)
-        original_model = adapter.get_channel_roi()
+        original_rois = adapter.get_channel_roi()
 
         # Add noise to spend data and retrain
         noisy_data = self._add_gaussian_noise_to_spend(
@@ -287,12 +288,12 @@ class PerturbationTest(BaseValidationTest):
             spend_cols=adapter.channel_spend_columns,
         )
         adapter.fit(noisy_data)
-        noisy_model = adapter.get_channel_roi()
+        noise_rois = adapter.get_channel_roi()
 
         # calculate the pct change in roi
         percentage_change = calculate_absolute_percentage_change(
-            baseline_series=original_model,
-            comparison_series=noisy_model,
+            baseline_series=original_rois,
+            comparison_series=noise_rois,
         )
 
         # Create metric results - roi % change for each channel
