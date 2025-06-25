@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] ; 2025-06-25
+
+### Changed
+
+- Moved generic config methods in its `BaseConfig`
+- Moved generic validation checks from `pymc.py` in validation class
+- Added channel_columns and control_vars as properties into pymc config
+
 ## [0.2.0] ; 2025-06-25
 
 ### Changed
