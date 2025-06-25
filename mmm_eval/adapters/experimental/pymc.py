@@ -28,15 +28,51 @@ class PyMCAdapter(BaseAdapter):
         self.fit_kwargs = config.fit_config_dict
         self.revenue_column = config.revenue_column
         self.response_column = config.response_column
-        self.date_col = config.date_column
-        self.channel_spend_cols = config.channel_columns
+        self.date_column = config.date_column
+        self.channel_spend_columns = config.channel_columns
+        self.control_columns = config.pymc_model_config_dict.get("control_columns", [])
+
+        # Rehydrate the config dictionary
+        self.config = config
+
         self.model = None
         self.trace = None
         self._channel_roi_df = None
+        self.is_fitted = False
 
-    def fit(self, data: pd.DataFrame):
-        """Fit the model and compute ROIs."""
-        X = data.drop(columns=[self.response_column])
+    def fit(self, data: pd.DataFrame) -> None:
+        """Fit the model and compute ROIs.
+
+        Args:
+            data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
+
+        """
+        if self.control_columns:
+            _check_vars_in_0_1_range(data, self.control_columns)
+
+        _check_columns_in_data(
+            data, [self.date_column, self.channel_spend_columns, self.response_column, self.revenue_column]
+        )
+
+        # Identify channel spend columns that sum to zero and remove them from modelling.
+        # We cannot reliabily make any prediction based on these channels when making
+        # predictions on new data.
+        channel_spend_data = data[self.channel_spend_columns]
+        zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
+
+        if zero_spend_channels:
+            logger.info(f"Dropping channels with zero spend: {zero_spend_channels}")
+            # Remove zero-spend channels from the list passed to the MMM constructor
+            self.channel_spend_columns = [col for col in self.channel_spend_columns if col not in zero_spend_channels]
+            # also update the model config field to reflect the new channel spend columns
+            self.model_kwargs["channel_columns"] = self.channel_spend_columns
+
+            # Check for vector priors that might cause shape mismatches
+            _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
+
+            data = data.drop(columns=zero_spend_channels)
+
+        X = data.drop(columns=[self.response_column, self.revenue_column])
         y = data[self.response_column]
 
         self.model = MMM(**self.model_kwargs)
@@ -58,12 +94,15 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        # TODO: this may be redundant after an upstream schema check, remove if so
-        _check_columns_in_data(data, [self.date_col, self.channel_spend_cols])
+        _check_columns_in_data(data, [self.date_column, self.channel_spend_columns])
+
+        if self.control_columns:
+            _check_vars_in_0_1_range(data, self.control_columns)
 
         if self.response_column in data.columns:
             data = data.drop(columns=[self.response_column])
-        predictions = self.model.predict(data, extend_idata=False)
+
+        predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
         return predictions
 
     def get_channel_roi(
@@ -114,17 +153,17 @@ class PyMCAdapter(BaseAdapter):
             columns=channel_contribution["channel"].to_numpy(),
             index=channel_contribution["date"].to_numpy(),
         )
-        contribution_df.columns = [f"{col}_units" for col in self.channel_spend_cols]
+        contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_columns]
         contribution_df = pd.merge(
             contribution_df,
             data[
                 [
-                    self.date_col,
+                    self.date_column,
                     self.response_column,
                     self.revenue_column,
-                    *self.channel_spend_cols,
+                    *self.channel_spend_columns,
                 ]
-            ].set_index(self.date_col),
+            ].set_index(self.date_column),
             left_index=True,
             right_index=True,
         )
@@ -141,13 +180,27 @@ class PyMCAdapter(BaseAdapter):
             dictionary mapping channel names to ROI percentages.
 
         """
-        avg_rev_per_unit = contribution_df[self.revenue_column] / contribution_df[self.response_column]
+        # if revenue is used as the response, this quotient will be 1, and the math for
+        # calculating channel revenue will still be correct
+        avg_rev_per_unit = np.divide(
+            contribution_df[self.revenue_column],
+            contribution_df[self.response_column],
+            out=np.zeros_like(contribution_df[self.revenue_column]),
+            where=contribution_df[self.response_column] != 0,
+        )
 
         rois = {}
-        for channel in self.channel_spend_cols:
-            channel_revenue = contribution_df[f"{channel}_units"] * avg_rev_per_unit
+        for channel in self.channel_spend_columns:
+            total_spend = contribution_df[channel].sum()
+            # handle edge case where total spend is zero for the time period selected
+            # (possible to have non-zero attribution due to adstock effect)
+            if total_spend == 0:
+                rois[channel] = np.nan
+                continue
+
+            channel_revenue = contribution_df[f"{channel}_response_units"] * avg_rev_per_unit
             # return as a percentage
-            rois[channel] = 100 * (channel_revenue.sum() / contribution_df[channel].sum() - 1).item()
+            rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
 
         return rois
 
@@ -196,3 +249,61 @@ def _check_columns_in_data(
         column_set = [column_set] if isinstance(column_set, str) else column_set
         if set(column_set) - set(data.columns) != set():
             raise ValueError(f"Not all column(s) in `{column_set}` found in data, which has columns `{data.columns}`")
+
+
+def _check_vars_in_0_1_range(data: pd.DataFrame, cols: list[str]) -> None:
+    """Check if variables are in the 0-1 range.
+
+    Args:
+        data: DataFrame containing the data
+        cols: list of columns to check
+
+    """
+    data_to_check = data[list(cols)]
+    out_of_range_cols = data_to_check.columns[(data_to_check.min() < 0) | (data_to_check.max() > 1)]
+
+    for col in out_of_range_cols:
+        col_min = data_to_check[col].min()
+        col_max = data_to_check[col].max()
+        logger.warning(
+            f"Control column '{col}' has values outside [0, 1] range: "
+            f"min={col_min:.4f}, max={col_max:.4f}. "
+            f"Consider scaling this column to 0-1 range as per PyMC best practices."
+        )
+
+
+def _check_vector_priors_when_dropping_channels(model_config: dict, zero_spend_channels: list[str]) -> None:
+    """Check for vector priors that might cause shape mismatches when channels are dropped.
+
+    Args:
+        model_config: The model configuration dictionary containing priors
+        zero_spend_channels: List of channels being dropped due to zero spend
+
+    Warns:
+        UserWarning: If vector priors are found that might cause shape mismatches
+
+    """
+    if not model_config or not zero_spend_channels:
+        return
+
+    vector_priors = []
+
+    # Check common priors that might be vectors
+    for prior_name in ["saturation_beta", "gamma_media", "beta_media"]:
+        if prior_name in model_config:
+            prior = model_config[prior_name]
+            if hasattr(prior, "sigma"):
+                sigma = prior.sigma
+                if hasattr(sigma, "__len__") and len(sigma) > 1:
+                    vector_priors.append(f"{prior_name}.sigma")
+            if hasattr(prior, "mu"):
+                mu = prior.mu
+                if hasattr(mu, "__len__") and len(mu) > 1:
+                    vector_priors.append(f"{prior_name}.mu")
+
+    if vector_priors:
+        logger.warning(
+            "Found vector priors that may cause shape mismatches given that channels are "
+            f"being dropped due to zero spend: {vector_priors}. "
+            "Consider using scalar priors instead to avoid PyTensor broadcasting errors."
+        )

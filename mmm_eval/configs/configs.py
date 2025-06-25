@@ -19,7 +19,8 @@ from mmm_eval.configs.rehydrators import PyMCConfigRehydrator
 def validate_response_column(v: str | None, info: ValidationInfo) -> str:
     """Validate and set response column default.
 
-    Response column is optionally null. This function maps the revenue column to the response column if the response column is not provided.
+    Response column is optionally null. This function maps the revenue column to the response
+    column if the response column is not provided.
 
     Args:
         v: The value to validate
