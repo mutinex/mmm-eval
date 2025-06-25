@@ -181,9 +181,9 @@ def test_adapter_instantiation(valid_pymc_config):
     """
     adapter = PyMCAdapter(valid_pymc_config)
     assert adapter is not None
-    assert adapter.config is not None
     assert adapter.date_column == "date_week"
     assert adapter.channel_spend_columns == ["channel_1", "channel_2"]
+    assert adapter.control_columns == ["price", "event_1", "event_2"]
     assert adapter.response_column == "quantity"
     assert adapter.revenue_column == "revenue"
     # Check that fit_kwargs contains the expected values from PyMCFitSchema
