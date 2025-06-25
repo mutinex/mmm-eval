@@ -131,4 +131,3 @@ class TestBaseValidationTest:
 
         with pytest.raises(TestExecutionError):
             self.test_instance.run_with_error_handling(mock_model, mock_data)
-
