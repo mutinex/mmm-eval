@@ -1,7 +1,5 @@
 """Main evaluator for MMM frameworks."""
 
-from pathlib import Path
-
 import pandas as pd
 
 from mmm_eval.adapters import get_adapter
@@ -19,11 +17,10 @@ class Evaluator:
     using standardized validation tests.
     """
 
-    def __init__(self, data: pd.DataFrame, output_path: Path | None = None, test_names: tuple[str, ...] | None = None):
+    def __init__(self, data: pd.DataFrame, test_names: tuple[str, ...] | None = None):
         """Initialize the evaluator."""
         self.validation_orchestrator = ValidationTestOrchestrator()
         self.data = data
-        self.output_path = output_path
         self.test_names = (
             self._get_test_names(test_names) if test_names else self.validation_orchestrator._get_all_test_names()
         )
@@ -75,10 +72,5 @@ class Evaluator:
             data=self.data,
             test_names=self.test_names,
         )
-
-        # Save results if output path is provided
-        if self.output_path:
-            # TODO: Implement result saving logic
-            pass
 
         return validation_results

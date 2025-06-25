@@ -19,6 +19,7 @@ from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
 from .core.validation_test_results import ValidationResults, ValidationTestResult
 from .core.validation_tests_models import ValidationTestNames
+from .core import run_evaluation
 
 # Data utilities
 from .data import (
@@ -48,6 +49,7 @@ __all__ = [
     "ValidationResults",
     "BaseValidationTest",
     "ValidationTestNames",
+    "run_evaluation",
     # Metrics
     "calculate_means_for_series_across_cross_validation_folds",
     "calculate_stds_for_series_across_cross_validation_folds",
