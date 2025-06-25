@@ -37,63 +37,17 @@ class TestDataProcessor:
         result = processor.process(df)
 
         # Check that columns are renamed to standard names
-        assert InputDataframeConstants.DATE_COL in result.columns
+        assert "custom_date" in result.columns
         assert InputDataframeConstants.RESPONSE_COL in result.columns
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
 
         # Check that date is parsed correctly
-        assert pd.api.types.is_datetime64_any_dtype(result[InputDataframeConstants.DATE_COL])
-        assert result[InputDataframeConstants.DATE_COL].iloc[0] == pd.Timestamp("2023-01-01")
+        assert pd.api.types.is_datetime64_any_dtype(result["custom_date"])
+        assert result["custom_date"].iloc[0] == pd.Timestamp("2023-01-01")
 
         # Check that other columns are preserved
         assert "control_var1" in result.columns
         assert "facebook" in result.columns
-
-    def test_process_with_default_column_names(self):
-        """Test processing with default column names."""
-        df = pd.DataFrame(
-            {
-                InputDataframeConstants.DATE_COL: ["2023-01-01", "2023-01-02"],
-                InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
-                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
-                "control_var1": [0.5, 0.6],  # Control column
-                "facebook": [100.0, 150.0],  # Channel column
-            }
-        )
-
-        processor = DataProcessor(
-            control_columns=["control_var1"],
-            channel_columns=["facebook"],
-        )
-        result = processor.process(df)
-
-        # Columns should remain the same since they already match defaults
-        assert InputDataframeConstants.DATE_COL in result.columns
-        assert InputDataframeConstants.RESPONSE_COL in result.columns
-        assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
-        assert pd.api.types.is_datetime64_any_dtype(result[InputDataframeConstants.DATE_COL])
-
-    def test_custom_date_column_only(self):
-        """Test processing with only custom date column name."""
-        df = pd.DataFrame(
-            {
-                "Date": ["2023-01-01", "2023-01-02"],
-                InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
-                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
-                "control_var1": [0.5, 0.6],  # Control column
-                "facebook": [100.0, 150.0],  # Channel column
-            }
-        )
-
-        processor = DataProcessor(
-            control_columns=["control_var1"],
-            channel_columns=["facebook"],
-            date_column="Date",
-        )
-        result = processor.process(df)
-
-        assert InputDataframeConstants.DATE_COL in result.columns  # Should be renamed
-        assert pd.api.types.is_datetime64_any_dtype(result[InputDataframeConstants.DATE_COL])
 
     def test_missing_date_column(self):
         """Test error when date column is missing."""

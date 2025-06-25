@@ -3,11 +3,11 @@ from pathlib import Path
 
 import click
 
-from mmm_eval import evaluate_framework
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
-from mmm_eval.data import DataPipeline
-from mmm_eval.metrics import AVAILABLE_METRICS
+from mmm_eval.core.evaluator import Evaluator
+from mmm_eval.core.validation_tests_models import ValidationTestNames
+from mmm_eval.data.pipeline import DataPipeline
 
 logger = logging.getLogger(__name__)
 
@@ -31,11 +31,16 @@ logger = logging.getLogger(__name__)
     help="Path to framework-specific JSON config file",
 )
 @click.option(
-    "--metrics",
-    type=click.Choice(AVAILABLE_METRICS),
+    "--test-names",
+    type=click.Choice(ValidationTestNames.all_tests_as_str()),
     multiple=True,
-    default=["mape", "rmse"],
-    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse.",
+    default=tuple(ValidationTestNames.all_tests_as_str()),
+    help=(
+        "Test names to run. Can specify multiple tests as space-separated values "
+        "(e.g. --test-names accuracy cross_validation) or by repeating the flag "
+        "(e.g. --test-names accuracy --test-names cross_validation). "
+        "Defaults to all tests if not specified."
+    ),
 )
 @click.option(
     "--output-path",
@@ -51,7 +56,7 @@ logger = logging.getLogger(__name__)
 def main(
     config_path: str,
     input_data_path: str,
-    metrics: tuple[str, ...],
+    test_names: tuple[str, ...],
     framework: str,
     output_path: str | None,
     verbose: bool,
@@ -62,10 +67,11 @@ def main(
     logging.basicConfig(level=log_level)
 
     # Load input data
-    logger.info(f"Loading input data from {input_data_path}")
+    logger.info("Loading input data...")
 
     config = get_config(framework, config_path)
 
+    # Load data and validate it
     data = DataPipeline(
         data_path=input_data_path,
         date_column=config.date_column,
@@ -80,13 +86,16 @@ def main(
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
 
-    evaluate_framework(
-        framework=framework,
+    # Create instance of evaluator with everything that will be common to evaluate a framework
+    evaluator = Evaluator(
         data=data,
-        config=config,
-        metrics=list(metrics),
         output_path=output_path_obj,
+        test_names=test_names,
     )
+
+    # Evaluate the tests for the chosen framework and config. This is left as a method as future adaptions
+    # will likely allow for multiple frameworks to be evaluated at once.
+    evaluator.evaluate_framework(framework=framework, config=config)
 
 
 if __name__ == "__main__":

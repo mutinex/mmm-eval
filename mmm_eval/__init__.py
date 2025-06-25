@@ -10,11 +10,15 @@ __email__ = "your.email@example.com"
 
 # Core functionality
 # Adapters
-from .adapters import get_adapter
+from .adapters import (
+    get_adapter,
+)
 from .adapters.experimental.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
-from .core.evaluator import evaluate_framework
-from .core.results import EvaluationResults
+from .core.base_validation_test import BaseValidationTest
+from .core.evaluator import Evaluator
+from .core.validation_test_results import ValidationResults, ValidationTestResult
+from .core.validation_tests_models import ValidationTestNames
 
 # Data utilities
 from .data import (
@@ -24,20 +28,34 @@ from .data import (
     DataValidator,
 )
 
+# Metrics
+from .metrics.accuracy_functions import (
+    calculate_mean_for_singular_values_across_cross_validation_folds,
+    calculate_means_for_series_across_cross_validation_folds,
+    calculate_std_for_singular_values_across_cross_validation_folds,
+    calculate_stds_for_series_across_cross_validation_folds,
+)
+
 __all__ = [
     "get_adapter",
     "PyMCConfig",
     "PyMCConfigRehydrator",
     "get_config",
-    "evaluate_framework",
     "PyMCAdapter",
-    "EvaluationResults",
+    # Core API
+    "Evaluator",
+    "ValidationTestResult",
+    "ValidationResults",
+    "BaseValidationTest",
+    "ValidationTestNames",
     # Metrics
-    "mape",
-    "rmse",
-    "mae",
-    "r_squared",
-    "symmetric_mape",
+    "calculate_means_for_series_across_cross_validation_folds",
+    "calculate_stds_for_series_across_cross_validation_folds",
+    "calculate_mean_for_singular_values_across_cross_validation_folds",
+    "calculate_std_for_singular_values_across_cross_validation_folds",
+    # Adapters
+    "get_adapter",
+    "PyMCAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",

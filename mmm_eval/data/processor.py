@@ -71,7 +71,6 @@ class DataProcessor:
         # Rename required columns
         processed_df = self._rename_required_columns(
             df=processed_df,
-            date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
         )
@@ -149,7 +148,6 @@ class DataProcessor:
     def _rename_required_columns(
         self,
         df: pd.DataFrame,
-        date_column: str,
         response_column: str,
         revenue_column: str,
     ) -> pd.DataFrame:
@@ -157,7 +155,6 @@ class DataProcessor:
 
         Args:
             df: Input DataFrame
-            date_column: Name of the date column
             response_column: Name of the response column
             revenue_column: Name of the revenue column
 
@@ -170,7 +167,6 @@ class DataProcessor:
         """
         df = df.rename(
             columns={
-                date_column: InputDataframeConstants.DATE_COL,
                 response_column: InputDataframeConstants.RESPONSE_COL,
                 revenue_column: InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             }

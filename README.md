@@ -14,7 +14,27 @@ mmm-eval provides a standardized way to evaluate and compare different MMM frame
 - **Flexible data handling**: Support for custom column names and data formats
 - **CLI interface**: Easy-to-use command-line tool for evaluation
 
-## Installation
+## Dependencies
+
+### macOS Requirements
+
+If you're on macOS 15+ (Sequoia), you'll need to install the latest Xcode Command Line Tools for proper compilation of some dependencies.
+
+**Install Xcode Command Line Tools:**
+
+1. **Option 1: Using Terminal (Recommended)**
+
+   ```bash
+   xcode-select --install
+   ```
+
+1. **Option 2: Download from Apple Developer**
+
+   - Visit [Apple Developer Downloads](https://developer.apple.com/download/all/)
+   - Sign in with your Apple ID
+   - Search for "Command Line Tools for Xcode"
+   - Download the latest version for your macOS version
+   - Install the downloaded package
 
 ### Using pip
 

@@ -12,6 +12,7 @@ from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import PyMCConfig
+from mmm_eval.data.constants import InputDataframeConstants
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,6 @@ class PyMCAdapter(BaseAdapter):
         """
         self.model_kwargs = config.pymc_model_config_dict
         self.fit_kwargs = config.fit_config_dict
-        self.revenue_column = config.revenue_column
-        self.response_column = config.response_column
         self.date_column = config.date_column
         self.channel_spend_columns = config.channel_columns
         self.control_columns = config.control_columns
@@ -61,8 +60,8 @@ class PyMCAdapter(BaseAdapter):
 
             data = data.drop(columns=zero_spend_channels)
 
-        X = data.drop(columns=[self.response_column, self.revenue_column])
-        y = data[self.response_column]
+        X = data.drop(columns=[InputDataframeConstants.RESPONSE_COL, InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL])
+        y = data[InputDataframeConstants.RESPONSE_COL]
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
@@ -83,9 +82,8 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        if self.response_column in data.columns:
-            data = data.drop(columns=[self.response_column])
-
+        if InputDataframeConstants.RESPONSE_COL in data.columns:
+            data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
         predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
         return predictions
 
@@ -138,16 +136,18 @@ class PyMCAdapter(BaseAdapter):
             index=channel_contribution["date"].to_numpy(),
         )
         contribution_df.columns = [f"{col}_response_units" for col in self.channel_spend_columns]
+        data = data.filter(
+            items=[
+                self.date_column,
+                InputDataframeConstants.RESPONSE_COL,
+                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+                *self.channel_spend_columns,
+            ]
+        ).set_index(self.date_column)
+
         contribution_df = pd.merge(
             contribution_df,
-            data[
-                [
-                    self.date_column,
-                    self.response_column,
-                    self.revenue_column,
-                    *self.channel_spend_columns,
-                ]
-            ].set_index(self.date_column),
+            data,
             left_index=True,
             right_index=True,
         )
@@ -167,10 +167,10 @@ class PyMCAdapter(BaseAdapter):
         # if revenue is used as the response, this quotient will be 1, and the math for
         # calculating channel revenue will still be correct
         avg_rev_per_unit = np.divide(
-            contribution_df[self.revenue_column],
-            contribution_df[self.response_column],
-            out=np.zeros_like(contribution_df[self.revenue_column]),
-            where=contribution_df[self.response_column] != 0,
+            contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
+            contribution_df[InputDataframeConstants.RESPONSE_COL],
+            out=np.zeros_like(contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]),
+            where=contribution_df[InputDataframeConstants.RESPONSE_COL] != 0,
         )
 
         rois = {}
