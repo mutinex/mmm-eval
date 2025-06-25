@@ -11,6 +11,7 @@ from mmm_eval.adapters.experimental.schemas import (
     PyMCModelSchema,
 )
 from mmm_eval.configs.base import BaseConfig
+from mmm_eval.configs.constants import ConfigConstants
 from mmm_eval.configs.rehydrators import PyMCConfigRehydrator
 
 
@@ -107,8 +108,12 @@ class PyMCConfig(BaseConfig):
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "PyMCConfig":
         """Save the config to a JSON file."""
         config_dict = self.model_dump()
-        config_dict["pymc_model_config"] = {k: repr(v) for k, v in config_dict["pymc_model_config"].items()}
-        config_dict["fit_config"] = {k: repr(v) for k, v in config_dict["fit_config"].items()}
+        config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG] = {
+            k: repr(v) for k, v in config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG].items()
+        }
+        config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG] = {
+            k: repr(v) for k, v in config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG].items()
+        }
         BaseConfig._save_json_file(save_path, file_name, config_dict)
         return self
 
@@ -120,12 +125,14 @@ class PyMCConfig(BaseConfig):
 
     @classmethod
     def _from_string_dict(cls, config_dict: dict[str, Any]) -> "PyMCConfig":
-        if "pymc_model_config" in config_dict:
-            rehydrator = PyMCConfigRehydrator(config_dict["pymc_model_config"])
+        if ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG in config_dict:
+            rehydrator = PyMCConfigRehydrator(config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG])
             hydrated_model_config = rehydrator.rehydrate_config()
-            config_dict["pymc_model_config"] = PyMCModelSchema(**hydrated_model_config)
-        if "fit_config" in config_dict:
-            rehydrator = PyMCConfigRehydrator(config_dict["fit_config"])
+            config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG] = PyMCModelSchema(
+                **hydrated_model_config
+            )
+        if ConfigConstants.PyMCConfigAttributes.FIT_CONFIG in config_dict:
+            rehydrator = PyMCConfigRehydrator(config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG])
             hydrated_fit_config = rehydrator.rehydrate_config()
-            config_dict["fit_config"] = PyMCFitSchema(**hydrated_fit_config)
+            config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG] = PyMCFitSchema(**hydrated_fit_config)
         return cls.model_validate(config_dict)

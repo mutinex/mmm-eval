@@ -42,8 +42,8 @@ def valid_hydration_config_1():
         },
         "fit_config": {
             "target_accept": 0.9,
-            "draws": 50,
-            "tune": 50,
+            "draws": 5,
+            "tune": 10,
             "chains": 1,
             "random_seed": 123,
         },
@@ -62,8 +62,8 @@ SAMPLE_CONFIG_JSON = {
     },
     "fit_config": {
         "target_accept": "0.9",
-        "draws": 50,
-        "tune": 50,
+        "draws": 5,
+        "tune": 10,
         "chains": 1,
         "random_seed": 123,
     },
