@@ -7,11 +7,6 @@ class ValidationError(Exception):
     pass
 
 
-class DataValidationError(ValidationError):
-    """Raised when data validation fails."""
-
-    pass
-
 class MetricCalculationError(ValidationError):
     """Raised when metric calculation fails."""
 

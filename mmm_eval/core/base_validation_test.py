@@ -10,7 +10,6 @@ from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.exceptions import (
-    DataValidationError,
     MetricCalculationError,
     TestExecutionError,
 )

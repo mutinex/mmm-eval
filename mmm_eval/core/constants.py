@@ -10,14 +10,6 @@ class ValidationTestConstants:
     TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4  # 4 representing a 4 week refresh
 
 
-class ValidationDataframeConstants:
-    """Constants for the validation dataframe."""
-
-    PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL = "percentage_change_channel_contribution"
-    SPEND_PLUS_GAUSSIAN_NOISE_COL = "spend_plus_gaussian_noise"
-    CALCULATED_ROI_COL = "calculated_roi"
-
-
 class PerturbationConstants:
     """Constants for the perturbation test."""
 

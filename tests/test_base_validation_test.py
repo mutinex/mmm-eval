@@ -6,8 +6,7 @@ import pandas as pd
 import pytest
 
 from mmm_eval.core.base_validation_test import BaseValidationTest
-from mmm_eval.core.constants import ValidationDataframeConstants
-from mmm_eval.core.exceptions import DataValidationError, MetricCalculationError
+from mmm_eval.core.exceptions import MetricCalculationError, TestExecutionError
 from mmm_eval.data.constants import InputDataframeConstants
 
 
@@ -39,12 +38,6 @@ class TestBaseValidationTest:
                 "media_channel": ["TV", "Radio"] * 20,  # 42 total, but we'll use 40
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220] * 20,
                 InputDataframeConstants.RESPONSE_COL: [160, 260] * 20,
-                "volume_contribution": [55, 55] * 20,
-                ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL: [
-                    0.1,
-                    0.2,
-                ]
-                * 20,
             }
         )
         # Trim to exactly 40 rows
@@ -57,7 +50,6 @@ class TestBaseValidationTest:
                 "media_channel": ["TV", "Radio"] * 5,
                 InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [100, 200] * 5,
                 InputDataframeConstants.RESPONSE_COL: [150, 250] * 5,
-                "volume_contribution": [50, 50] * 5,
             }
         )
 
@@ -118,35 +110,25 @@ class TestBaseValidationTest:
         assert result is not None
         self.test_instance.run.assert_called_once_with(mock_model, mock_data)
 
-    def test_run_with_error_handling_key_error(self):
-        """Test error handling for KeyError."""
+    def test_run_with_error_handling_metric_calculation_error(self):
+        """Test error handling for MetricCalculationError."""
         mock_model = Mock()
         mock_data = pd.DataFrame({"test": [1, 2, 3]})
 
-        # Mock the run method to raise KeyError
-        self.test_instance.run = Mock(side_effect=KeyError("Missing column"))
+        # Mock the run method to raise ZeroDivisionError
+        self.test_instance.run = Mock(side_effect=ZeroDivisionError("Division by zero"))
 
-        with pytest.raises(DataValidationError, match="Data validation error"):
+        with pytest.raises(MetricCalculationError):
             self.test_instance.run_with_error_handling(mock_model, mock_data)
 
-    def test_run_with_error_handling_value_error(self):
-        """Test error handling for ValueError."""
+    def test_run_with_error_handling_test_execution_error(self):
+        """Test error handling for TestExecutionError."""
         mock_model = Mock()
         mock_data = pd.DataFrame({"test": [1, 2, 3]})
 
-        # Mock the run method to raise ValueError
-        self.test_instance.run = Mock(side_effect=ValueError("Invalid input"))
+        # Mock the run method to raise a generic exception
+        self.test_instance.run = Mock(side_effect=ValueError("Some test error"))
 
-        with pytest.raises(DataValidationError, match="Data validation error"):
+        with pytest.raises(TestExecutionError):
             self.test_instance.run_with_error_handling(mock_model, mock_data)
 
-    def test_run_with_error_handling_type_error(self):
-        """Test error handling for TypeError."""
-        mock_model = Mock()
-        mock_data = pd.DataFrame({"test": [1, 2, 3]})
-
-        # Mock the run method to raise TypeError
-        self.test_instance.run = Mock(side_effect=TypeError("Invalid type"))
-
-        with pytest.raises(MetricCalculationError, match="Metric calculation error"):
-            self.test_instance.run_with_error_handling(mock_model, mock_data)

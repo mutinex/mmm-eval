@@ -23,11 +23,13 @@ If you're on macOS 15+ (Sequoia), you'll need to install the latest Xcode Comman
 **Install Xcode Command Line Tools:**
 
 1. **Option 1: Using Terminal (Recommended)**
+
    ```bash
    xcode-select --install
    ```
 
-2. **Option 2: Download from Apple Developer**
+1. **Option 2: Download from Apple Developer**
+
    - Visit [Apple Developer Downloads](https://developer.apple.com/download/all/)
    - Sign in with your Apple ID
    - Search for "Command Line Tools for Xcode"
