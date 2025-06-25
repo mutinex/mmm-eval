@@ -1,12 +1,15 @@
 """Data validation for MMM evaluation."""
 
+import logging
+
 import pandas as pd
 import pandera.pandas as pa
-from sklearn import logger
 
 from .constants import DataPipelineConstants
 from .exceptions import DataValidationError, EmptyDataFrameError
 from .schemas import ValidatedDataSchema
+
+logger = logging.getLogger(__name__)
 
 
 class DataValidator:

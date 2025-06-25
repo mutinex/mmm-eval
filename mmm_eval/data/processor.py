@@ -113,7 +113,9 @@ class DataProcessor:
         missing_channel_columns = [col for col in channel_columns if col not in df.columns]
         if missing_channel_columns:
             raise MissingRequiredColumnsError(
-                f"Channel columns '{missing_channel_columns}' required but not found in DataFrame"
+                f"""Channel columns '{missing_channel_columns}' required but not found in DataFrame.
+                DataFrame columns: {df.columns}
+                """
             )
 
         if control_columns:
