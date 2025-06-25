@@ -1,7 +1,7 @@
 import pandas as pd
 
-from mmm_eval.core.evaluator import Evaluator
 from mmm_eval.configs.base import BaseConfig
+from mmm_eval.core.evaluator import Evaluator
 from mmm_eval.data.pipeline import DataPipeline
 
 
@@ -21,6 +21,7 @@ def run_evaluation(
 
     Returns:
         A pandas DataFrame containing the evaluation results.
+
     """
     # validate + process the input data
     data = DataPipeline(

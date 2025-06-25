@@ -1,11 +1,8 @@
 """Data pipeline for MMM evaluation."""
 
-from pathlib import Path
-
 import pandas as pd
 
 from .constants import DataPipelineConstants
-from .loaders import DataLoader
 from .processor import DataProcessor
 from .validation import DataValidator
 
@@ -62,7 +59,6 @@ class DataPipeline:
             Various exceptions processing or validation steps
 
         """
-
         processed_df = self.processor.process(self.data)
 
         self.validator.run_validations(processed_df)

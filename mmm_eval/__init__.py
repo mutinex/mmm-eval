@@ -15,11 +15,11 @@ from .adapters import (
 )
 from .adapters.experimental.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
+from .core import run_evaluation
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
 from .core.validation_test_results import ValidationResults, ValidationTestResult
 from .core.validation_tests_models import ValidationTestNames
-from .core import run_evaluation
 
 # Data utilities
 from .data import (

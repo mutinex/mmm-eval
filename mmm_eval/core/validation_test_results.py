@@ -98,6 +98,7 @@ class ValidationResults:
                 result.test_name.value: result.to_dict() for result in self.test_results.values()
             },
         }
+
     def to_df(self) -> pd.DataFrame:
         """Convert nested test results to a flat DataFrame format."""
         rows = []
@@ -110,18 +111,22 @@ class ValidationResults:
             for metric_key, value in test_scores_dict.items():
                 if isinstance(value, pd.Series):
                     for subkey, subval in value.items():
-                        rows.append({
-                            "test_name": test_name,
-                            "metric_name": f"{metric_key}:{subkey}",
-                            "metric_value": subval,
-                            "metric_pass": passed,
-                        })
+                        rows.append(
+                            {
+                                "test_name": test_name,
+                                "metric_name": f"{metric_key}:{subkey}",
+                                "metric_value": subval,
+                                "metric_pass": passed,
+                            }
+                        )
                 else:
-                    rows.append({
-                        "test_name": test_name,
-                        "metric_name": metric_key,
-                        "metric_value": value,
-                        "metric_pass": passed,
-                    })
+                    rows.append(
+                        {
+                            "test_name": test_name,
+                            "metric_name": metric_key,
+                            "metric_value": value,
+                            "metric_pass": passed,
+                        }
+                    )
 
         return pd.DataFrame(rows)
