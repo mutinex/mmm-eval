@@ -1,9 +1,7 @@
-from typing import Annotated, Any
+from typing import Any
 
 from pydantic import (
     Field,
-    PlainValidator,
-    ValidationInfo,
     computed_field,
 )
 from pymc_marketing.mmm import MMM
@@ -16,34 +14,11 @@ from mmm_eval.configs.base import BaseConfig
 from mmm_eval.configs.rehydrators import PyMCConfigRehydrator
 
 
-def validate_response_column(v: str | None, info: ValidationInfo) -> str:
-    """Validate and set response column default.
-
-    Response column is optionally null. This function maps the revenue column to the response
-    column if the response column is not provided.
-
-    Args:
-        v: The value to validate
-        info: The validation info
-
-    Returns:
-        The validated value
-
-    """
-    if v is None:
-        return info.data.get("revenue_column")
-    return v
-
-
 class PyMCConfig(BaseConfig):
     """Evaluation config for the PyMC MMM framework."""
 
     pymc_model_config: PyMCModelSchema = Field(..., description="Model configuration")
     fit_config: PyMCFitSchema = Field(..., description="Fit configuration")
-    revenue_column: str = Field(..., description="Column containing the revenue variable")
-    response_column: Annotated[str, PlainValidator(validate_response_column)] = Field(
-        None, description="Column containing the response variable"
-    )
 
     @computed_field
     @property
@@ -56,6 +31,12 @@ class PyMCConfig(BaseConfig):
     def channel_columns(self) -> list[str]:
         """Return the channel columns."""
         return self.pymc_model_config.channel_columns
+
+    @computed_field
+    @property
+    def control_columns(self) -> list[str] | None:
+        """Return the control columns."""
+        return self.pymc_model_config.control_columns
 
     @property
     def pymc_model_config_dict(self) -> dict[str, Any]:

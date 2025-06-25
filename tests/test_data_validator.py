@@ -20,17 +20,21 @@ class TestDataValidator:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=25),
                 InputDataframeConstants.RESPONSE_COL: [100.0] * 25,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 25,
+                "control_var1": [0.5] * 25,  # Control column
             }
         )
 
-        validator = DataValidator(min_number_observations=21)
+        validator = DataValidator(
+            control_columns=["control_var1"],
+            min_number_observations=21,
+        )
         validator.run_validations(df)  # Should not raise any exceptions
 
     def test_empty_dataframe(self):
         """Test validation of empty DataFrame."""
         df = pd.DataFrame()
 
-        validator = DataValidator()
+        validator = DataValidator(control_columns=["control_var1"])
         with pytest.raises(EmptyDataFrameError):
             validator.run_validations(df)
 
@@ -41,10 +45,14 @@ class TestDataValidator:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=10),
                 InputDataframeConstants.RESPONSE_COL: [100.0] * 10,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 10,
+                "control_var1": [0.5] * 10,  # Control column
             }
         )
 
-        validator = DataValidator(min_number_observations=21)
+        validator = DataValidator(
+            control_columns=["control_var1"],
+            min_number_observations=21,
+        )
         with pytest.raises(DataValidationError):
             validator.run_validations(df)
 
@@ -55,6 +63,7 @@ class TestDataValidator:
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=25),
                 InputDataframeConstants.RESPONSE_COL: [100.0] * 25,
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 25,
+                "control_var1": [0.5] * 25,  # Control column
             }
         )
         df.loc[0, InputDataframeConstants.RESPONSE_COL] = None
@@ -69,6 +78,7 @@ class TestDataValidator:
             {
                 InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=25),
                 InputDataframeConstants.RESPONSE_COL: [100.0] * 25,
+                "control_var1": [0.5] * 25,  # Control column
                 # Missing revenue column
             }
         )

@@ -71,6 +71,8 @@ def main(
         date_column=config.date_column,
         response_column=config.response_column,
         revenue_column=config.revenue_column,
+        control_columns=config.control_columns,
+        channel_columns=config.channel_columns,
     ).run()
 
     output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None

@@ -17,6 +17,8 @@ class DataProcessor:
 
     def __init__(
         self,
+        control_columns: list[str] | None,
+        channel_columns: list[str],
         date_column: str = InputDataframeConstants.DATE_COL,
         response_column: str = InputDataframeConstants.RESPONSE_COL,
         revenue_column: str = InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -24,6 +26,8 @@ class DataProcessor:
         """Initialize data processor.
 
         Args:
+            control_columns: List of control columns
+            channel_columns: List of channel columns
             date_column: Name of the date column to parse and rename
             response_column: Name of the response column to parse and rename
             revenue_column: Name of the revenue column to parse and rename
@@ -32,6 +36,8 @@ class DataProcessor:
         self.date_column = date_column
         self.response_column = response_column
         self.revenue_column = revenue_column
+        self.control_columns = control_columns
+        self.channel_columns = channel_columns
 
     def process(self, df: pd.DataFrame) -> pd.DataFrame:
         """Process the DataFrame with configured transformations.
@@ -55,6 +61,8 @@ class DataProcessor:
             date_column=self.date_column,
             response_column=self.response_column,
             revenue_column=self.revenue_column,
+            control_columns=self.control_columns,
+            channel_columns=self.channel_columns,
         )
 
         # Parse date columns
@@ -76,6 +84,8 @@ class DataProcessor:
         date_column: str,
         response_column: str,
         revenue_column: str,
+        channel_columns: list[str],
+        control_columns: list[str] | None,
     ) -> None:
         """Validate that all required columns are present for processing.
 
@@ -84,6 +94,8 @@ class DataProcessor:
             date_column: Name of the date column
             response_column: Name of the response column
             revenue_column: Name of the revenue column
+            control_columns: List of control columns
+            channel_columns: List of channel columns
 
         Returns:
             None
@@ -97,6 +109,21 @@ class DataProcessor:
             )
         if revenue_column not in df.columns:
             raise MissingRequiredColumnsError(f"Revenue column '{revenue_column}' required but not found in DataFrame")
+
+        missing_channel_columns = [col for col in channel_columns if col not in df.columns]
+        if missing_channel_columns:
+            raise MissingRequiredColumnsError(
+                f"""Channel columns '{missing_channel_columns}' required but not found in DataFrame.
+                DataFrame columns: {df.columns}
+                """
+            )
+
+        if control_columns:
+            missing_control_columns = [col for col in control_columns if col not in df.columns]
+            if missing_control_columns:
+                raise MissingRequiredColumnsError(
+                    f"Control columns '{missing_control_columns}' required but not found in DataFrame"
+                )
 
     def _parse_date_columns(self, df: pd.DataFrame, date_column: str) -> pd.DataFrame:
         """Parse date columns to datetime.

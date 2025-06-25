@@ -18,7 +18,8 @@ class TestDataProcessor:
                 "custom_date": ["2023-01-01", "2023-01-02"],
                 "custom_response": [100.0, 150.0],
                 "custom_revenue": [1000.0, 1500.0],
-                "spend": [500.0, 750.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
@@ -27,7 +28,11 @@ class TestDataProcessor:
         df = self._get_test_df()
 
         processor = DataProcessor(
-            date_column="custom_date", response_column="custom_response", revenue_column="custom_revenue"
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+            date_column="custom_date",
+            response_column="custom_response",
+            revenue_column="custom_revenue",
         )
         result = processor.process(df)
 
@@ -41,7 +46,8 @@ class TestDataProcessor:
         assert result[InputDataframeConstants.DATE_COL].iloc[0] == pd.Timestamp("2023-01-01")
 
         # Check that other columns are preserved
-        assert "spend" in result.columns
+        assert "control_var1" in result.columns
+        assert "facebook" in result.columns
 
     def test_process_with_default_column_names(self):
         """Test processing with default column names."""
@@ -50,10 +56,15 @@ class TestDataProcessor:
                 InputDataframeConstants.DATE_COL: ["2023-01-01", "2023-01-02"],
                 InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
-        processor = DataProcessor()
+        processor = DataProcessor(
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+        )
         result = processor.process(df)
 
         # Columns should remain the same since they already match defaults
@@ -69,10 +80,16 @@ class TestDataProcessor:
                 "Date": ["2023-01-01", "2023-01-02"],
                 InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
-        processor = DataProcessor(date_column="Date")
+        processor = DataProcessor(
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+            date_column="Date",
+        )
         result = processor.process(df)
 
         assert InputDataframeConstants.DATE_COL in result.columns  # Should be renamed
@@ -84,10 +101,15 @@ class TestDataProcessor:
             {
                 InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
-        processor = DataProcessor()
+        processor = DataProcessor(
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+        )
         with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
 
@@ -97,10 +119,15 @@ class TestDataProcessor:
             {
                 InputDataframeConstants.DATE_COL: ["2023-01-01", "2023-01-02"],
                 InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0, 1500.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
-        processor = DataProcessor()
+        processor = DataProcessor(
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+        )
         with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
 
@@ -110,10 +137,15 @@ class TestDataProcessor:
             {
                 InputDataframeConstants.DATE_COL: ["2023-01-01", "2023-01-02"],
                 InputDataframeConstants.RESPONSE_COL: [100.0, 150.0],
+                "control_var1": [0.5, 0.6],  # Control column
+                "facebook": [100.0, 150.0],  # Channel column
             }
         )
 
-        processor = DataProcessor()
+        processor = DataProcessor(
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+        )
         with pytest.raises(MissingRequiredColumnsError):
             processor.process(df)
 
@@ -124,11 +156,17 @@ class TestDataProcessor:
                 "custom_date": ["2023-01-01", "not-a-date", "2023-01-03"],
                 "custom_response": [100.0, 150.0, 200.0],
                 "custom_revenue": [1000.0, 1500.0, 2000.0],
+                "control_var1": [0.5, 0.6, 0.7],  # Control column
+                "facebook": [100.0, 150.0, 200.0],  # Channel column
             }
         )
 
         processor = DataProcessor(
-            date_column="custom_date", response_column="custom_response", revenue_column="custom_revenue"
+            control_columns=["control_var1"],
+            channel_columns=["facebook"],
+            date_column="custom_date",
+            response_column="custom_response",
+            revenue_column="custom_revenue",
         )
         with pytest.raises(InvalidDateFormatError):
             processor.process(df)

@@ -1,5 +1,7 @@
 """Framework configs for MMM evaluation."""
 
+from mmm_eval.configs.base import BaseConfig
+
 from .configs import PyMCConfig
 
 # Registry of available configs
@@ -8,7 +10,7 @@ CONFIG_REGISTRY = {
 }
 
 
-def get_config(framework: str, config_path: str) -> PyMCConfig:
+def get_config(framework: str, config_path: str) -> BaseConfig:
     """Get an config instance for the specified framework.
 
     Args:
@@ -16,7 +18,7 @@ def get_config(framework: str, config_path: str) -> PyMCConfig:
         config_path: Path to framework-specific configuration
 
     Returns:
-        Config instance for the framework
+        BaseConfig instance for the framework
 
     Raises:
         ValueError: If framework is not supported
