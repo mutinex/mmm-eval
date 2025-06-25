@@ -13,6 +13,7 @@ from mmm_eval.adapters.experimental.pymc import (
 )
 from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
+from mmm_eval.data.constants import InputDataframeConstants
 
 
 @pytest.fixture(scope="function")
@@ -126,7 +127,7 @@ def create_sample_data():
 def realistic_test_data():
     """Create more realistic test data for PyMC integration tests."""
     np.random.seed(42)  # For reproducibility
-    dates = pd.date_range("2023-01-01", periods=40, freq="W-MON")
+    dates = pd.date_range("2023-01-01", periods=20, freq="W-MON")
 
     # Create correlated data
     channel_1 = np.random.uniform(50, 200, len(dates))
@@ -150,9 +151,9 @@ def realistic_test_data():
             "date_week": dates,
             "channel_1": channel_1,
             "channel_2": channel_2,
-            "quantity": quantity,
+            InputDataframeConstants.RESPONSE_COL: quantity,
             "price": price,
-            "revenue": revenue,
+            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: revenue,
             "event_1": np.random.choice([0, 1], len(dates), p=[0.9, 0.1]),
             "event_2": np.random.choice([0, 1], len(dates), p=[0.95, 0.05]),
         }
@@ -181,8 +182,6 @@ def test_adapter_instantiation(valid_pymc_config):
     assert adapter.date_column == "date_week"
     assert adapter.channel_spend_columns == ["channel_1", "channel_2"]
     assert adapter.control_columns == ["price", "event_1", "event_2"]
-    assert adapter.response_column == "quantity"
-    assert adapter.revenue_column == "revenue"
     # Check that fit_kwargs contains the expected values from PyMCFitSchema
     expected_fit_kwargs = {
         "draws": 5,  # Moved from sampler_config
@@ -207,8 +206,6 @@ def test_adapter_instantiation_config_copy(valid_pymc_config):
     # Store original attribute values since PyMCConfig objects don't have .copy()
     original_model_config = config.pymc_model_config.model_dump() if config.pymc_model_config else None
     original_fit_config = config.fit_config.model_dump() if config.fit_config else None
-    original_response_column = config.response_column
-    original_revenue_column = config.revenue_column
 
     _ = PyMCAdapter(config)
 
@@ -217,8 +214,6 @@ def test_adapter_instantiation_config_copy(valid_pymc_config):
         assert config.pymc_model_config.model_dump() == original_model_config
     if config.fit_config:
         assert config.fit_config.model_dump() == original_fit_config
-    assert config.response_column == original_response_column
-    assert config.revenue_column == original_revenue_column
 
 
 @pytest.mark.integration
@@ -401,8 +396,8 @@ def test_calculate_rois(valid_pymc_config):
             "channel_2_response_units": [5, 10, 15, 20, 25],
             "channel_1": [100, 150, 200, 250, 300],
             "channel_2": [50, 100, 150, 200, 250],
-            "quantity": [1000, 1100, 1200, 1300, 1400],
-            "revenue": [10000, 11000, 12000, 13000, 14000],
+            InputDataframeConstants.RESPONSE_COL: [1000, 1100, 1200, 1300, 1400],
+            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [10000, 11000, 12000, 13000, 14000],
         },
         index=dates,
     )
@@ -433,8 +428,8 @@ def test_calculate_rois_zero_total_spend(valid_pymc_config):
             "channel_2_response_units": [5, 10, 15, 20, 25],  # Non-zero attribution
             "channel_1": [100, 150, 200, 250, 300],
             "channel_2": [0, 0, 0, 0, 0],  # Zero spend
-            "quantity": [1000, 1100, 1200, 1300, 1400],
-            "revenue": [10000, 11000, 12000, 13000, 14000],
+            InputDataframeConstants.RESPONSE_COL: [1000, 1100, 1200, 1300, 1400],
+            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [10000, 11000, 12000, 13000, 14000],
         },
         index=dates,
     )

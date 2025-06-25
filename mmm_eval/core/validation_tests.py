@@ -284,7 +284,7 @@ class PerturbationTest(BaseValidationTest):
         # Add noise to spend data and retrain
         noisy_data = self._add_gaussian_noise_to_spend(
             df=data,
-            spend_cols=adapter.channel_spend_cols,
+            spend_cols=adapter.channel_spend_columns,
         )
         adapter.fit(noisy_data)
         noisy_model = adapter.get_channel_roi()

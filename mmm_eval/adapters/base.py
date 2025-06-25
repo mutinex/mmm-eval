@@ -19,7 +19,7 @@ class BaseAdapter(ABC):
         """
         self.config = config or {}
         self.is_fitted = False
-        self.channel_spend_cols: list[str] = []
+        self.channel_spend_columns: list[str] = []
         self.date_column: str
 
     @abstractmethod
