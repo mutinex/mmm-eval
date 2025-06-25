@@ -43,7 +43,8 @@ class TestBaseValidationTest:
                 ValidationDataframeConstants.PERCENTAGE_CHANGE_CHANNEL_CONTRIBUTION_COL: [
                     0.1,
                     0.2,
-                ] * 20,
+                ]
+                * 20,
             }
         )
         # Trim to exactly 40 rows
