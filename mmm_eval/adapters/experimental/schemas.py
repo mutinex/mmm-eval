@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Any
 
 from pydantic import BaseModel, Field, InstanceOf, field_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
@@ -43,23 +43,16 @@ class PyMCModelSchema(BaseModel):
     model_config: dict | None = Field(None, description="Model configuration.")
     sampler_config: dict | None = Field(None, description="Sampler configuration.")
     validate_data: bool = Field(True, description="Whether to validate the data before fitting to model")
-    control_columns: (
-        Annotated[
-            list[str],
-            Field(
-                min_length=1,
-                description="Column names of control variables to be added as additional regressors",
-            ),
-        ]
-        | None
-    ) = None
-    yearly_seasonality: (
-        Annotated[
-            int,
-            Field(gt=0, description="Number of Fourier modes to model yearly seasonality."),
-        ]
-        | None
-    ) = None
+    control_columns: list[str] | None = Field(
+        None,
+        min_length=1,
+        description="Column names of control variables to be added as additional regressors",
+    )
+    yearly_seasonality: int | None = Field(
+        None,
+        gt=0,
+        description="Number of Fourier modes to model yearly seasonality.",
+    )
     adstock_first: bool = Field(True, description="Whether to apply adstock first.")
     dag: str | None = Field(
         None,

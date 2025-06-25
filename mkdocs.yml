@@ -105,17 +105,19 @@ nav:
 # Plugins
 plugins:
   - search
-  # - mkdocstrings:
-  #     default_handler: python
-  #     handlers:
-  #       python:
-  #         paths: [mmm_eval]
-  #         options:
-  #           show_source: false
-  #           show_root_heading: false
-  #           preload_modules: false
-  - git-revision-date-localized:
-      enable_creation_date: true
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            # show_root_heading: false
+            # show_signature_annotations: false
+            # show_category_heading: false
+            # show_bases: false
+            show_submodules: true
+  # - git-revision-date-localized:
+  #     enable_creation_date: true
   - minify:
       minify_html: true
 

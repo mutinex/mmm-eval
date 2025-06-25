@@ -5,6 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 from mmm_eval.configs.base import BaseConfig
+from mmm_eval.metrics import AVAILABLE_METRICS
 
 from .results import EvaluationResults
 
@@ -21,8 +22,6 @@ def _compute_metrics(actual: pd.Series, predicted: pd.Series, metrics: list[str]
         Dictionary mapping metric names to values
 
     """
-    from ..metrics.accuracy import AVAILABLE_METRICS
-
     results = {}
 
     for metric in metrics:

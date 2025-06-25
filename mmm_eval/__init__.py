@@ -1,7 +1,7 @@
 """mmm-eval: A unified evaluation framework for Media Mix Models (MMMs).
 
 This package provides a standardized interface for evaluating different MMM frameworks
-including Meridian, PyMC, Robyn, and LightweightMMM.
+such as PyMC-marketing.
 """
 
 __version__ = "0.1.0"
@@ -23,6 +23,9 @@ from .data import (
     DataProcessor,
     DataValidator,
 )
+
+# Metrics
+from .metrics.accuracy import mape, rmse, mae, r_squared, symmetric_mape
 
 __all__ = [
     "get_adapter",

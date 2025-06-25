@@ -1,8 +1,8 @@
-from typing import Annotated, Any
+from typing import Any
 
 from pydantic import (
     Field,
-    PlainValidator,
+    field_validator,
     ValidationInfo,
     computed_field,
 )
@@ -40,9 +40,13 @@ class PyMCConfig(BaseConfig):
     pymc_model_config: PyMCModelSchema = Field(..., description="Model configuration")
     fit_config: PyMCFitSchema = Field(..., description="Fit configuration")
     revenue_column: str = Field(..., description="Column containing the revenue variable")
-    response_column: Annotated[str, PlainValidator(validate_response_column)] = Field(
-        None, description="Column containing the response variable"
-    )
+    response_column: str | None = Field(None, description="Column containing the response variable")
+
+    @field_validator("response_column")
+    @classmethod
+    def validate_response_column_field(cls, v: str | None, info: ValidationInfo) -> str:
+        """Validate and set response column default."""
+        return validate_response_column(v, info)
 
     @computed_field
     @property
