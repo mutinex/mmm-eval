@@ -4,8 +4,8 @@ site_author: mmm-eval Contributors
 site_url: https://mutinex.github.io/mmm-eval/
 
 # Repository
-repo_name: mutinex/mmm-eval
-repo_url: https://github.com/mutinex/mmm-eval
+repo_name: Mutiny-Group/mmm-eval
+repo_url: https://github.com/Mutiny-Group/mmm-eval
 edit_uri: edit/main/docs/
 
 # Copyright
@@ -86,10 +86,11 @@ nav:
     - Metrics: user-guide/metrics.md
     - Data Formats: user-guide/data-formats.md
   - API Reference:
+    - Adapters: api/adapters.md
     - Core: api/core.md
     - CLI: api/cli.md
+    - Data: api/data.md
     - Metrics: api/metrics.md
-    - Adapters: api/adapters.md
   - Examples:
     - Basic Usage: examples/basic-usage.md
     - Custom Configuration: examples/custom-configuration.md
@@ -112,6 +113,18 @@ plugins:
           options:
             show_source: true
             show_submodules: true
+            show_signature_annotations: true
+            show_bases: true
+            show_root_heading: true
+            show_root_toc_entry: true
+            show_category_heading: true
+            show_if_no_docstring: false
+            docstring_style: google
+            docstring_section_style: table
+            preload_modules: [mmm_eval, mmm_eval.core, mmm_eval.data, mmm_eval.metrics, mmm_eval.adapters, mmm_eval.cli]
+            filters: ["!^_"]
+            merge_init_into_class: true
+            show_signature: true
   - git-revision-date-localized:
       enable_creation_date: true
   - minify:

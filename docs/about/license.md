@@ -1,29 +1,37 @@
 # License
 
-This project is licensed under the MIT License - see below for details.
+This project is licensed under the Apache License, Version 2.0.
 
-## MIT License
+## Apache License 2.0
 
-Copyright (c) 2024 mmm-eval Contributors
+Copyright 2024 mmm-eval Contributors
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+## Key Features of Apache 2.0
+
+The Apache License 2.0 provides:
+
+- **Patent protection**: Contributors grant patent licenses for their contributions
+- **Commercial use**: Allows commercial use, modification, and distribution
+- **Patent termination**: Patent licenses terminate if you file patent litigation
+- **Attribution**: Requires preservation of copyright notices and license text
+- **Contributor protection**: Protects contributors from liability
 
 ## Contributing
 
-By contributing to this project, you agree that your contributions will be licensed under the MIT License. 
+By contributing to this project, you agree that your contributions will be licensed under the Apache License, Version 2.0.
+
+## Full License Text
+
+For the complete license text, see the [LICENSE](../LICENSE) file in the root of this repository. 

@@ -6,13 +6,40 @@ An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks with 
 
 Get started with mmm-eval in just a few steps:
 
-```bash
-# Install mmm-eval
-pip install mmm-eval
+### Using Poetry (Recommended)
 
-# Run a basic evaluation
+**Prerequisite**: Poetry 2.x.x or later is required.
+
+```bash
+# Install from GitHub
+poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
+
+# Or clone and install locally
+git clone https://github.com/Mutiny-Group/mmm-eval.git
+cd mmm-eval
+poetry install
+```
+
+### Using pip
+```bash
+# Install from GitHub
+pip install git+https://github.com/Mutiny-Group/mmm-eval.git
+
+# Or clone and install locally
+git clone https://github.com/Mutiny-Group/mmm-eval.git
+cd mmm-eval
+pip install -e .
+```
+
+### Run a basic evaluation
+```bash
 mmm-eval --input-data-path data.csv --framework pymc-marketing
 ```
+
+> **Note**: mmm-eval is currently in development. For production use, we recommend installing from the latest release tag:
+> ```bash
+> poetry add git+https://github.com/Mutiny-Group/mmm-eval.git@v0.4.2
+> ```
 
 ## ✨ Features
 
