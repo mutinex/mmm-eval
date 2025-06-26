@@ -7,17 +7,17 @@ mmm-eval provides a command-line interface for running MMM evaluations. This gui
 The basic command structure is:
 
 ```bash
-mmm-eval [OPTIONS] --input-data-path PATH --framework FRAMEWORK
+mmm-eval [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
 ```
 
 ## Required Arguments
 
 ### --input-data-path
 
-Path to your input data file (CSV format).
+Path to your input data file (CSV or Parquet format).
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
 ### --framework
@@ -26,132 +26,78 @@ The MMM framework to use for evaluation.
 
 ```bash
 # Currently supported frameworks
-mmm-eval --input-data-path data.csv --framework pymc-marketing
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+```
+
+### --config-path
+
+Path to a framework-specific JSON configuration file.
+
+```bash
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+```
+
+### --output-path
+
+Directory to save evaluation results.
+
+```bash
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path ./results/
 ```
 
 ## Optional Arguments
-
-### Data Configuration
-
-#### --config-path
-
-Path to a JSON configuration file.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json
-```
-
-#### --date-column
-
-Name of the date column in your data.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --date-column date
-```
-
-#### --target-column
-
-Name of the target variable column.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --target-column sales
-```
-
-#### --media-columns
-
-Comma-separated list of media channel columns.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --media-columns tv_spend,digital_spend,print_spend
-```
-
-#### --control-columns
-
-Comma-separated list of control variable columns.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --control-columns price,seasonality
-```
 
 ### Test Configuration
 
 #### --test-names
 
-Comma-separated list of tests to run.
+Specify which validation tests to run. Can specify multiple tests by repeating the flag.
 
 ```bash
 # Run specific tests
-mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy,cross_validation
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+
+# Run all tests (default)
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Available tests: accuracy, cross_validation, refresh_stability, perturbation
 ```
 
-#### --train-test-split
+#### --verbose
 
-Proportion of data to use for training (0.0 to 1.0).
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --train-test-split 0.8
-```
-
-#### --cv-folds
-
-Number of cross-validation folds.
+Enable verbose logging for detailed output.
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --cv-folds 5
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --verbose
 ```
 
-#### --random-state
+## Available Tests
 
-Random seed for reproducibility.
+mmm-eval provides four standard validation tests:
+
+### accuracy
+Model accuracy using holdout validation. Splits data into train/test sets and evaluates prediction performance.
+
+### cross_validation
+Time series cross-validation performance. Uses rolling window validation to assess model stability over time.
+
+### refresh_stability
+Model stability over different time periods. Tests how consistent model parameters are when refitting on different data subsets.
+
+### perturbation
+Sensitivity to data perturbations. Tests how robust the model is to small changes in the input data.
+
+## Framework Support
+
+### PyMC-Marketing
+
+Currently, mmm-eval supports the PyMC-Marketing framework:
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --random-state 42
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
-### Output Configuration
-
-#### --output-path
-
-Directory to save results.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --output-path ./results/
-```
-
-#### --output-format
-
-Output format for results (json or csv).
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --output-format json
-```
-
-#### --include-plots
-
-Whether to generate plots.
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --include-plots
-```
-
-#### --plot-format
-
-Format for generated plots (png, pdf, svg).
-
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --plot-format png
-```
-
-### Framework-Specific Options
-
-#### PyMC-Marketing Options
-
-```bash
-# Specify seasonality parameters
-mmm-eval --input-data-path data.csv --framework pymc-marketing --yearly-seasonality 10 --weekly-seasonality 3
-```
+PyMC-Marketing requires a specific configuration format. See the [Configuration Guide](../getting-started/configuration.md) for details.
 
 ## Complete Example
 
@@ -159,35 +105,58 @@ Here's a complete example with all options:
 
 ```bash
 mmm-eval \
-  --input-data-path data.csv \
+  --input-data-path marketing_data.csv \
   --framework pymc-marketing \
-  --config-path config.json \
-  --date-column date \
-  --target-column sales \
-  --media-columns tv_spend,digital_spend,print_spend \
-  --control-columns price,seasonality \
-  --test-names accuracy,cross_validation,refresh_stability \
-  --train-test-split 0.8 \
-  --cv-folds 5 \
-  --random-state 42 \
-  --output-path ./results/ \
-  --output-format json \
-  --include-plots \
-  --plot-format png
+  --config-path evaluation_config.json \
+  --test-names accuracy cross_validation refresh_stability perturbation \
+  --output-path ./evaluation_results/ \
+  --verbose
 ```
 
-## Environment Variables
+## Output Files
 
-You can also set configuration using environment variables:
+After running an evaluation, you'll find the following files in your output directory:
+
+- `mmm_eval_{framework}_{timestamp}.csv` - Detailed test results in CSV format
+
+### Results File Structure
+
+The results CSV file contains the following columns:
+
+- `test_name` - Name of the validation test
+- `metric_name` - Name of the metric calculated
+- `metric_value` - Value of the metric
+- `metric_pass` - Whether the metric passed its threshold (if applicable)
+
+### Example Results
+
+```csv
+test_name,metric_name,metric_value,metric_pass
+accuracy,mape,0.15,True
+accuracy,r_squared,0.85,True
+cross_validation,mape,0.18,True
+cross_validation,r_squared,0.82,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_1,0.05,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_2,0.03,True
+perturbation,percentage_change_for_each_channel:channel_1,0.02,True
+perturbation,percentage_change_for_each_channel:channel_2,0.01,True
+```
+
+## Error Handling
+
+### Common Errors
+
+1. **File not found**: Ensure the input data file and config file exist and paths are correct
+2. **Invalid configuration**: Check that your JSON config file follows the required format
+3. **Missing columns**: Ensure your data contains all columns specified in the configuration
+4. **Framework errors**: Check that all required dependencies are installed
+
+### Debug Mode
+
+Enable verbose mode for detailed error information:
 
 ```bash
-export MMM_EVAL_DATE_COLUMN=date
-export MMM_EVAL_TARGET_COLUMN=sales
-export MMM_EVAL_MEDIA_COLUMNS=tv_spend,digital_spend,print_spend
-export MMM_EVAL_TRAIN_TEST_SPLIT=0.8
-export MMM_EVAL_RANDOM_STATE=42
-
-mmm-eval --input-data-path data.csv --framework pymc-marketing
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --verbose
 ```
 
 ## Help and Information
@@ -200,53 +169,89 @@ Display help information:
 mmm-eval --help
 ```
 
-### --version
+This shows all available options and their descriptions.
 
-Display version information:
+## Data Requirements
 
-```bash
-mmm-eval --version
-```
+### Supported Formats
 
-### --verbose
+- **CSV**: Comma-separated values (recommended)
+- **Parquet**: Apache Parquet format
 
-Enable verbose output:
+### Data Structure
 
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --verbose
-```
+Your data should contain:
 
-## Error Handling
+- **Date column**: Time series data with consistent date format
+- **Target column**: The variable you want to predict (e.g., sales, conversions)
+- **Revenue column**: Revenue data for calculating ROI and efficiency metrics
+- **Media columns**: Marketing channel spend or activity data
+- **Control columns** (optional): Additional variables that may affect the target
 
-### Common Errors
+### Data Quality
 
-1. **File not found**: Ensure the input data file exists and the path is correct
-2. **Invalid column names**: Check that column names match your data file
-3. **Insufficient data**: Ensure you have enough data for the specified train-test split
-4. **Framework errors**: Check that all required dependencies are installed
+- No missing values in required columns
+- Complete time series (no gaps in dates)
+- Consistent date format
+- Non-negative values for spend columns
 
-### Debug Mode
+## Performance Considerations
 
-Enable debug mode for detailed error information:
+### Computation Time
 
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --debug
-```
+Evaluation time depends on:
 
-## Output Files
+- **Data size**: Larger datasets take longer to process
+- **Model complexity**: More parameters increase computation time
+- **Number of tests**: Running all tests takes longer than specific tests
+- **Hardware**: CPU cores and memory affect speed
 
-After running an evaluation, you'll find the following files in your output directory:
+### Memory Usage
 
-- `results.json` - Detailed test results in JSON format
-- `results_summary.csv` - Summary metrics in CSV format
-- `plots/` - Directory containing generated plots
-  - `accuracy_plot.png` - Accuracy test visualizations
-  - `cross_validation_plot.png` - Cross-validation results
-  - `refresh_stability_plot.png` - Refresh stability analysis
-  - `perturbation_plot.png` - Perturbation test results
+- **Data size**: Larger datasets require more memory
+- **Model complexity**: Complex models use more memory during fitting
+- **Sampling parameters**: More draws and chains increase memory usage
+
+## Best Practices
+
+### Configuration
+
+- Start with simple model configurations
+- Use appropriate sampling parameters for your data size
+- Validate your configuration file before running evaluations
+
+### Data Preparation
+
+- Clean and validate your data before running evaluations
+- Ensure consistent date formats and column names
+- Check for missing values and outliers
+
+### Testing Strategy
+
+- Start with basic tests (accuracy, cross_validation)
+- Add stability and perturbation tests for comprehensive evaluation
+- Use verbose mode to monitor progress and identify issues
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Slow performance**: Reduce sampling parameters or use fewer tests
+2. **Memory errors**: Reduce data size or model complexity
+3. **Convergence issues**: Adjust sampling parameters or model configuration
+4. **File permission errors**: Check write permissions for output directory
+
+### Getting Help
+
+If you encounter issues:
+
+- Check the [Configuration Guide](../getting-started/configuration.md) for config file format
+- Review the [Data Formats Guide](data-formats.md) for data requirements
+- Look at [Examples](../examples/basic-usage.md) for similar use cases
+- Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support
 
 ## Next Steps
 
 - Learn about [Data Formats](data-formats.md) for different data structures
-- Explore [Examples](examples/basic-usage.md) for practical use cases
-- Check the [Configuration](getting-started/configuration.md) guide for advanced settings 
+- Explore [Examples](../examples/basic-usage.md) for practical use cases
+- Check the [Configuration Guide](../getting-started/configuration.md) for advanced settings 

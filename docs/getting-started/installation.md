@@ -8,20 +8,34 @@ mmm-eval requires Python 3.11 or higher. Make sure you have Python installed on 
 
 ## Installation Methods
 
-### Using pip (Recommended)
+### Using Poetry (Recommended)
 
-The easiest way to install mmm-eval is using pip:
+The recommended way to install mmm-eval is using Poetry:
 
 ```bash
-pip install mmm-eval
+# Install from GitHub
+poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
+
+# Or clone and install locally
+git clone https://github.com/Mutiny-Group/mmm-eval.git
+cd mmm-eval
+poetry install
 ```
 
-### Using Poetry
+**Prerequisite**: Poetry 2.x.x or later is required.
 
-If you're using Poetry for dependency management:
+### Using pip
+
+If you prefer using pip directly:
 
 ```bash
-poetry add mmm-eval
+# Install from GitHub
+pip install git+https://github.com/Mutiny-Group/mmm-eval.git
+
+# Or clone and install locally
+git clone https://github.com/Mutiny-Group/mmm-eval.git
+cd mmm-eval
+pip install -e .
 ```
 
 ### From Source
@@ -29,7 +43,7 @@ poetry add mmm-eval
 To install from the latest development version:
 
 ```bash
-git clone https://github.com/mutinex/mmm-eval.git
+git clone https://github.com/Mutiny-Group/mmm-eval.git
 cd mmm-eval
 pip install -e .
 ```
@@ -39,9 +53,9 @@ pip install -e .
 For development work, install with all development dependencies:
 
 ```bash
-git clone https://github.com/mutinex/mmm-eval.git
+git clone https://github.com/Mutiny-Group/mmm-eval.git
 cd mmm-eval
-pip install -e ".[dev]"
+poetry install
 ```
 
 ## Dependencies
@@ -77,23 +91,35 @@ mmm-eval --help
 
 1. **Import Error**: If you get import errors, make sure you're using Python 3.11 or higher.
 
-2. **Permission Errors**: On some systems, you might need to use `pip install --user mmm-eval` to install without admin privileges.
+2. **Poetry Installation Issues**: If you encounter issues with Poetry:
+   ```bash
+   # Update Poetry to the latest version
+   poetry self update
+   
+   # Clear Poetry cache
+   poetry cache clear --all pypi
+   ```
 
-3. **Version Conflicts**: If you encounter dependency conflicts, consider using a virtual environment:
+3. **Permission Errors**: On some systems, you might need to use `pip install --user` to install without admin privileges.
 
-```bash
-python -m venv mmm-eval-env
-source mmm-eval-env/bin/activate  # On Windows: mmm-eval-env\Scripts\activate
-pip install mmm-eval
-```
+4. **Version Conflicts**: If you encounter dependency conflicts:
+   ```bash
+   # With Poetry
+   poetry update
+   
+   # With pip (in a virtual environment)
+   python -m venv mmm-eval-env
+   source mmm-eval-env/bin/activate  # On Windows: mmm-eval-env\Scripts\activate
+   pip install git+https://github.com/Mutiny-Group/mmm-eval.git
+   ```
 
 ### Getting Help
 
 If you encounter any issues during installation, please:
 
-1. Check the [GitHub Issues](https://github.com/mutinex/mmm-eval/issues) for known problems
+1. Check the [GitHub Issues](https://github.com/Mutiny-Group/mmm-eval/issues) for known problems
 2. Create a new issue with details about your system and the error message
-3. Join our [Discussions](https://github.com/mutinex/mmm-eval/discussions) for community support
+3. Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support
 
 ## Next Steps
 

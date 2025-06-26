@@ -100,7 +100,6 @@ nav:
     - Development Setup: development/setup.md
     - Testing: development/testing.md
   - About:
-    - Changelog: about/changelog.md
     - License: about/license.md
 
 # Plugins

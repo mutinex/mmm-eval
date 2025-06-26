@@ -1,266 +1,249 @@
 # Configuration
 
-mmm-eval can be customized through configuration files to control data processing, test parameters, and output settings.
+mmm-eval uses framework-specific configuration files to control model parameters, fitting settings, and data mappings. This guide explains how to create and use configuration files for the PyMC-Marketing framework.
 
 ## Configuration File Format
 
-mmm-eval uses JSON configuration files. You can specify a configuration file using the `--config-path` option:
+mmm-eval uses JSON configuration files. You must specify a configuration file using the `--config-path` option:
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
-## Configuration Structure
+## PyMC-Marketing Configuration Structure
 
-A complete configuration file has the following structure:
+A complete PyMC-Marketing configuration file has the following structure:
 
 ```json
 {
-  "data": {
-    "date_column": "date",
-    "target_column": "sales",
-    "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-    "control_columns": ["price", "seasonality"],
-    "date_format": "%Y-%m-%d",
-    "validation": {
-      "check_missing_values": true,
-      "check_negative_values": true,
-      "check_date_range": true
-    }
+  "pymc_model_config": {
+    "date_column": "date_week",
+    "channel_columns": ["channel_1", "channel_2"],
+    "control_columns": ["price", "event_1", "event_2"],
+    "adstock": "GeometricAdstock(l_max=4)",
+    "saturation": "LogisticSaturation()",
+    "yearly_seasonality": 2
   },
-  "framework": {
-    "pymc_marketing": {
-      "model_config": {
-        "date_column": "date",
-        "target_column": "sales",
-        "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-        "control_columns": ["price", "seasonality"]
-      }
-    }
+  "fit_config": {
+    "target_accept": 0.9,
+    "draws": 100,
+    "tune": 50,
+    "chains": 2,
+    "random_seed": 42
   },
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    },
-    "cross_validation": {
-      "folds": 5,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    },
-    "refresh_stability": {
-      "refresh_periods": [0.5, 0.75, 0.9],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    },
-    "perturbation": {
-      "perturbation_levels": [0.05, 0.1, 0.15],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
-  },
-  "output": {
-    "format": "json",
-    "include_plots": true,
-    "plot_format": "png",
-    "save_intermediate_results": false
-  }
+  "revenue_column": "revenue",
+  "response_column": "quantity"
 }
 ```
 
-## Data Configuration
+## Model Configuration (pymc_model_config)
 
-### Basic Data Settings
+The `pymc_model_config` section defines the PyMC model structure and parameters:
+
+### Required Fields
+
+#### date_column
+The column name containing the date/time variable.
 
 ```json
 {
-  "data": {
-    "date_column": "date",
-    "target_column": "sales",
-    "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-    "control_columns": ["price", "seasonality"]
+  "pymc_model_config": {
+    "date_column": "date_week"
   }
 }
 ```
 
-- **date_column**: Name of the column containing dates
-- **target_column**: Name of the column containing the target variable
-- **media_columns**: List of column names for marketing channels
-- **control_columns**: List of column names for control variables (optional)
-
-### Date Format
-
-Specify the date format if your dates aren't in ISO format:
+#### channel_columns
+List of column names for marketing channels (media spend).
 
 ```json
 {
-  "data": {
-    "date_format": "%Y-%m-%d"
+  "pymc_model_config": {
+    "channel_columns": ["tv_spend", "digital_spend", "print_spend"]
   }
 }
 ```
 
-Common formats:
-- `%Y-%m-%d` - 2023-01-01
-- `%m/%d/%Y` - 01/01/2023
-- `%d-%m-%Y` - 01-01-2023
-
-### Data Validation
-
-Control data validation settings:
+#### adstock
+The adstock transformation to apply to media channels.
 
 ```json
 {
-  "data": {
-    "validation": {
-      "check_missing_values": true,
-      "check_negative_values": true,
-      "check_date_range": true,
-      "min_date": "2020-01-01",
-      "max_date": "2023-12-31"
-    }
+  "pymc_model_config": {
+    "adstock": "GeometricAdstock(l_max=4)"
   }
 }
 ```
 
-## Framework Configuration
+Available adstock types:
+- `"GeometricAdstock(l_max=4)"` - Geometric decay with maximum lag of 4
+- `"WeibullAdstock(l_max=4)"` - Weibull distribution-based decay
 
-### PyMC-Marketing Settings
+#### saturation
+The saturation transformation to apply to media channels.
 
 ```json
 {
-  "framework": {
-    "pymc_marketing": {
-      "model_config": {
-        "date_column": "date",
-        "target_column": "sales",
-        "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-        "control_columns": ["price", "seasonality"],
-        "seasonality": {
-          "yearly_seasonality": 10,
-          "weekly_seasonality": 3
-        }
-      }
-    }
+  "pymc_model_config": {
+    "saturation": "LogisticSaturation()"
   }
 }
 ```
 
-## Test Configuration
+Available saturation types:
+- `"LogisticSaturation()"` - Logistic (S-curve) saturation
+- `"HillSaturation()"` - Hill function saturation
 
-### Accuracy Test
+### Optional Fields
+
+#### control_columns
+List of column names for control variables (optional).
 
 ```json
 {
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
+  "pymc_model_config": {
+    "control_columns": ["price", "seasonality", "holiday"]
   }
 }
 ```
 
-- **train_test_split**: Proportion of data for training (0.0 to 1.0)
-- **random_state**: Random seed for reproducibility
-- **metrics**: List of metrics to calculate
-
-### Cross-Validation Test
+#### yearly_seasonality
+Number of Fourier modes for yearly seasonality (optional).
 
 ```json
 {
-  "tests": {
-    "cross_validation": {
-      "folds": 5,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
+  "pymc_model_config": {
+    "yearly_seasonality": 2
   }
 }
 ```
 
-- **folds**: Number of cross-validation folds
-- **random_state**: Random seed for reproducibility
-- **metrics**: List of metrics to calculate
-
-### Refresh Stability Test
+#### time_varying_intercept
+Whether to use a time-varying intercept (default: false).
 
 ```json
 {
-  "tests": {
-    "refresh_stability": {
-      "refresh_periods": [0.5, 0.75, 0.9],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
+  "pymc_model_config": {
+    "time_varying_intercept": true
   }
 }
 ```
 
-- **refresh_periods**: List of proportions for refresh periods
-- **metrics**: List of metrics to calculate
-
-### Perturbation Test
+#### time_varying_media
+Whether to use time-varying media contributions (default: false).
 
 ```json
 {
-  "tests": {
-    "perturbation": {
-      "perturbation_levels": [0.05, 0.1, 0.15],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
+  "pymc_model_config": {
+    "time_varying_media": true
   }
 }
 ```
 
-- **perturbation_levels**: List of perturbation levels (as proportions)
-- **metrics**: List of metrics to calculate
+## Fit Configuration (fit_config)
 
-## Output Configuration
+The `fit_config` section defines the MCMC sampling parameters:
+
+### Sampling Parameters
+
+#### draws
+Number of posterior samples to draw.
 
 ```json
 {
-  "output": {
-    "format": "json",
-    "include_plots": true,
-    "plot_format": "png",
-    "save_intermediate_results": false
+  "fit_config": {
+    "draws": 100
   }
 }
 ```
 
-- **format**: Output format ("json" or "csv")
-- **include_plots**: Whether to generate plots
-- **plot_format**: Plot file format ("png", "pdf", "svg")
-- **save_intermediate_results**: Whether to save intermediate test results
+#### tune
+Number of tuning (warm-up) steps.
 
-## Available Metrics
-
-The following metrics are available for all tests:
-
-- **mape**: Mean Absolute Percentage Error
-- **rmse**: Root Mean Square Error
-- **r2**: R-squared (coefficient of determination)
-- **mae**: Mean Absolute Error
-- **mse**: Mean Square Error
-
-## Environment Variables
-
-You can also use environment variables for configuration:
-
-```bash
-export MMM_EVAL_DATE_COLUMN=date
-export MMM_EVAL_TARGET_COLUMN=sales
-export MMM_EVAL_MEDIA_COLUMNS=tv_spend,digital_spend,print_spend
+```json
+{
+  "fit_config": {
+    "tune": 50
+  }
+}
 ```
 
-## Configuration Precedence
+#### chains
+Number of MCMC chains to run.
 
-Configuration is applied in the following order (later takes precedence):
+```json
+{
+  "fit_config": {
+    "chains": 2
+  }
+}
+```
 
-1. Default configuration
-2. Environment variables
-3. Configuration file
-4. Command line arguments
+#### target_accept
+Target acceptance rate for the sampler (0.0 to 1.0).
+
+```json
+{
+  "fit_config": {
+    "target_accept": 0.9
+  }
+}
+```
+
+#### random_seed
+Random seed for reproducibility.
+
+```json
+{
+  "fit_config": {
+    "random_seed": 42
+  }
+}
+```
+
+### Optional Parameters
+
+#### progress_bar
+Whether to display the progress bar (default: true).
+
+```json
+{
+  "fit_config": {
+    "progress_bar": false
+  }
+}
+```
+
+#### return_inferencedata
+Whether to return arviz.InferenceData (default: true).
+
+```json
+{
+  "fit_config": {
+    "return_inferencedata": true
+  }
+}
+```
+
+## Data Mapping Configuration
+
+### revenue_column
+The column name containing revenue data for ROI calculations.
+
+```json
+{
+  "revenue_column": "revenue"
+}
+```
+
+### response_column
+The column name containing the target variable (optional, defaults to first non-date/non-channel column).
+
+```json
+{
+  "response_column": "quantity"
+}
+```
 
 ## Example Configurations
 
@@ -268,11 +251,20 @@ Configuration is applied in the following order (later takes precedence):
 
 ```json
 {
-  "data": {
+  "pymc_model_config": {
     "date_column": "date",
-    "target_column": "sales",
-    "media_columns": ["tv_spend", "digital_spend"]
-  }
+    "channel_columns": ["tv_spend", "digital_spend"],
+    "adstock": "GeometricAdstock(l_max=4)",
+    "saturation": "LogisticSaturation()"
+  },
+  "fit_config": {
+    "target_accept": 0.9,
+    "draws": 100,
+    "tune": 50,
+    "chains": 2,
+    "random_seed": 42
+  },
+  "revenue_column": "revenue"
 }
 ```
 
@@ -280,36 +272,91 @@ Configuration is applied in the following order (later takes precedence):
 
 ```json
 {
-  "data": {
-    "date_column": "date",
-    "target_column": "sales",
-    "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-    "control_columns": ["price", "seasonality"],
-    "date_format": "%Y-%m-%d",
-    "validation": {
-      "check_missing_values": true,
-      "check_negative_values": true
-    }
+  "pymc_model_config": {
+    "date_column": "date_week",
+    "channel_columns": ["tv_spend", "digital_spend", "print_spend", "radio_spend"],
+    "control_columns": ["price", "seasonality", "holiday", "competitor_promo"],
+    "adstock": "WeibullAdstock(l_max=6)",
+    "saturation": "HillSaturation()",
+    "yearly_seasonality": 4,
+    "time_varying_intercept": true,
+    "time_varying_media": false
   },
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8,
-      "random_state": 42
-    },
-    "cross_validation": {
-      "folds": 5,
-      "random_state": 42
-    }
+  "fit_config": {
+    "target_accept": 0.95,
+    "draws": 2000,
+    "tune": 1000,
+    "chains": 4,
+    "random_seed": 123,
+    "progress_bar": true,
+    "return_inferencedata": true
   },
-  "output": {
-    "include_plots": true,
-    "plot_format": "png"
-  }
+  "revenue_column": "revenue",
+  "response_column": "sales"
 }
+```
+
+## Configuration Best Practices
+
+### Model Complexity
+
+* **Start simple**: Begin with basic adstock and saturation functions
+* **Add complexity gradually**: Increase seasonality terms and time-varying components as needed
+* **Monitor convergence**: Use more chains and draws for complex models
+
+### Sampling Parameters
+
+* **More draws**: Use 1000+ draws for production models
+* **Multiple chains**: Use 2-4 chains for reliable convergence
+* **Adequate tuning**: Set tune to 50-100% of draws for complex models
+* **Acceptance rate**: Target 0.9-0.95 for optimal sampling efficiency
+
+### Performance Considerations
+
+* **Data size**: Larger datasets require more sampling iterations
+* **Model complexity**: More parameters increase computation time
+* **Hardware**: More CPU cores can speed up multi-chain sampling
+
+## Configuration Validation
+
+mmm-eval validates your configuration file and will raise errors for:
+
+* Missing required fields
+* Invalid field types
+* Unsupported adstock or saturation functions
+* Invalid parameter ranges
+
+## Creating Configurations Programmatically
+
+You can also create configurations programmatically using the PyMC-Marketing library:
+
+```python
+from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
+from mmm_eval.configs import PyMCConfig
+
+# Create a PyMC model
+model = MMM(
+    date_column="date_week",
+    channel_columns=["channel_1", "channel_2"],
+    adstock=GeometricAdstock(l_max=4),
+    saturation=LogisticSaturation(),
+    yearly_seasonality=2
+)
+
+# Create configuration
+config = PyMCConfig.from_model_object(
+    model_object=model,
+    fit_kwargs={"target_accept": 0.9, "draws": 100, "chains": 2},
+    revenue_column="revenue",
+    response_column="quantity"
+)
+
+# Save to JSON
+config.save_model_object_to_json("./", "my_config")
 ```
 
 ## Next Steps
 
-- Learn about [Data Formats](user-guide/data-formats.md) for different data structures
-- Explore [Examples](examples/custom-configuration.md) for configuration use cases
-- Check the [CLI Reference](user-guide/cli.md) for command-line options 
+* Learn about [Data Formats](../user-guide/data-formats.md) for different data structures
+* Explore [Examples](../examples/basic-usage.md) for configuration use cases
+* Check the [CLI Reference](../user-guide/cli.md) for command-line options 

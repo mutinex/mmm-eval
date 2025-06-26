@@ -76,7 +76,7 @@ We welcome contributions! Please see our [Contributing Guide](development/contri
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [License](about/license.md) file for details.
+This project is licensed under the Apache 2.0 License - see the [License](about/license.md) file for details.
 
 ---
 

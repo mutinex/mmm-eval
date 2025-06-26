@@ -1,4 +1,4 @@
-from typing import Any, Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, InstanceOf, field_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
