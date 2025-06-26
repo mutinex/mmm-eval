@@ -6,12 +6,11 @@ import pytest
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
-# TODO: update this import once PyMCAdapter is promoted out of experimental
-from mmm_eval.adapters.experimental.pymc import (
+from mmm_eval.adapters.pymc import (
     PyMCAdapter,
     _validate_start_end_dates,
 )
-from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
+from mmm_eval.adapters.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 

@@ -6,7 +6,7 @@ from pydantic import (
 )
 from pymc_marketing.mmm import MMM
 
-from mmm_eval.adapters.experimental.schemas import (
+from mmm_eval.adapters.schemas import (
     PyMCFitSchema,
     PyMCModelSchema,
 )

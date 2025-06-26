@@ -13,7 +13,7 @@ __email__ = "your.email@example.com"
 from .adapters import (
     get_adapter,
 )
-from .adapters.experimental.pymc import PyMCAdapter
+from .adapters.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
