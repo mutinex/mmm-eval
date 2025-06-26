@@ -19,6 +19,8 @@ class BaseAdapter(ABC):
         """
         self.config = config or {}
         self.is_fitted = False
+        self.channel_spend_columns: list[str] = []
+        self.date_column: str
 
     @abstractmethod
     def fit(self, data: pd.DataFrame) -> None:

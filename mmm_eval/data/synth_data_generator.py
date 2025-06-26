@@ -111,5 +111,4 @@ def generate_data():
     ]
 
     df = df[columns_to_keep]
-    df["date_week"] = pd.to_datetime(df["date_week"])
     return df

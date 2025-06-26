@@ -1,13 +1,13 @@
 import logging
-from pathlib import Path
 
 import click
 
-from mmm_eval import evaluate_framework
 from mmm_eval.adapters import ADAPTER_REGISTRY
 from mmm_eval.configs import get_config
-from mmm_eval.data import DataPipeline
-from mmm_eval.metrics import AVAILABLE_METRICS
+from mmm_eval.core import run_evaluation
+from mmm_eval.core.validation_tests_models import ValidationTestNames
+from mmm_eval.data.loaders import DataLoader
+from mmm_eval.utils import save_results
 
 logger = logging.getLogger(__name__)
 
@@ -23,24 +23,31 @@ logger = logging.getLogger(__name__)
     "--input-data-path",
     type=str,
     required=True,
-    help="Path to input data CSV file",
-)
-@click.option(
-    "--config-path",
-    type=str,
-    help="Path to framework-specific JSON config file",
-)
-@click.option(
-    "--metrics",
-    type=click.Choice(AVAILABLE_METRICS),
-    multiple=True,
-    default=["mape", "rmse"],
-    help="Error metrics to compute for out-of-sample prediction. Defaults are mape and rmse.",
+    help="Path to input data file. Supported formats: CSV, Parquet",
 )
 @click.option(
     "--output-path",
     type=str,
-    help="Directory to save evaluation results. If not provided, results will not be saved.",
+    required=True,
+    help="Directory to save evaluation results as a CSV file with name 'mmm_eval_<framework>_<timestamp>.csv'",
+)
+@click.option(
+    "--config-path",
+    type=str,
+    required=True,
+    help="Path to framework-specific JSON config file",
+)
+@click.option(
+    "--test-names",
+    type=click.Choice(ValidationTestNames.all_tests_as_str()),
+    multiple=True,
+    default=tuple(ValidationTestNames.all_tests_as_str()),
+    help=(
+        "Test names to run. Can specify multiple tests as space-separated values "
+        "(e.g. --test-names accuracy cross_validation) or by repeating the flag "
+        "(e.g. --test-names accuracy --test-names cross_validation). "
+        "Defaults to all tests if not specified."
+    ),
 )
 @click.option(
     "--verbose",
@@ -51,9 +58,9 @@ logger = logging.getLogger(__name__)
 def main(
     config_path: str,
     input_data_path: str,
-    metrics: tuple[str, ...],
+    test_names: tuple[str, ...],
     framework: str,
-    output_path: str | None,
+    output_path: str,
     verbose: bool,
 ):
     """Evaluate MMM frameworks using the unified API."""
@@ -61,30 +68,21 @@ def main(
     log_level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(level=log_level)
 
-    # Load input data
-    logger.info(f"Loading input data from {input_data_path}")
-
+    logger.info("Loading config...")
     config = get_config(framework, config_path)
 
-    data = DataPipeline(
-        data_path=input_data_path,
-        date_column=config.date_column,
-        response_column=config.response_column,
-        revenue_column=config.revenue_column,
-    ).run()
-
-    output_path_obj = Path(output_path).mkdir(parents=True, exist_ok=True) if output_path else None
+    logger.info("Loading input data...")
+    data = DataLoader(input_data_path).load()
 
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
+    results = run_evaluation(framework, data, config, test_names)
 
-    evaluate_framework(
-        framework=framework,
-        data=data,
-        config=config,
-        metrics=list(metrics),
-        output_path=output_path_obj,
-    )
+    # Save results
+    if results.empty:
+        logger.warning("Results df empty, nothing to save.")
+    else:
+        save_results(results, framework, output_path)
 
 
 if __name__ == "__main__":

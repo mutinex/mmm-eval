@@ -1,5 +1,3 @@
-# Core API Reference
+# Data Reference
 
-This page documents the core functionality of the `mmm_eval` package.
-
-::: mmm_eval.core
+::: mmm_eval.data

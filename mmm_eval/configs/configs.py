@@ -2,7 +2,6 @@ from typing import Any
 
 from pydantic import (
     Field,
-    ValidationInfo,
     computed_field,
     field_validator,
 )
@@ -13,25 +12,8 @@ from mmm_eval.adapters.experimental.schemas import (
     PyMCModelSchema,
 )
 from mmm_eval.configs.base import BaseConfig
+from mmm_eval.configs.constants import ConfigConstants
 from mmm_eval.configs.rehydrators import PyMCConfigRehydrator
-
-
-def validate_response_column(v: str | None, info: ValidationInfo) -> str:
-    """Validate and set response column default.
-
-    Response column is optionally null. This function maps the revenue column to the response column if the response column is not provided.
-
-    Args:
-        v: The value to validate
-        info: The validation info
-
-    Returns:
-        The validated value
-
-    """
-    if v is None:
-        return info.data.get("revenue_column")
-    return v
 
 
 class PyMCConfig(BaseConfig):
@@ -39,14 +21,6 @@ class PyMCConfig(BaseConfig):
 
     pymc_model_config: PyMCModelSchema = Field(..., description="Model configuration")
     fit_config: PyMCFitSchema = Field(..., description="Fit configuration")
-    revenue_column: str = Field(..., description="Column containing the revenue variable")
-    response_column: str | None = Field(None, description="Column containing the response variable")
-
-    @field_validator("response_column")
-    @classmethod
-    def validate_response_column_field(cls, v: str | None, info: ValidationInfo) -> str:
-        """Validate and set response column default."""
-        return validate_response_column(v, info)
 
     @computed_field
     @property
@@ -60,6 +34,12 @@ class PyMCConfig(BaseConfig):
         """Return the channel columns."""
         return self.pymc_model_config.channel_columns
 
+    @computed_field
+    @property
+    def control_columns(self) -> list[str] | None:
+        """Return the control columns."""
+        return self.pymc_model_config.control_columns
+
     @property
     def pymc_model_config_dict(self) -> dict[str, Any]:
         """Return the model configuration as a dictionary."""
@@ -67,8 +47,8 @@ class PyMCConfig(BaseConfig):
 
     @property
     def fit_config_dict(self) -> dict[str, Any]:
-        """Return the fit configuration as a dictionary."""
-        return self.fit_config.model_dump()
+        """Return the fit configuration as a dictionary of user provided values."""
+        return self.fit_config.fit_config_dict_without_non_provided_fields
 
     @classmethod
     def from_model_object(
@@ -129,8 +109,12 @@ class PyMCConfig(BaseConfig):
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "PyMCConfig":
         """Save the config to a JSON file."""
         config_dict = self.model_dump()
-        config_dict["pymc_model_config"] = {k: repr(v) for k, v in config_dict["pymc_model_config"].items()}
-        config_dict["fit_config"] = {k: repr(v) for k, v in config_dict["fit_config"].items()}
+        config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG] = {
+            k: repr(v) for k, v in config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG].items()
+        }
+        config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG] = {
+            k: repr(v) for k, v in config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG].items()
+        }
         BaseConfig._save_json_file(save_path, file_name, config_dict)
         return self
 
@@ -142,12 +126,14 @@ class PyMCConfig(BaseConfig):
 
     @classmethod
     def _from_string_dict(cls, config_dict: dict[str, Any]) -> "PyMCConfig":
-        if "pymc_model_config" in config_dict:
-            rehydrator = PyMCConfigRehydrator(config_dict["pymc_model_config"])
+        if ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG in config_dict:
+            rehydrator = PyMCConfigRehydrator(config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG])
             hydrated_model_config = rehydrator.rehydrate_config()
-            config_dict["pymc_model_config"] = PyMCModelSchema(**hydrated_model_config)
-        if "fit_config" in config_dict:
-            rehydrator = PyMCConfigRehydrator(config_dict["fit_config"])
+            config_dict[ConfigConstants.PyMCConfigAttributes.PYMC_MODEL_CONFIG] = PyMCModelSchema(
+                **hydrated_model_config
+            )
+        if ConfigConstants.PyMCConfigAttributes.FIT_CONFIG in config_dict:
+            rehydrator = PyMCConfigRehydrator(config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG])
             hydrated_fit_config = rehydrator.rehydrate_config()
-            config_dict["fit_config"] = PyMCFitSchema(**hydrated_fit_config)
+            config_dict[ConfigConstants.PyMCConfigAttributes.FIT_CONFIG] = PyMCFitSchema(**hydrated_fit_config)
         return cls.model_validate(config_dict)
