@@ -35,14 +35,20 @@ from .metrics.accuracy_functions import (
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
 )
+
+# Utils
 from .utils import save_results
 
+# Setup logging when package is imported
+from .utils.logging import setup_logging
+
+setup_logging()
+
 __all__ = [
-    "get_adapter",
+    # Configs
     "PyMCConfig",
     "PyMCConfigRehydrator",
     "get_config",
-    "PyMCAdapter",
     # Core API
     "Evaluator",
     "ValidationTestResult",
@@ -63,6 +69,6 @@ __all__ = [
     "DataProcessor",
     "DataValidator",
     "DataPipeline",
-    # utils
+    # Utils
     "save_results",
 ]
