@@ -17,7 +17,7 @@ class PyMCFitSchema(BaseModel):
     chains: int | None = Field(None, description="Number of MCMC chains to run.")
     target_accept: float | None = Field(None, ge=0.0, le=1.0, description="Target acceptance rate for the sampler.")
     random_seed: int | None = Field(None, description="Random seed for reproducibility.")
-    progress_bar: bool = Field(True, description="Whether to display the progress bar.")
+    progressbar: bool = Field(False, description="Whether to display the progress bar.")
     return_inferencedata: bool = Field(True, description="Whether to return arviz.InferenceData.")
 
     model_config = {

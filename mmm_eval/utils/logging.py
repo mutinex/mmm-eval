@@ -19,14 +19,16 @@ def setup_logging():
         force=True,
     )
 
-    # Set PyMC loggers to ERROR level only (suppress INFO and WARNING)
+    # Set PyMC and related loggers to ERROR level only (suppress INFO and WARNING)
     pymc_loggers = [
         "pymc",
         "pymc.sampling",
         "pymc.sampling.mcmc",
+        "pymc.sampling.nuts",
+        "pymc.sampling.step_methods",
         "pymc.stats",
-        "pymc.stats.convergence",
         "pymc_marketing",
+        "pymc_marketing.mmm",
     ]
     for logger_name in pymc_loggers:
         logging.getLogger(logger_name).setLevel(logging.ERROR)
