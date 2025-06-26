@@ -76,13 +76,13 @@ class DataValidator:
 
         """
         data_to_check = df[list(cols)]
-        out_of_range_cols = data_to_check.columns[(data_to_check.min() < 0) | (data_to_check.max() > 1)]
+        out_of_range_cols = data_to_check.columns[(data_to_check.min() < -1) | (data_to_check.max() > 1)]
 
         for col in out_of_range_cols:
             col_min = data_to_check[col].min()
             col_max = data_to_check[col].max()
             logger.warning(
-                f"Control column '{col}' has values outside [0, 1] range: "
+                f"Control column '{col}' has values outside [-1, 1]: "
                 f"min={col_min:.4f}, max={col_max:.4f}. "
-                f"Consider scaling this column to 0-1 range as per PyMC best practices."
+                f"Consider scaling this column to [-1, 1] as per PyMC best practices."
             )

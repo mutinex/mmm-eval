@@ -1,6 +1,6 @@
 """PyMC MMM framework adapter.
 
-N.B. we expect control variables to be scaled to 0-1 using maxabs scaling BEFORE being
+N.B. we expect control variables to be scaled to [-1, 1] using maxabs scaling BEFORE being
 passed to the PyMCAdapter.
 """
 
@@ -34,6 +34,10 @@ class PyMCAdapter(BaseAdapter):
         self.trace = None
         self._channel_roi_df = None
         self.is_fitted = False
+        
+        # Store original values to reset on subsequent fit calls
+        self._original_channel_spend_columns = config.channel_columns.copy()
+        self._original_model_kwargs = config.pymc_model_config_dict.copy()
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
@@ -42,6 +46,10 @@ class PyMCAdapter(BaseAdapter):
             data: DataFrame containing the training data adhering to the PyMCInputDataSchema.
 
         """
+        # Reset to original values at the start of each fit call
+        self.channel_spend_columns = self._original_channel_spend_columns.copy()
+        self.model_kwargs = self._original_model_kwargs.copy()
+        
         # Identify channel spend columns that sum to zero and remove them from modelling.
         # We cannot reliabily make any prediction based on these channels when making
         # predictions on new data.
