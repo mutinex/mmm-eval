@@ -4,9 +4,8 @@ This package provides a standardized interface for evaluating different MMM fram
 such as PyMC-marketing.
 """
 
-__version__ = "0.1.0"
 __author__ = "King Kang and the Jungle Boys"
-__email__ = "your.email@example.com"
+__email__ = "joseph.kang@mutinex.co"
 
 # Core functionality
 # Adapters
@@ -23,9 +22,6 @@ from .data import (
     DataProcessor,
     DataValidator,
 )
-
-# Metrics
-from .metrics.accuracy import mae, mape, r_squared, rmse, symmetric_mape
 
 __all__ = [
     "get_adapter",

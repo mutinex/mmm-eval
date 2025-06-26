@@ -111,13 +111,9 @@ plugins:
         python:
           options:
             show_source: true
-            # show_root_heading: false
-            # show_signature_annotations: false
-            # show_category_heading: false
-            # show_bases: false
             show_submodules: true
-  # - git-revision-date-localized:
-  #     enable_creation_date: true
+  - git-revision-date-localized:
+      enable_creation_date: true
   - minify:
       minify_html: true
 
