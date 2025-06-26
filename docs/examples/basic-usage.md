@@ -321,6 +321,6 @@ print('Date range:', df['date_week'].min(), 'to', df['date_week'].max())
 
 ## Next Steps
 
-- Learn about [Data Formats](../user-guide/data-formats.md) for different data structures
+- Learn about [Data](../user-guide/data.md) for different data structures
 - Explore [Configuration](../getting-started/configuration.md) for advanced settings
 - Check the [CLI Reference](../user-guide/cli.md) for all available options 

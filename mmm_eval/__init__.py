@@ -4,8 +4,6 @@ This package provides a standardized interface for evaluating different MMM fram
 such as PyMC-marketing.
 """
 
-from ._version import __version__
-
 __author__ = "King Kang and the Jungle Boys"
 __email__ = "joseph.kang@mutinex.co"
 

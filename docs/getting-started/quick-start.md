@@ -1,32 +1,31 @@
 # Quick Start
 
-This guide will help you get started with mmm-eval quickly. You'll learn how to run your first evaluation and understand the basic workflow.
+This guide will help you get started with mmm-eval quickly by walking through an example notebook. You'll learn the evaluation workflow and how to interpret the results. To see how to run mmm-eval from the command line, check out [CLI](../user-guide/cli.md).
 
 ## Prerequisites
 
 Before you begin, make sure you have:
 
 1. **mmm-eval installed** - See [Installation](installation.md) if you haven't installed it yet
-2. **Your MMM data** - A CSV file with your marketing mix model data
-3. **A configuration file** - JSON configuration for the PyMC-Marketing framework
-4. **A supported framework** - Currently PyMC-Marketing is supported
+2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
+3. **A supported framework** - Currently PyMC-Marketing is supported
 
 ## Basic Usage
 
-### 1. Prepare Your Data
+### Prepare Your Data
 
-Your data should be in CSV format with columns for:
+Your data should contain the following columns (see [Data Requirements](../user-guide/data.md#data-requirements) for more)
 
 * Date/time period
-* Target variable (e.g., sales, conversions)
 * Revenue variable (for calculating ROI)
-* Marketing spend channels (e.g., TV, digital, print)
-* Control variables (e.g., price, seasonality)
+* Marketing spend $ by channel (e.g., TV, digital, print)
+* `OPTIONAL` Response variable (e.g., sales, conversions, units)
+* `OPTIONAL` Control variables (e.g., price, seasonality)
 
 Example data structure:
 
 ```csv
-date_week,quantity,revenue,channel_1,channel_2,price,event_1,event_2
+date_week,quantity,revenue,TV,radio,price,event_1,event_2
 2023-01-01,1000,7000,5000,2000,10.99,0,0
 2023-01-08,1200,8000,5500,2200,10.99,0,0
 2023-01-15,1100,7500,5200,2100,11.99,1,0
@@ -34,157 +33,89 @@ date_week,quantity,revenue,channel_1,channel_2,price,event_1,event_2
 2023-01-29,1400,9500,6500,2600,12.99,0,0
 ```
 
-### 2. Create a Configuration File
+### Evaluating your PyMC MMM (follow along in `mmm-eval/examples/pymc_eval.ipynb`)
+First, load your data
+```jupyter
+data = pd.read_csv("data/example_data.csv")
+```
 
-Create a JSON configuration file for the PyMC-Marketing framework:
+and fit a PyMC-Marketing MMM
+```jupyter
+X = data.drop(columns=["revenue","quantity"])
+y = data["quantity"]
 
-```json
-{
-  "pymc_model_config": {
-    "date_column": "date_week",
-    "channel_columns": ["channel_1", "channel_2"],
-    "control_columns": ["price", "event_1", "event_2"],
-    "adstock": "GeometricAdstock(l_max=4)",
-    "saturation": "LogisticSaturation()",
-    "yearly_seasonality": 2
-  },
-  "fit_config": {
-    "target_accept": 0.9,
-    "draws": 100,
-    "tune": 50,
-    "chains": 2,
-    "random_seed": 42
-  },
-  "revenue_column": "revenue",
-  "response_column": "quantity"
+model = MMM(
+    date_column="date_week" ,
+    channel_columns=["TV","radio"],
+    adstock=GeometricAdstock(l_max=4),
+    saturation=LogisticSaturation()
+)
+
+model.fit(X=X, y=y, chains=4, target_accept=0.85)
+```
+
+#### Now we evaluate! Just create a config
+```jupyter
+fit_kwargs = { 
+    "chains": 4,
+    "target_accept": 0.85,
 }
+
+config = PyMCConfig.from_model_object(base_model, fit_kwargs=fit_kwargs, response_column="quantity", revenue_column="revenue")
+
+# Save this for later if you want to run from CLI!
+config.save_model_object_to_json(save_path="data/", file_name="saved_config")
 ```
 
-Save this as `config.json`.
-
-### 3. Run Your First Evaluation
-
-The basic command to run an evaluation:
-
-```bash
-mmm-eval \
-  --input-data-path your_data.csv \
-  --framework pymc-marketing \
-  --config-path config.json \
-  --output-path ./results/
+And we can run the evaluation suite, which returns a dataframe.
+```jupyter
+result = run_evaluation(framework="pymc-marketing", config=config, data=data)
 ```
+#### ✨ Done ✨
 
-This will:
+## What's in `result`?
 
-* Load your data and configuration
-* Run the PyMC-Marketing framework
-* Execute all available validation tests
-* Save results to the specified output directory
+The evaluation suite runs 4 tests, each of which answers a distinct question about the quality of your model: 
 
-### 4. View Results
+* **Accuracy Test**: "How well does my model predict on unseen data?"
+* **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
+* **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
+* **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"
 
-After the evaluation completes, you'll find:
+Details on the implementation of the tests can be found in [Tests](../user-guide/tests.md). For each test, we compute multiple metrics to give as much insight into the test result as possible. These can be viewed in detail in [Metrics](../user-guide/metrics.md). For example:
 
-* `mmm_eval_pymc-marketing_YYYYMMDD_HHMMSS.csv` - A table of test results with metrics for each test
+* **MAPE (Mean Absolute Percentage Error)**  
+  `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
 
-## Available Tests
+* **RMSE (Root Mean Square Error)**  
+  `RMSE = sqrt((1 / n) * Σ (y_i - ŷ_i)^2)`
 
-mmm-eval runs four standard validation tests:
+* **R-squared (Coefficient of Determination)**  
+  `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
-* **accuracy** - Model accuracy using holdout validation
-* **cross_validation** - Time series cross-validation performance
-* **refresh_stability** - Model stability over different time periods
-* **perturbation** - Sensitivity to data perturbations
 
-### Run Specific Tests
+If we look at the evaluation output ```display(results)```, we see the following table:
 
-If you only want to run certain tests:
+|     test_name     |                  metric_name                  | metric_value | metric_pass |
+|-------------------|-----------------------------------------------|--------------|-------------|
+| accuracy          | mape                                          | 0.121        | False       |
+| accuracy          | r_squared                                     | -0.547       | False       |
+| cross_validation  | mean_mape                                     | 0.084        | False       |
+| cross_validation  | std_mape                                      | 0.058        | False       |
+| cross_validation  | mean_r_squared                                | -7.141       | False       |
+| cross_validation  | std_r_squared                                 | 9.686        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:radio | 0.369        | False       |
+| refresh_stability | std_percentage_change_for_each_channel:TV     | 0.021        | False       |
+| refresh_stability | std_percentage_change_for_each_channel:radio  | 0.397        | False       |
+| perturbation      | percentage_change_for_each_channel:TV         | 0.005        | False       |
+| perturbation      | percentage_change_for_each_channel:radio      | 0.112        | False       |
 
-```bash
-mmm-eval \
-  --input-data-path data.csv \
-  --framework pymc-marketing \
-  --config-path config.json \
-  --output-path ./results/ \
-  --test-names accuracy cross_validation
-```
 
-### Verbose Output
+Notice that our model is failing every test. Seems we have some work to do!
 
-Get detailed information during execution:
-
-```bash
-mmm-eval \
-  --input-data-path data.csv \
-  --framework pymc-marketing \
-  --config-path config.json \
-  --output-path ./results/ \
-  --verbose
-```
-
-## Understanding Results
-
-### Key Metrics
-
-mmm-eval provides several key metrics:
-
-* **MAPE** (Mean Absolute Percentage Error) - Accuracy measure
-* **RMSE** (Root Mean Square Error) - Error magnitude
-* **R-squared** - Model fit quality
-
-### Test Results
-
-Each test provides specific insights:
-
-* **Accuracy Test**: How well the model predicts on unseen data
-* **Cross-Validation**: Model performance across different time periods
-* **Refresh Stability**: How consistent the model is over time
-* **Perturbation**: How sensitive the model is to data changes
-
-## Common Use Cases
-
-### Custom Output Directory
-
-Specify where to save results:
-
-```bash
-mmm-eval \
-  --input-data-path data.csv \
-  --framework pymc-marketing \
-  --config-path config.json \
-  --output-path ./my_results/
-```
-
-### Complete Example
-
-A complete example with all options:
-
-```bash
-mmm-eval \
-  --input-data-path marketing_data.csv \
-  --framework pymc-marketing \
-  --config-path evaluation_config.json \
-  --test-names accuracy cross_validation refresh_stability perturbation \
-  --output-path ./evaluation_results/ \
-  --verbose
-```
-
-## Data Requirements
-
-### Minimum Data Requirements
-
-* **Time period**: At least 52 weeks (1 year) of data
-* **Frequency**: Weekly or daily data (consistent frequency)
-* **Observations**: Minimum 100 data points recommended
-* **Media channels**: At least 2-3 channels for meaningful analysis
-* **Revenue data**: Required for ROI calculations
-
-### Data Quality Requirements
-
-* No missing values in required columns
-* Complete time series (no gaps in dates)
-* Consistent date format
-* Non-negative values for spend columns
+## Changing the Thresholds
+Default metric thresholds in `mmm_eval/metrics/threshold_constants.py` can be overwritten in-place to change the pass/fail cutoff for each metric.
 
 ## Next Steps
 
@@ -192,7 +123,7 @@ Now that you've run your first evaluation:
 
 1. **Explore the [User Guide](../user-guide/cli.md)** for detailed CLI options
 2. **Check out [Examples](../examples/basic-usage.md)** for more complex scenarios
-3. **Learn about [Data Formats](../user-guide/data-formats.md)** for different data structures
+3. **Learn about [Data](../user-guide/data.md)** for different data structures
 4. **Review [Configuration](../configuration.md)** for advanced settings
 
 ## Getting Help

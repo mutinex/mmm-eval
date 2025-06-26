@@ -1,12 +1,39 @@
-# Data Formats
+# Data
 
 mmm-eval expects your data to be in a specific format. This guide explains the required structure and provides examples for preparing your marketing mix modeling data.
 
+## Data Requirements
+
+### Quantity Requirements
+
+* **Time period**: At least 52 weeks (1 year) of data
+* **Frequency**: Weekly or daily data (consistent frequency)
+* **Observations**: Minimum 100 data points recommended
+* **Media channels**: At least 2-3 channels for meaningful analysis
+* **Revenue data**: Required for ROI calculations
+
+### Quality Requirements
+
+#### Completeness
+* No missing values in required columns
+* Complete time series (no gaps in dates)
+* Non-negative values for spend columns
+
+#### Consistency
+- Same units throughout (e.g., all spend in same currency)
+- Consistent date format
+- Consistent naming conventions
+
+#### Reasonableness
+- Values within expected ranges
+- No obvious outliers or errors
+- Logical relationships between variables
+
 ## Required Data Format
 
-mmm-eval accepts CSV files with the following structure:
+mmm-eval accepts CSV and Parquet files with the following structure:
 
-### Basic Requirements
+### Required Columns
 
 - **Date column**: Time series data with consistent date format
 - **Target column**: The variable you want to predict (e.g., sales, conversions)
@@ -88,33 +115,6 @@ date,sales,revenue,tv_spend,digital_spend,social_spend,search_spend,email_spend,
 2023-01-04,1450,10150,18000,9500,3800,6000,2400,13.99,0,0
 2023-01-05,1520,10640,19000,10000,4000,6300,2500,14.99,0,0
 ```
-
-## Data Requirements
-
-### Minimum Data Requirements
-
-- **Time period**: At least 52 weeks (1 year) of data
-- **Frequency**: Weekly or daily data (consistent frequency)
-- **Observations**: Minimum 100 data points recommended
-- **Media channels**: At least 2-3 channels for meaningful analysis
-- **Revenue data**: Required for ROI calculations
-
-### Data Quality Requirements
-
-#### Completeness
-- No missing values in required columns
-- Complete time series (no gaps in dates)
-- Consistent data collection methodology
-
-#### Consistency
-- Same units throughout (e.g., all spend in same currency)
-- Consistent date format
-- Consistent naming conventions
-
-#### Reasonableness
-- Values within expected ranges
-- No obvious outliers or errors
-- Logical relationships between variables
 
 ## Configuration File
 

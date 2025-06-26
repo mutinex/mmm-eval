@@ -84,7 +84,7 @@ nav:
     - Frameworks: user-guide/frameworks.md
     - Tests: user-guide/tests.md
     - Metrics: user-guide/metrics.md
-    - Data Formats: user-guide/data-formats.md
+    - Data: user-guide/data.md
   - API Reference:
     - Adapters: api/adapters.md
     - Core: api/core.md

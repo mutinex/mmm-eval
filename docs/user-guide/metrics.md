@@ -71,29 +71,16 @@ mmm-eval calculates several key metrics across different validation tests:
 
 ### Refresh Stability
 
-Measures how consistent model performance is when retrained on different time periods.
+Measures *consistency* of channel attribution when the model is trained on different time periods.
 
 **Calculation**:
 1. Train model on different proportions of data (e.g., 50%, 75%, 90%)
 2. Calculate metrics for each refresh period
-3. Measure variation in performance across periods
+3. Measure average and standard deviation in metrics across periods
 
 **Interpretation**:
 - Lower variation indicates more stable model
 - High variation suggests model is sensitive to training data
-
-### Cross-Validation Stability
-
-Measures consistency across different data splits.
-
-**Calculation**:
-1. Perform k-fold cross-validation
-2. Calculate metrics for each fold
-3. Measure variation in performance across folds
-
-**Interpretation**:
-- Lower variation indicates more stable model
-- High variation suggests overfitting or data issues
 
 ## Robustness Metrics
 
@@ -155,34 +142,6 @@ When comparing multiple models:
 1. **Compare accuracy**: Which model has better predictive performance?
 2. **Compare stability**: Which model is more consistent?
 3. **Compare robustness**: Which model is less sensitive to changes?
-
-### Example Results
-
-```json
-{
-  "accuracy": {
-    "mape": 12.5,
-    "rmse": 150.2,
-    "r2": 0.87,
-    "mae": 120.8
-  },
-  "cross_validation": {
-    "mape_mean": 13.2,
-    "mape_std": 1.8,
-    "r2_mean": 0.85,
-    "r2_std": 0.03
-  },
-  "refresh_stability": {
-    "mape_variation": 2.1,
-    "r2_variation": 0.05
-  }
-}
-```
-
-**Interpretation**:
-- Good accuracy (MAPE 12.5%, R² 0.87)
-- Stable cross-validation (low standard deviations)
-- Good refresh stability (low variation)
 
 ## Best Practices
 

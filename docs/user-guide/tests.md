@@ -6,10 +6,10 @@ mmm-eval provides a comprehensive suite of validation tests to evaluate MMM perf
 
 mmm-eval includes four main types of validation tests:
 
-1. **Accuracy Test** - Evaluates predictive performance
-2. **Cross-Validation Test** - Assesses model stability
-3. **Refresh Stability Test** - Tests temporal consistency
-4. **Perturbation Test** - Evaluates robustness
+1. **Accuracy Test** - Predictive accuracy on unseen data
+2. **Cross-Validation Test** - Predictive accuracy on k-folds of unseen data
+3. **Refresh Stability Test** - Stability of marketing attribution when additional data is added
+4. **Perturbation Test** - Stability of marketing attribution when noise is added to input data
 
 ## Accuracy Test
 
@@ -24,20 +24,6 @@ The accuracy test evaluates how well the model predicts on unseen data.
 3. **Prediction**: Makes predictions on the test set
 4. **Evaluation**: Calculates accuracy metrics
 
-### Configuration
-
-```json
-{
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
-  }
-}
-```
-
 ### Interpretation
 
 - **Good accuracy**: Low MAPE/RMSE, high R²
@@ -48,28 +34,14 @@ The accuracy test evaluates how well the model predicts on unseen data.
 
 ### Purpose
 
-The cross-validation test assesses model stability across different data splits.
+The cross-validation test assesses the *consistency* of model accuracy across multiple data splits.
 
 ### Methodology
 
-1. **K-Fold Split**: Divides data into k equal parts
+1. **K-Fold Split**: Divides data into k contiguous folds (to preserve time series structure)
 2. **Iterative Training**: Trains k models, each using k-1 folds
 3. **Performance Assessment**: Evaluates each model on the held-out fold
-4. **Stability Analysis**: Measures variation in performance across folds
-
-### Configuration
-
-```json
-{
-  "tests": {
-    "cross_validation": {
-      "folds": 5,
-      "random_state": 42,
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
-  }
-}
-```
+4. **Stability Analysis**: Measures variation in accuracy metrics across folds
 
 ### Interpretation
 
@@ -81,7 +53,7 @@ The cross-validation test assesses model stability across different data splits.
 
 ### Purpose
 
-The refresh stability test evaluates how consistent model performance is over time.
+The refresh stability test evaluates how stable marketing attribution is when new data is added (refreshed).
 
 ### Methodology
 
@@ -89,24 +61,11 @@ The refresh stability test evaluates how consistent model performance is over ti
 2. **Performance Tracking**: Measures performance at each refresh point
 3. **Stability Assessment**: Analyzes variation in performance over time
 
-### Configuration
-
-```json
-{
-  "tests": {
-    "refresh_stability": {
-      "refresh_periods": [0.5, 0.75, 0.9],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
-  }
-}
-```
-
 ### Interpretation
 
-- **Stable model**: Consistent performance across refresh periods
-- **Unstable model**: Performance varies significantly over time
-- **Improving model**: Performance improves with more data
+- **Stable model**: Consistent attribution across refresh periods
+- **Unstable model**: Attribution varies significantly over time
+- **Improving model**: Attribution improves with more data
 
 ## Perturbation Test
 
@@ -116,23 +75,11 @@ The perturbation test evaluates how sensitive the model is to small changes in t
 
 ### Methodology
 
-1. **Data Perturbation**: Adds small random noise to input data
-2. **Model Retraining**: Retrains model on perturbed data
-3. **Performance Comparison**: Compares performance with original model
-4. **Sensitivity Analysis**: Measures change in performance
+1. **Train a Model**: Train a model on the original data.
+2. **Data Perturbation**: Adds small random noise to marketing input data
+3. **Model Retraining**: Retrains model on perturbed data
+4. **Performance Comparison**: Compares marketing attribution between perturbed and non-perturbed models
 
-### Configuration
-
-```json
-{
-  "tests": {
-    "perturbation": {
-      "perturbation_levels": [0.05, 0.1, 0.15],
-      "metrics": ["mape", "rmse", "r2", "mae"]
-    }
-  }
-}
-```
 
 ### Interpretation
 
@@ -152,131 +99,59 @@ The perturbation test evaluates how sensitive the model is to small changes in t
 | Perturbation | Robustness evaluation | Production readiness |
 
 ### Recommended Test Combinations
+All tests are run by default, which is the recommendation. However, users can specify a subset of tests to run
 
-#### Basic Evaluation
+CLI
 ```bash
-mmm-eval --test-names accuracy
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 ```
 
-#### Comprehensive Evaluation
-```bash
-mmm-eval --test-names accuracy,cross_validation,refresh_stability,perturbation
-```
-
-#### Production Readiness
-```bash
-mmm-eval --test-names cross_validation,perturbation
+Python
+```python
+results = run_evaluation(config=config, data=data, framework="pymc-marketing", test_names = ("accuracy","cross_validation"))
 ```
 
 ## Interpreting Test Results
 
-### Single Test Results
+Each test answers a distinct question:
 
-Each test provides specific insights:
+* **Accuracy Test**: "How well does my model predict on unseen data?"
+* **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
+* **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
+* **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"
 
-- **Accuracy Test**: Overall predictive performance
-- **Cross-Validation**: Model stability and generalization
-- **Refresh Stability**: Temporal consistency
-- **Perturbation**: Robustness to data changes
+For each test, we compute multiple metrics to give as much insight into the test result as possible: 
 
-### Combined Results
+* **MAPE (Mean Absolute Percentage Error)**  
+  `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
 
-When all tests are run together:
+* **RMSE (Root Mean Square Error)**  
+  `RMSE = sqrt((1 / n) * Σ (y_i - ŷ_i)^2)`
 
-1. **Check accuracy**: Is the model predicting well?
-2. **Assess stability**: Is performance consistent?
-3. **Evaluate robustness**: Is the model reliable?
+* **R-squared (Coefficient of Determination)**  
+  `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
 ### Example Results
 
-```json
-{
-  "accuracy": {
-    "mape": 12.5,
-    "rmse": 150.2,
-    "r2": 0.87
-  },
-  "cross_validation": {
-    "mape_mean": 13.2,
-    "mape_std": 1.8,
-    "r2_mean": 0.85,
-    "r2_std": 0.03
-  },
-  "refresh_stability": {
-    "mape_variation": 2.1,
-    "r2_variation": 0.05
-  },
-  "perturbation": {
-    "mape_sensitivity": 0.15,
-    "r2_sensitivity": 0.02
-  }
-}
-```
+|     test_name     |                  metric_name                  | metric_value | metric_pass |
+|-------------------|-----------------------------------------------|--------------|-------------|
+| accuracy          | mape                                          | 0.121        | False       |
+| accuracy          | r_squared                                     | -0.547       | False       |
+| cross_validation  | mean_mape                                     | 0.084        | False       |
+| cross_validation  | std_mape                                      | 0.058        | False       |
+| cross_validation  | mean_r_squared                                | -7.141       | False       |
+| cross_validation  | std_r_squared                                 | 9.686        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:radio | 0.369        | False       |
+| refresh_stability | std_percentage_change_for_each_channel:TV     | 0.021        | False       |
+| refresh_stability | std_percentage_change_for_each_channel:radio  | 0.397        | False       |
+| perturbation      | percentage_change_for_each_channel:TV         | 0.005        | False       |
+| perturbation      | percentage_change_for_each_channel:radio      | 0.112        | False       |
 
-**Interpretation**:
-- Good accuracy (MAPE 12.5%, R² 0.87)
-- Stable cross-validation (low std dev)
-- Good refresh stability (low variation)
-- Robust to perturbations (low sensitivity)
 
-## Test Configuration
+## Changing the Thresholds
+Default metric thresholds in `mmm_eval/metrics/threshold_constants.py` can be overwritten in-place to change the pass/fail cutoff for each metric.
 
-### Customizing Test Parameters
-
-You can customize test parameters through configuration:
-
-```json
-{
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8,
-      "random_state": 42
-    },
-    "cross_validation": {
-      "folds": 10,
-      "random_state": 42
-    },
-    "refresh_stability": {
-      "refresh_periods": [0.3, 0.5, 0.7, 0.9]
-    },
-    "perturbation": {
-      "perturbation_levels": [0.01, 0.05, 0.1]
-    }
-  }
-}
-```
-
-### Environment Variables
-
-You can also set test parameters via environment variables:
-
-```bash
-export MMM_EVAL_TRAIN_TEST_SPLIT=0.8
-export MMM_EVAL_CV_FOLDS=5
-export MMM_EVAL_RANDOM_STATE=42
-```
-
-## Best Practices
-
-### Test Selection
-
-1. **Start with accuracy**: Always run accuracy test first
-2. **Add stability tests**: Include cross-validation for model comparison
-3. **Consider temporal aspects**: Use refresh stability for time series
-4. **Test robustness**: Include perturbation for production models
-
-### Result Interpretation
-
-1. **Set benchmarks**: Define acceptable performance thresholds
-2. **Compare models**: Use same tests for fair comparison
-3. **Consider context**: Industry-specific benchmarks may apply
-4. **Monitor trends**: Track performance over time
-
-### Continuous Testing
-
-1. **Automate testing**: Include tests in CI/CD pipeline
-2. **Regular evaluation**: Periodically reassess model performance
-3. **Alert on degradation**: Set up monitoring for performance drops
 
 ## Next Steps
 

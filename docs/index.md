@@ -1,6 +1,6 @@
 # Welcome to mmm-eval
 
-An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks with comprehensive validation tests.
+An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks with a comprehensive suite of tests.
 
 ## 🚀 Quick Start
 
@@ -44,7 +44,7 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing
 ## ✨ Features
 
 - **Multi-framework support**: Evaluate PyMC-Marketing and other MMM frameworks
-- **Comprehensive validation tests**: Accuracy, cross-validation, refresh stability, and perturbation tests
+- **Comprehensive test suite**: Accuracy, cross-validation, refresh stability, and perturbation tests
 - **Standardized metrics**: MAPE, RMSE, R-squared, and other industry-standard metrics
 - **Flexible data handling**: Support for custom column names and data formats
 - **CLI interface**: Easy-to-use command-line tool for evaluation
