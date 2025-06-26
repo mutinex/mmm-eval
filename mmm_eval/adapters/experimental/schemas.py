@@ -5,19 +5,17 @@ from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
 
 
-class PyMCInputDataSchema(BaseModel):
-    """Schema for input CSV data."""
-
-    date_column: str = Field(..., description="Column name of the date variable.")
-    channel_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
-    revenue_column: float = Field(description="Revenue column")
-
-
 class PyMCFitSchema(BaseModel):
-    draws: int = Field(1000, description="Number of posterior samples to draw.")
-    tune: int = Field(1000, description="Number of tuning (warm-up) steps.")
-    chains: int = Field(4, description="Number of MCMC chains to run.")
-    target_accept: float = Field(0.8, ge=0.0, le=1.0, description="Target acceptance rate for the sampler.")
+    """Schema for PyMC Fit Configuration.
+
+    Defaults are all set to None so that the user can provide only the values they want to change.
+    If a user does not provide a value, we will let the latest PYMC defaults be used in model instantiation.
+    """
+
+    draws: int | None = Field(None, description="Number of posterior samples to draw.")
+    tune: int | None = Field(None, description="Number of tuning (warm-up) steps.")
+    chains: int | None = Field(None, description="Number of MCMC chains to run.")
+    target_accept: float | None = Field(None, ge=0.0, le=1.0, description="Target acceptance rate for the sampler.")
     random_seed: int | None = Field(None, description="Random seed for reproducibility.")
     progress_bar: bool = Field(True, description="Whether to display the progress bar.")
     return_inferencedata: bool = Field(True, description="Whether to return arviz.InferenceData.")
@@ -27,6 +25,19 @@ class PyMCFitSchema(BaseModel):
         "extra": "allow",
         "coerce_types_to_string": False,  # Allow type coercion
     }
+
+    @property
+    def fit_config_dict_without_non_provided_fields(self) -> dict[str, Any]:
+        """Return only non-None values.
+
+           These are the values that are provided by the user.
+           We don't want to include the default values as they should be set by the latest PYMC
+
+        Returns
+            Dictionary of non-None values
+
+        """
+        return {key: value for key, value in self.model_dump().items() if value is not None}
 
 
 class PyMCModelSchema(BaseModel):

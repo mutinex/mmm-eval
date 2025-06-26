@@ -46,8 +46,8 @@ class PyMCConfig(BaseConfig):
 
     @property
     def fit_config_dict(self) -> dict[str, Any]:
-        """Return the fit configuration as a dictionary."""
-        return self.fit_config.model_dump()
+        """Return the fit configuration as a dictionary of user provided values."""
+        return self.fit_config.fit_config_dict_without_non_provided_fields
 
     @classmethod
     def from_model_object(

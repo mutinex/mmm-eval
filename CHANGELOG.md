@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] ; 2025-06-26
+
+### Changed
+
+- `PyMCFitSchema` now has all null defaults
+- New method `fit_config_dict_without_non_provided_fields` dumps validated model to dict
+  except for fields that have null values after being validated by PyMCFitSchema
+
 ## [0.4.1] ; 2025-06-26
 
 ### Changed
