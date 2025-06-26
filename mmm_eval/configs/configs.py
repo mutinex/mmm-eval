@@ -19,7 +19,7 @@ class PyMCConfig(BaseConfig):
     """Evaluation config for the PyMC MMM framework."""
 
     pymc_model_config: PyMCModelSchema = Field(..., description="Model configuration")
-    fit_config: PyMCFitSchema = Field(..., description="Fit configuration")
+    fit_config: PyMCFitSchema = Field(default=PyMCFitSchema(), description="Fit configuration")
 
     @computed_field
     @property
@@ -53,26 +53,26 @@ class PyMCConfig(BaseConfig):
     def from_model_object(
         cls,
         model_object: MMM,
-        fit_kwargs: dict[str, Any],
         revenue_column: str,
+        fit_kwargs: dict[str, Any] | None = None,
         response_column: str | None = None,
     ) -> "PyMCConfig":
         """Create a PyMCConfig from a model object and fit kwargs.
 
         Args:
             model_object: The PyMC model object
-            fit_kwargs: The arguments passed to `.fit()`
             revenue_column: The column containing the revenue variable
+            fit_kwargs: The arguments passed to `.fit()` (optional, will use defaults if not provided)
             response_column: The column containing the response variable (optional)
 
         Returns:
             A validated PyMCConfig instance
 
         """
-        cls._validate_inputs(model_object, fit_kwargs, revenue_column)
+        cls._validate_inputs(model_object, revenue_column)
 
         model_config = cls._extract_model_config(model_object)
-        fit_config = cls._extract_fit_config(fit_kwargs)
+        fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else PyMCFitSchema()
 
         return cls(
             pymc_model_config=model_config,
@@ -82,12 +82,10 @@ class PyMCConfig(BaseConfig):
         )
 
     @staticmethod
-    def _validate_inputs(model_object: Any, fit_kwargs: dict[str, Any], revenue_column: str) -> None:
+    def _validate_inputs(model_object: Any, revenue_column: str) -> None:
         """Validate the input parameters."""
         if model_object is None:
             raise ValueError("`model_object` is required.")
-        if not fit_kwargs:
-            raise ValueError("`fit_kwargs` is required.")
         if not revenue_column:
             raise ValueError("`revenue_column` is required")
 
