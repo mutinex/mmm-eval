@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from mmm_eval.data import DataPipeline
-from mmm_eval.data.constants import DataLoaderConstants, InputDataframeConstants
+from mmm_eval.data.constants import InputDataframeConstants
 from mmm_eval.data.exceptions import DataValidationError
 
 
@@ -23,15 +23,13 @@ class TestDataPipeline:
             }
         )
 
-    def test_complete_pipeline(self, tmp_path):
+    def test_complete_pipeline(self):
         """Test complete pipeline with valid data."""
         df = self._get_test_df()
-        csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
-        df.to_csv(csv_path, index=False)
 
         # Run pipeline
         pipeline = DataPipeline(
-            data_path=csv_path,
+            data=df,
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -47,16 +45,14 @@ class TestDataPipeline:
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
         assert pd.api.types.is_datetime64_any_dtype(result["custom_date"])
 
-    def test_pipeline_with_default_settings(self, tmp_path):
+    def test_pipeline_with_default_settings(self):
         """Test pipeline with default column names."""
         # Create test CSV with default column names
         df = self._get_test_df()
-        csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
-        df.to_csv(csv_path, index=False)
 
         # Run pipeline with default settings
         pipeline = DataPipeline(
-            data_path=csv_path,
+            data=df,
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -71,16 +67,14 @@ class TestDataPipeline:
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
         assert pd.api.types.is_datetime64_any_dtype(result["custom_date"])
 
-    def test_pipeline_with_custom_settings(self, tmp_path):
+    def test_pipeline_with_custom_settings(self):
         """Test pipeline with custom column names."""
         # Create test CSV
         df = self._get_test_df()
-        csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
-        df.to_csv(csv_path, index=False)
 
         # Run pipeline with custom column names
         pipeline = DataPipeline(
-            data_path=csv_path,
+            data=df,
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -95,17 +89,15 @@ class TestDataPipeline:
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns  # Should be renamed
         assert pd.api.types.is_datetime64_any_dtype(result["custom_date"])
 
-    def test_pipeline_fails_with_invalid_data(self, tmp_path):
+    def test_pipeline_fails_with_invalid_data(self):
         """Test pipeline fails with invalid data."""
         # Create test CSV with insufficient data
         df = self._get_test_df()
         df = df.head(10)
-        csv_path = tmp_path / f"test.{DataLoaderConstants.ValidDataExtensions.CSV}"
-        df.to_csv(csv_path, index=False)
 
         # Run pipeline with strict requirements
         pipeline = DataPipeline(
-            data_path=csv_path,
+            data=df,
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
