@@ -36,6 +36,7 @@ from .metrics.accuracy_functions import (
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
 )
+from .utils import save_results
 
 __all__ = [
     "get_adapter",
@@ -63,4 +64,6 @@ __all__ = [
     "DataProcessor",
     "DataValidator",
     "DataPipeline",
+    # utils
+    "save_results",
 ]
