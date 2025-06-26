@@ -45,6 +45,9 @@ class DataPipeline:
             channel_columns=channel_columns,
         )
         self.validator = DataValidator(
+            date_column=date_column,
+            response_column=response_column,
+            revenue_column=revenue_column,
             control_columns=control_columns,
             min_number_observations=min_number_observations,
         )

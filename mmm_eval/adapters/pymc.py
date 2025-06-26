@@ -177,9 +177,17 @@ class PyMCAdapter(BaseAdapter):
         avg_rev_per_unit = np.divide(
             contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
             contribution_df[InputDataframeConstants.RESPONSE_COL],
-            out=np.zeros_like(contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]),
+            out=np.full_like(contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], np.nan),
+            # we check upstream whether exactly one of response and revenue are zero,
+            # so we can safely assume that 0 response -> 0 revenue
             where=contribution_df[InputDataframeConstants.RESPONSE_COL] != 0,
         )
+
+        # forward fill three periods, then fill any remaining with the mean
+        avg_rev_per_unit = pd.Series(avg_rev_per_unit, index=contribution_df.index)
+        original_mean = avg_rev_per_unit.mean()
+        avg_rev_per_unit = avg_rev_per_unit.fillna(method="ffill", limit=3)
+        avg_rev_per_unit = avg_rev_per_unit.fillna(original_mean)
 
         rois = {}
         for channel in self.channel_spend_columns:

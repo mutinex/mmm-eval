@@ -25,6 +25,9 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
+            date_column=InputDataframeConstants.DATE_COL,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             control_columns=["control_var1"],
             min_number_observations=21,
         )
@@ -34,7 +37,12 @@ class TestDataValidator:
         """Test validation of empty DataFrame."""
         df = pd.DataFrame()
 
-        validator = DataValidator(control_columns=["control_var1"])
+        validator = DataValidator(
+            date_column=InputDataframeConstants.DATE_COL,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+            control_columns=["control_var1"],
+        )
         with pytest.raises(EmptyDataFrameError):
             validator.run_validations(df)
 
@@ -50,6 +58,9 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
+            date_column=InputDataframeConstants.DATE_COL,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             control_columns=["control_var1"],
             min_number_observations=21,
         )

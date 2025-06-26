@@ -75,7 +75,7 @@ class DataProcessor:
             revenue_column=self.revenue_column,
         )
 
-        return processed_df
+        return processed_df.sort_values(self.date_column)
 
     def _validate_required_columns_present(
         self,

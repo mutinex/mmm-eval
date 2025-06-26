@@ -17,6 +17,9 @@ class DataValidator:
 
     def __init__(
         self,
+        date_column: str,
+        response_column: str,
+        revenue_column: str,
         control_columns: list[str] | None,
         min_number_observations: int = DataPipelineConstants.MIN_NUMBER_OBSERVATIONS,
     ):
@@ -27,6 +30,9 @@ class DataValidator:
             min_number_observations: Minimum required number of observations for time series CV
 
         """
+        self.date_column = date_column
+        self.response_column = response_column
+        self.revenue_column = revenue_column
         self.min_number_observations = min_number_observations
         self.control_columns = control_columns
 
@@ -44,6 +50,7 @@ class DataValidator:
         self._validate_not_empty(df)
         self._validate_schema(df)
         self._validate_data_size(df)
+        self._validate_response_and_revenue_columns_xor_zeroes(df)
 
         if self.control_columns:
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
@@ -66,6 +73,23 @@ class DataValidator:
             raise DataValidationError(
                 f"Data has {len(df)} rows, but time series CV requires at least {self.min_number_observations} rows"
             )
+
+    def _validate_response_and_revenue_columns_xor_zeroes(self, df: pd.DataFrame) -> None:
+        """Ensure that there are no cases where exactly one of response_column and revenue_column is non-zero."""
+        if self.response_column != self.revenue_column:
+            response_zero = df[self.response_column] == 0
+            revenue_zero = df[self.revenue_column] == 0
+
+            # XOR condition: exactly one is zero (one is zero AND the other is not zero)
+            xor_condition = (response_zero & ~revenue_zero) | (~response_zero & revenue_zero)
+            xor_entries = df[xor_condition]
+
+            if not xor_entries.empty:
+                raise DataValidationError(
+                    f"Found {len(xor_entries)} entries where exactly one of "
+                    f"'{self.response_column}' and '{self.revenue_column}' is zero. "
+                    f"Problematic dates: {xor_entries[self.date_column].unique()}"
+                )
 
     def _check_control_variables_between_0_and_1(self, df: pd.DataFrame, cols: list[str]) -> None:
         """Check if variables are in the 0-1 range.
