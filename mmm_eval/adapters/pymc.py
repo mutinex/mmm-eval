@@ -34,7 +34,7 @@ class PyMCAdapter(BaseAdapter):
         self.trace = None
         self._channel_roi_df = None
         self.is_fitted = False
-        
+
         # Store original values to reset on subsequent fit calls
         self._original_channel_spend_columns = config.channel_columns.copy()
         self._original_model_kwargs = config.pymc_model_config_dict.copy()
@@ -49,9 +49,9 @@ class PyMCAdapter(BaseAdapter):
         # Reset to original values at the start of each fit call
         self.channel_spend_columns = self._original_channel_spend_columns.copy()
         self.model_kwargs = self._original_model_kwargs.copy()
-        
+
         # Identify channel spend columns that sum to zero and remove them from modelling.
-        # We cannot reliabily make any prediction based on these channels when making
+        # We cannot reliably make any prediction based on these channels when making
         # predictions on new data.
         channel_spend_data = data[self.channel_spend_columns]
         zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
