@@ -5,7 +5,7 @@ This package provides a standardized interface for evaluating different MMM fram
 including Meridian, PyMC, Robyn, and LightweightMMM.
 """
 
-__version__ = "0.4.2"
+__version__ = "0.1.0"
 __author__ = "Your Name"
 __email__ = "your.email@example.com"
 

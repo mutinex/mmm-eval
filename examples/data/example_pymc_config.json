@@ -1,0 +1,35 @@
+{
+  "revenue_column": "revenue",
+  "response_column": "quantity",
+  "pymc_model_config": {
+    "date_column": "'date_week'",
+    "channel_columns": "['channel_1', 'channel_2']",
+    "adstock": "GeometricAdstock(prefix='adstock', l_max=4, normalize=True, mode='After', priors={'alpha': Prior(\"Beta\", alpha=1, beta=3, dims=\"channel\")})",
+    "saturation": "LogisticSaturation(prefix='saturation', priors={'lam': Prior(\"Gamma\", alpha=3, beta=1, dims=\"channel\"), 'beta': Prior(\"HalfNormal\", sigma=2, dims=\"channel\")})",
+    "time_varying_intercept": "False",
+    "time_varying_media": "False",
+    "sampler_config": "{}",
+    "validate_data": "True",
+    "control_columns": "None",
+    "yearly_seasonality": "None",
+    "adstock_first": "True",
+    "dag": "None",
+    "treatment_nodes": "None",
+    "outcome_node": "None"
+  },
+  "fit_config": {
+    "draws": "None",
+    "tune": "None",
+    "chains": "4",
+    "target_accept": "0.85",
+    "random_seed": "None",
+    "progress_bar": "True",
+    "return_inferencedata": "True"
+  },
+  "date_column": "date_week",
+  "channel_columns": [
+    "channel_1",
+    "channel_2"
+  ],
+  "control_columns": null
+}
