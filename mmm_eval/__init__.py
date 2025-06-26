@@ -15,6 +15,7 @@ from .adapters import (
 )
 from .adapters.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
+from .core import run_evaluation
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
 from .core.validation_test_results import ValidationResults, ValidationTestResult
@@ -35,6 +36,7 @@ from .metrics.accuracy_functions import (
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
 )
+from .utils import save_results
 
 __all__ = [
     "get_adapter",
@@ -48,6 +50,7 @@ __all__ = [
     "ValidationResults",
     "BaseValidationTest",
     "ValidationTestNames",
+    "run_evaluation",
     # Metrics
     "calculate_means_for_series_across_cross_validation_folds",
     "calculate_stds_for_series_across_cross_validation_folds",
@@ -61,4 +64,6 @@ __all__ = [
     "DataProcessor",
     "DataValidator",
     "DataPipeline",
+    # utils
+    "save_results",
 ]
