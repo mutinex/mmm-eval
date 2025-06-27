@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mmm-eval"
-version = "0.4.4"
+version = "0.4.5"
 description = "Open-source evaluation of marketing mix model (MMM) performance"
 authors = ["Joseph Kang <joseph.kang@mutinex.co>",
            "Phil Clark <phil.clark@mutinex.co>",
