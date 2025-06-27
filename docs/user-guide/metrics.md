@@ -1,5 +1,7 @@
 # Metrics
 
+> **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
+
 mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
 
 ## Overview
@@ -14,58 +16,35 @@ mmm-eval calculates several key metrics across different validation tests:
 
 ### MAPE (Mean Absolute Percentage Error)
 
-**Formula**: MAPE = (100% / n) * Σ|(y_i - ŷ_i) / y_i|
+**Formula:**
 
-**Interpretation**: 
+$$
+\text{MAPE} = \frac{1}{n} \sum_{i=1}^{n} \left|\frac{y_i - \hat{y}_i}{y_i}\right|
+$$
+
+**Interpretation**:
+
 - Lower values indicate better accuracy
-- Expressed as a percentage
+- Expressed as a proportion (0 to 1, instead of 0 to 100)
 - Sensitive to scale of target variable
 
 **Example**: MAPE of 15% means predictions are off by 15% on average
 
-### RMSE (Root Mean Square Error)
-
-**Formula**: RMSE = √(Σ(y_i - ŷ_i)² / n)
-
-**Interpretation**:
-- Lower values indicate better accuracy
-- Expressed in same units as target variable
-- Penalizes large errors more heavily than small ones
-
-**Example**: RMSE of 100 means predictions deviate by 100 units on average
-
 ### R-squared (Coefficient of Determination)
 
-**Formula**: R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
+**Formula:**
+
+$$
+R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}
+$$
 
 **Interpretation**:
+
 - Range: 0 to 1 (or 0% to 100%)
 - Higher values indicate better fit
 - Represents proportion of variance explained by the model
 
 **Example**: R² of 0.85 means the model explains 85% of the variance
-
-### MAE (Mean Absolute Error)
-
-**Formula**: MAE = Σ|y_i - ŷ_i| / n
-
-**Interpretation**:
-- Lower values indicate better accuracy
-- Expressed in same units as target variable
-- Less sensitive to outliers than RMSE
-
-**Example**: MAE of 80 means predictions deviate by 80 units on average
-
-### MSE (Mean Square Error)
-
-**Formula**: MSE = Σ(y_i - ŷ_i)² / n
-
-**Interpretation**:
-- Lower values indicate better accuracy
-- Expressed in squared units of target variable
-- Heavily penalizes large errors
-
-**Example**: MSE of 10,000 means average squared error is 10,000
 
 ## Stability Metrics
 
@@ -74,11 +53,13 @@ mmm-eval calculates several key metrics across different validation tests:
 Measures *consistency* of channel attribution when the model is trained on different time periods.
 
 **Calculation**:
+
 1. Train model on different proportions of data (e.g., 50%, 75%, 90%)
 2. Calculate metrics for each refresh period
 3. Measure average and standard deviation in metrics across periods
 
 **Interpretation**:
+
 - Lower variation indicates more stable model
 - High variation suggests model is sensitive to training data
 
@@ -89,11 +70,13 @@ Measures *consistency* of channel attribution when the model is trained on diffe
 Measures how sensitive the model is to small changes in the data.
 
 **Calculation**:
+
 1. Add small random perturbations to input data
 2. Retrain model and calculate metrics
 3. Measure change in performance
 
 **Interpretation**:
+
 - Lower sensitivity indicates more robust model
 - High sensitivity suggests model may not generalize well
 

@@ -6,9 +6,8 @@ mmm-eval expects your data to be in a specific format. This guide explains the r
 
 ### Quantity Requirements
 
-* **Time period**: At least 52 weeks (1 year) of data
-* **Frequency**: Weekly or daily data (consistent frequency)
-* **Observations**: Minimum 100 data points recommended
+* **Observations**: At least 40 data points required, but 100+ is highly recommended
+* **Frequency**: Consistent frequency with no gaps (weekly is recommended)
 * **Media channels**: At least 2-3 channels for meaningful analysis
 * **Revenue data**: Required for ROI calculations
 

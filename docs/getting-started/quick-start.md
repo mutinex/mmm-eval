@@ -87,9 +87,6 @@ Details on the implementation of the tests can be found in [Tests](../user-guide
 * **MAPE (Mean Absolute Percentage Error)**  
   `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
 
-* **RMSE (Root Mean Square Error)**  
-  `RMSE = sqrt((1 / n) * Σ (y_i - ŷ_i)^2)`
-
 * **R-squared (Coefficient of Determination)**  
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
@@ -124,7 +121,7 @@ Now that you've run your first evaluation:
 1. **Explore the [User Guide](../user-guide/cli.md)** for detailed CLI options
 2. **Check out [Examples](../examples/basic-usage.md)** for more complex scenarios
 3. **Learn about [Data](../user-guide/data.md)** for different data structures
-4. **Review [Configuration](../configuration.md)** for advanced settings
+4. **Review [Configuration](../user-guide/configuration.md)** for advanced settings
 
 ## Getting Help
 

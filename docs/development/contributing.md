@@ -71,13 +71,14 @@ git commit -m "feat: add new feature description"
 ```
 
 Follow the [conventional commits](https://www.conventionalcommits.org/) format:
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `style:` - Code style changes
-- `refactor:` - Code refactoring
-- `test:` - Test changes
-- `chore:` - Maintenance tasks
+
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation changes
+- `style:` Code style changes
+- `refactor:` Code refactoring
+- `test:` Test changes
+- `chore:` Maintenance tasks
 
 ### 5. Push and Create a Pull Request
 

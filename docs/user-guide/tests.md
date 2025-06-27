@@ -26,8 +26,8 @@ The accuracy test evaluates how well the model predicts on unseen data.
 
 ### Interpretation
 
-- **Good accuracy**: Low MAPE/RMSE, high R²
-- **Poor accuracy**: High MAPE/RMSE, low R²
+- **Good accuracy**: Low MAPE, high R²
+- **Poor accuracy**: High MAPE, low R²
 - **Overfitting**: Good training performance, poor test performance
 
 ## Cross-Validation Test
@@ -124,9 +124,6 @@ For each test, we compute multiple metrics to give as much insight into the test
 
 * **MAPE (Mean Absolute Percentage Error)**  
   `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
-
-* **RMSE (Root Mean Square Error)**  
-  `RMSE = sqrt((1 / n) * Σ (y_i - ŷ_i)^2)`
 
 * **R-squared (Coefficient of Determination)**  
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
