@@ -12,7 +12,7 @@ __email__ = "joseph.kang@mutinex.co"
 from .adapters import (
     get_adapter,
 )
-from .adapters.experimental.pymc import PyMCAdapter
+from .adapters.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
 from .core import run_evaluation
 from .core.base_validation_test import BaseValidationTest

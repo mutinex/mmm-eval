@@ -1,13 +1,9 @@
 """Adapters for different MMM frameworks."""
 
-# todo(): remove this once PyMCAdapter is promoted out of experimental
-
 from mmm_eval.configs import PyMCConfig
 
 from .base import BaseAdapter
-from .experimental.pymc import (
-    PyMCAdapter,
-)
+from .pymc import PyMCAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {

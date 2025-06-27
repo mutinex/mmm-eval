@@ -5,7 +5,7 @@ import pytest
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
-from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
+from mmm_eval.adapters.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs.configs import PyMCConfig
 
 

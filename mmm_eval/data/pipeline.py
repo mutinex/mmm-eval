@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from .constants import DataPipelineConstants
+from .constants import DataPipelineConstants, InputDataframeConstants
 from .processor import DataProcessor
 from .validation import DataValidator
 
@@ -45,6 +45,9 @@ class DataPipeline:
             channel_columns=channel_columns,
         )
         self.validator = DataValidator(
+            date_column=date_column,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
             control_columns=control_columns,
             min_number_observations=min_number_observations,
         )

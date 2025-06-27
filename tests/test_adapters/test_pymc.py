@@ -6,12 +6,11 @@ import pytest
 from pymc_marketing.mmm import GeometricAdstock, LogisticSaturation
 from pymc_marketing.prior import Prior
 
-# TODO: update this import once PyMCAdapter is promoted out of experimental
-from mmm_eval.adapters.experimental.pymc import (
+from mmm_eval.adapters.pymc import (
     PyMCAdapter,
     _validate_start_end_dates,
 )
-from mmm_eval.adapters.experimental.schemas import PyMCFitSchema, PyMCModelSchema
+from mmm_eval.adapters.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -572,3 +571,109 @@ def test_validate_start_end_dates_outside_range():
 
     # Should log info but not raise exception
     _validate_start_end_dates(start_date, end_date, date_range)
+
+
+def test_fit_resets_to_original_channels_on_subsequent_fits(valid_pymc_config, realistic_test_data):
+    """Test that subsequent fit calls reset to original channel columns.
+
+    This test verifies that when we fit on data with zero-spend channels (which get dropped),
+    then fit again on data without zero-spend channels, the original channel columns are restored.
+
+    Args:
+        valid_pymc_config: A valid PyMC configuration fixture.
+        realistic_test_data: A realistic test data fixture.
+
+    """
+    config = valid_pymc_config
+    adapter = PyMCAdapter(config)
+
+    # First fit: Create data with one channel having zero spend
+    data_with_zero_spend = realistic_test_data.copy()
+    data_with_zero_spend["channel_1"] = 0  # Set channel_1 to zero spend
+
+    # Fit the model on data with zero spend
+    adapter.fit(data_with_zero_spend)
+
+    # Verify that channel_1 was dropped from channel_spend_columns
+    assert "channel_1" not in adapter.channel_spend_columns
+    assert "channel_2" in adapter.channel_spend_columns
+    assert len(adapter.channel_spend_columns) == 1
+
+    # Verify that the model config was updated
+    assert adapter.model_kwargs["channel_columns"] == ["channel_2"]
+
+    # Test prediction with the fitted model (should work with reduced channels)
+    predictions = adapter.predict(data_with_zero_spend)
+    assert isinstance(predictions, np.ndarray)
+    assert len(predictions) == len(data_with_zero_spend)
+
+    # Second fit: Create data with all channels having non-zero spend
+    data_without_zero_spend = realistic_test_data.copy()
+    # Ensure both channels have non-zero spend
+    data_without_zero_spend["channel_1"] = np.random.uniform(100, 300, len(data_without_zero_spend))
+    data_without_zero_spend["channel_2"] = np.random.uniform(50, 250, len(data_without_zero_spend))
+
+    # Verify the new data has non-zero spend for both channels
+    assert data_without_zero_spend["channel_1"].sum() > 0
+    assert data_without_zero_spend["channel_2"].sum() > 0
+
+    # Fit the model again on data without zero spend
+    adapter.fit(data_without_zero_spend)
+
+    # Verify that all original channels are restored
+    assert "channel_1" in adapter.channel_spend_columns
+    assert "channel_2" in adapter.channel_spend_columns
+    assert len(adapter.channel_spend_columns) == 2
+
+    # Verify that the model config was reset to original channels
+    assert adapter.model_kwargs["channel_columns"] == ["channel_1", "channel_2"]
+
+    # Test prediction with the re-fitted model (should work with all channels)
+    predictions = adapter.predict(data_without_zero_spend)
+    assert isinstance(predictions, np.ndarray)
+    assert len(predictions) == len(data_without_zero_spend)
+
+    # Test ROI calculation to ensure it works with restored channels
+    rois = adapter.get_channel_roi()
+    assert isinstance(rois, pd.Series)
+    assert len(rois) == 2  # Should have ROI for both channels
+    assert "channel_1" in rois.index
+    assert "channel_2" in rois.index
+
+
+def test_fit_resets_model_kwargs_to_original_values(valid_pymc_config, realistic_test_data):
+    """Test that model_kwargs are reset to original values on subsequent fits.
+
+    Args:
+        valid_pymc_config: A valid PyMC configuration fixture.
+        realistic_test_data: A realistic test data fixture.
+
+    """
+    config = valid_pymc_config
+    adapter = PyMCAdapter(config)
+
+    # Store original model_kwargs for comparison
+    original_model_kwargs = adapter.model_kwargs.copy()
+
+    # First fit: Create data with one channel having zero spend
+    data_with_zero_spend = realistic_test_data.copy()
+    data_with_zero_spend["channel_1"] = 0
+
+    # Fit the model on data with zero spend
+    adapter.fit(data_with_zero_spend)
+
+    # Verify that model_kwargs was modified
+    assert adapter.model_kwargs["channel_columns"] == ["channel_2"]
+    assert adapter.model_kwargs != original_model_kwargs
+
+    # Second fit: Create data with all channels having non-zero spend
+    data_without_zero_spend = realistic_test_data.copy()
+    data_without_zero_spend["channel_1"] = np.random.uniform(100, 300, len(data_without_zero_spend))
+    data_without_zero_spend["channel_2"] = np.random.uniform(50, 250, len(data_without_zero_spend))
+
+    # Fit the model again
+    adapter.fit(data_without_zero_spend)
+
+    # Verify that model_kwargs was reset to original values
+    assert adapter.model_kwargs["channel_columns"] == ["channel_1", "channel_2"]
+    assert adapter.model_kwargs == original_model_kwargs
