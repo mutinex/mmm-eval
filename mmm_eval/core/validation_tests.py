@@ -60,8 +60,7 @@ class AccuracyTest(BaseValidationTest):
 
         return ValidationTestResult(
             test_name=ValidationTestNames.ACCURACY,
-            passed=test_scores.check_test_passed(),
-            metric_names=AccuracyMetricNames.metrics_to_list(),
+            metric_names=AccuracyMetricNames.to_list(),
             test_scores=test_scores,
         )
 
@@ -124,17 +123,13 @@ class CrossValidationTest(BaseValidationTest):
             mean_r_squared=calculate_mean_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.R_SQUARED
             ),
-            std_r_squared=calculate_std_for_singular_values_across_cross_validation_folds(
-                fold_metrics, AccuracyMetricNames.R_SQUARED
-            ),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
 
         return ValidationTestResult(
             test_name=ValidationTestNames.CROSS_VALIDATION,
-            passed=test_scores.check_test_passed(),
-            metric_names=CrossValidationMetricNames.metrics_to_list(),
+            metric_names=CrossValidationMetricNames.to_list(),
             test_scores=test_scores,
         )
 
@@ -224,8 +219,7 @@ class RefreshStabilityTest(BaseValidationTest):
 
         return ValidationTestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
-            passed=test_scores.check_test_passed(),
-            metric_names=RefreshStabilityMetricNames.metrics_to_list(),
+            metric_names=RefreshStabilityMetricNames.to_list(),
             test_scores=test_scores,
         )
 
@@ -304,7 +298,6 @@ class PerturbationTest(BaseValidationTest):
 
         return ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
-            passed=test_scores.check_test_passed(),
-            metric_names=PerturbationMetricNames.metrics_to_list(),
+            metric_names=PerturbationMetricNames.to_list(),
             test_scores=test_scores,
         )
