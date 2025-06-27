@@ -78,7 +78,12 @@ def test_pymc_config_from_model_object():
     fit_kwargs = {"target_accept": 0.9}
     revenue_column = "revenue"
     response_column = "quantity"
-    config = PyMCConfig.from_model_object(mock_model, fit_kwargs, revenue_column, response_column)
+    config = PyMCConfig.from_model_object(
+        model_object=mock_model,
+        fit_kwargs=fit_kwargs,
+        revenue_column=revenue_column,
+        response_column=response_column,
+    )
     assert config.pymc_model_config is not None
     assert config.fit_config is not None
     assert config.response_column == response_column
@@ -92,7 +97,11 @@ def test_pymc_config_auto_response_column():
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     revenue_column = "revenue"
-    config = PyMCConfig.from_model_object(mock_model, fit_kwargs, revenue_column)
+    config = PyMCConfig.from_model_object(
+        model_object=mock_model,
+        fit_kwargs=fit_kwargs,
+        revenue_column=revenue_column,
+    )
     assert config.response_column == revenue_column
     # Test auto-setting of date and channel columns
     assert config.date_column == mock_model.date_column
@@ -104,7 +113,12 @@ def test_pymc_config_save_and_load_json():
     mock_model = MockModelObject()
     fit_kwargs = {"target_accept": 0.9}
     response_column = "quantity"
-    config = PyMCConfig.from_model_object(mock_model, fit_kwargs, "revenue", response_column)
+    config = PyMCConfig.from_model_object(
+        model_object=mock_model,
+        fit_kwargs=fit_kwargs,
+        revenue_column="revenue",
+        response_column=response_column,
+    )
     with tempfile.TemporaryDirectory() as temp_dir:
         save_path = temp_dir
         file_name = "test_config"
@@ -124,11 +138,9 @@ def test_pymc_config_validation():
     """Test validation of PyMCConfig."""
     mock_model = MockModelObject()
     with pytest.raises(ValueError, match="`model_object` is required"):
-        PyMCConfig.from_model_object(None, {"target_accept": 0.9}, "revenue")
-    with pytest.raises(ValueError, match="`fit_kwargs` is required"):
-        PyMCConfig.from_model_object(mock_model, {}, "revenue")
+        PyMCConfig.from_model_object(model_object=None, revenue_column="revenue")
     with pytest.raises(ValueError, match="`revenue_column` is required"):
-        PyMCConfig.from_model_object(mock_model, {"target_accept": 0.9}, "")
+        PyMCConfig.from_model_object(model_object=mock_model, revenue_column="")
 
 
 def test_pymc_config_direct_instantiation():
