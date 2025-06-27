@@ -21,21 +21,6 @@ REVENUE_COLUMN = "revenue"
 RESPONSE_COLUMN = "quantity"
 
 
-# def _create_test_data() -> pd.DataFrame:
-#     """Create test data with required columns."""
-#     return pd.DataFrame(
-#         {
-#             "revenue": np.random.randint(0, 100, size=40),
-#             "spend": np.random.randint(0, 100, size=40),
-#             "date": pd.date_range(start="2021-01-01", periods=40),
-#             "response": np.ones(40),
-#             "control_var1": [0.5] * 40,  # Control column
-#             "channel_1": [100.0] * 40,  # Channel column
-#             "channel_2": [100.0] * 40,  # Channel column
-#         }
-#     )
-
-
 @pytest.mark.parametrize(
     "cli_args,expected_exit_code,test_name",
     [
