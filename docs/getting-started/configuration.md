@@ -6,7 +6,7 @@ mmm-eval uses framework-specific configurations to control model parameters, fit
 
 There are two ways to create a configuration (config):
 
-1. From a model object (`preferred`).
+1. From a model object (preferred).
 
 ```python
 from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
@@ -326,7 +326,7 @@ config.save_model_object_to_json("./", "my_config")
 
 * **More draws**: Use 1000+ draws for production models
 * **Multiple chains**: Use 2-4 chains for reliable convergence
-* **Adequate tuning**: Set tune to 50-100% of draws for complex models
+* **Adequate tuning**: Set `tune` to 50-100% of draws for complex models
 * **Acceptance rate**: Target 0.9-0.95 for optimal sampling efficiency
 
 ### Performance Considerations
