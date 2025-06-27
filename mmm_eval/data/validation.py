@@ -31,7 +31,7 @@ class DataValidator:
             revenue_column: Name of the revenue column
             control_columns: List of control columns
             min_number_observations: Minimum required number of observations for time series CV
-        
+
         """
         self.date_column = date_column
         self.response_column = response_column

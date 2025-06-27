@@ -8,31 +8,34 @@ from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
 
 from mmm_eval.cli.evaluate import main
 from mmm_eval.configs import PyMCConfig
+from mmm_eval.data.synth_data_generator import generate_data
 
 DUMMY_MODEL = MMM(
-    date_column="date",
+    date_column="date_week",
     channel_columns=["channel_1", "channel_2"],
+    control_columns=["price", "event_1", "event_2"],
     adstock=GeometricAdstock(l_max=4),
     saturation=LogisticSaturation(),
     yearly_seasonality=2,
 )
 FIT_KWARGS = {"target_accept": 0.9, "chains": 1, "draws": 50, "tune": 50, "random_seed": 123}
 REVENUE_COLUMN = "revenue"
+RESPONSE_COLUMN = "quantity"
 
 
-def _create_test_data() -> pd.DataFrame:
-    """Create test data with required columns."""
-    return pd.DataFrame(
-        {
-            "revenue": np.random.randint(0, 100, size=40),
-            "spend": np.random.randint(0, 100, size=40),
-            "date": pd.date_range(start="2021-01-01", periods=40),
-            "response": np.ones(40),
-            "control_var1": [0.5] * 40,  # Control column
-            "channel_1": [100.0] * 40,  # Channel column
-            "channel_2": [100.0] * 40,  # Channel column
-        }
-    )
+# def _create_test_data() -> pd.DataFrame:
+#     """Create test data with required columns."""
+#     return pd.DataFrame(
+#         {
+#             "revenue": np.random.randint(0, 100, size=40),
+#             "spend": np.random.randint(0, 100, size=40),
+#             "date": pd.date_range(start="2021-01-01", periods=40),
+#             "response": np.ones(40),
+#             "control_var1": [0.5] * 40,  # Control column
+#             "channel_1": [100.0] * 40,  # Channel column
+#             "channel_2": [100.0] * 40,  # Channel column
+#         }
+#     )
 
 
 @pytest.mark.parametrize(
@@ -89,10 +92,11 @@ def test_cli_scenarios(tmp_path, cli_args, expected_exit_code, test_name):
 
     # Create test data and save to CSV (only if data_path is needed)
     if "{data_path}" in cli_args:
-        test_data = _create_test_data()
+        # test_data = _create_test_data()
+        test_data = generate_data()
         test_data.to_csv(data_path, index=False)
 
-    config = PyMCConfig.from_model_object(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN)
+    config = PyMCConfig.from_model_object(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN, response_column=RESPONSE_COLUMN)
     config.save_model_object_to_json(tmp_path, "test_config")
     config_path = tmp_path / "test_config.json"
 
