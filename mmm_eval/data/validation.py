@@ -26,9 +26,12 @@ class DataValidator:
         """Initialize validator with validation rules.
 
         Args:
+            date_column: Name of the date column
+            response_column: Name of the response column
+            revenue_column: Name of the revenue column
             control_columns: List of control columns
             min_number_observations: Minimum required number of observations for time series CV
-
+        
         """
         self.date_column = date_column
         self.response_column = response_column
@@ -77,6 +80,8 @@ class DataValidator:
     def _validate_response_and_revenue_columns_xor_zeroes(self, df: pd.DataFrame) -> None:
         """Ensure that there are no cases where exactly one of response_column and revenue_column is non-zero."""
         if self.response_column != self.revenue_column:
+            print(f"\n\n\n\n {df.columns}")
+            print("\n\n\n")
             response_zero = df[self.response_column] == 0
             revenue_zero = df[self.revenue_column] == 0
 
