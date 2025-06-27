@@ -124,9 +124,6 @@ class MetricResults(BaseModel):
             ),
             axis=1,
         )
-        df_copy[TestResultDFAttributes.METRIC_PASS.value] = df_copy[TestResultDFAttributes.METRIC_PASS.value].astype(
-            bool
-        )
         return df_copy
 
 
