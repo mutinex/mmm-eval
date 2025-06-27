@@ -49,6 +49,15 @@ class PyMCConfig(BaseConfig):
         """Return the fit configuration as a dictionary of user provided values."""
         return self.fit_config.fit_config_dict_without_non_provided_fields
 
+    @property
+    def predict_config_dict(self) -> dict[str, Any]:
+        """Return the predict configuration as a dictionary of user provided values."""
+        return {
+            key: value
+            for key, value in self.fit_config_dict.items()
+            if key in ConfigConstants.PyMCIntersectingFitPredictKwargs.all()
+        }
+
     @classmethod
     def from_model_object(
         cls,

@@ -188,7 +188,7 @@ def test_adapter_instantiation(valid_pymc_config):
         "chains": 1,  # Moved from sampler_config
         "target_accept": 0.9,  # This is the only value we override
         "random_seed": 42,  # Moved from sampler_config
-        "progress_bar": True,  # Default from PyMCFitSchema
+        "progressbar": False,  # Default from PyMCFitSchema
         "return_inferencedata": True,  # Default from PyMCFitSchema
     }
     assert adapter.fit_kwargs == expected_fit_kwargs

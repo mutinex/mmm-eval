@@ -27,6 +27,7 @@ class PyMCAdapter(BaseAdapter):
         """
         self.model_kwargs = config.pymc_model_config_dict
         self.fit_kwargs = config.fit_config_dict
+        self.predict_kwargs = config.predict_config_dict
         self.date_column = config.date_column
         self.channel_spend_columns = config.channel_columns
         self.control_columns = config.control_columns
@@ -92,7 +93,9 @@ class PyMCAdapter(BaseAdapter):
 
         if InputDataframeConstants.RESPONSE_COL in data.columns:
             data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
-        predictions = self.model.predict(data, extend_idata=False, include_last_observations=True)
+        predictions = predictions = self.model.predict(
+            data, extend_idata=False, include_last_observations=True, **self.predict_kwargs
+        )
         return predictions
 
     def get_channel_roi(

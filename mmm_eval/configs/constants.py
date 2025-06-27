@@ -19,3 +19,14 @@ class ConfigConstants:
 
         PYMC_MODEL_CONFIG = "pymc_model_config"
         FIT_CONFIG = "fit_config"
+
+    class PyMCIntersectingFitPredictKwargs:
+        """Kwargs for the intersect of PyMC fit and predict schemas."""
+
+        PROGRESS_BAR = "progressbar"
+        RANDOM_SEED = "random_seed"
+
+        @classmethod
+        def all(cls):
+            """Return list of all valid kwargs."""
+            return [cls.PROGRESS_BAR, cls.RANDOM_SEED]
