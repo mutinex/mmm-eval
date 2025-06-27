@@ -1,7 +1,5 @@
 """Test CLI evaluation functionality."""
 
-import numpy as np
-import pandas as pd
 import pytest
 from click.testing import CliRunner
 from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
@@ -96,7 +94,9 @@ def test_cli_scenarios(tmp_path, cli_args, expected_exit_code, test_name):
         test_data = generate_data()
         test_data.to_csv(data_path, index=False)
 
-    config = PyMCConfig.from_model_object(DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN, response_column=RESPONSE_COLUMN)
+    config = PyMCConfig.from_model_object(
+        DUMMY_MODEL, fit_kwargs=FIT_KWARGS, revenue_column=REVENUE_COLUMN, response_column=RESPONSE_COLUMN
+    )
     config.save_model_object_to_json(tmp_path, "test_config")
     config_path = tmp_path / "test_config.json"
 
