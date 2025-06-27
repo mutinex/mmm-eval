@@ -3,6 +3,7 @@
 from .loaders import DataLoader
 from .pipeline import DataPipeline
 from .processor import DataProcessor
+from .synth_data_generator import generate_data
 from .validation import DataValidator
 
 __all__ = [
@@ -10,4 +11,5 @@ __all__ = [
     "DataProcessor",
     "DataValidator",
     "DataPipeline",
+    "generate_data",
 ]

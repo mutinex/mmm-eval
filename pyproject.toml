@@ -1,3 +1,7 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "mmm-eval"
 version = "0.4.2"
@@ -36,6 +40,14 @@ ruff = "^0.1.0"
 pyright = "^1.1.377"
 pytest-cov = "^6.2.1"
 pytest-xdist = "^3.6.1"
+# Documentation dependencies
+mkdocs = "^1.5.0"
+mkdocs-material = "^9.5.0"
+mkdocstrings = {extras = ["python"], version = "^0.29.1"}
+mkdocs-autorefs = "^1.4.2"
+mkdocs-git-revision-date-localized-plugin = "^1.4.7"
+mkdocs-minify-plugin = "^0.7.0"
+griffe = "^1.7.3"
 
 [tool.black]
 line-length = 120
