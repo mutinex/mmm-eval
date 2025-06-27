@@ -28,5 +28,4 @@ class RefreshStabilityThresholdConstants:
 class PerturbationThresholdConstants:
     """Constants for the perturbation threshold."""
 
-    MEAN_PERCENTAGE_CHANGE = 0.08
-    STD_PERCENTAGE_CHANGE = 0.1
+    PERCENTAGE_CHANGE = 0.08

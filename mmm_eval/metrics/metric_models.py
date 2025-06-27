@@ -45,6 +45,7 @@ class RefreshStabilityMetricNames(MetricNamesBase):
     STD_PERCENTAGE_CHANGE = "std_percentage_change"
 
 
+# todo(): standardise to specify we are using decimal percents everywhere
 class PerturbationMetricNames(MetricNamesBase):
     """Define the names of the perturbation metrics."""
 
@@ -278,7 +279,7 @@ class PerturbationMetricResults(MetricResults):
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific perturbation metric passes its threshold."""
         if metric_name == PerturbationMetricNames.PERCENTAGE_CHANGE.value:
-            return bool(metric_value <= PerturbationThresholdConstants.MEAN_PERCENTAGE_CHANGE)
+            return bool(metric_value <= PerturbationThresholdConstants.PERCENTAGE_CHANGE)
         else:
             valid_metric_names = PerturbationMetricNames.to_list()
             raise InvalidMetricNameException(

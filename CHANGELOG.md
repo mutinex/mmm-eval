@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] ; 2025-06-27
+
+### Changed
+
+- Remove all `to_dict()`
+- Added in new `to_df()`
+- Passed values now contained within the test df for each metric individually
+
 ## [0.4.4] ; 2025-06-27
 
 ### Changed
