@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] ; 2025-06-27
+
+### Changed
+
+- Derive `predict_kwargs` from `fit_kwargs` to control progress bar and seed for predict
+
 ## [0.4.3] ; 2025-06-27
 
 ### Changed
