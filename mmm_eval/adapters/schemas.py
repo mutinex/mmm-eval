@@ -156,3 +156,109 @@ class PyMCStringConfigSchema(BaseModel):
         "extra": "allow",
         "coerce_types_to_string": False,  # Allow type coercion
     }
+
+
+# Meridian-specific schemas
+class MeridianPriorDistributionSchema(BaseModel):
+    """Schema for Meridian prior distribution configuration."""
+
+    roi_mu: float = Field(0.0, description="Mean of the log-normal ROI prior distribution.")
+    roi_sigma: float = Field(1.0, ge=0.0, description="Standard deviation of the log-normal ROI prior distribution.")
+    name: str = Field("roi_m", description="Name of the ROI parameter.")
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+        "coerce_types_to_string": False,
+    }
+
+
+class MeridianModelSpecSchema(BaseModel):
+    """Schema for Meridian ModelSpec configuration."""
+
+    prior: MeridianPriorDistributionSchema = Field(..., description="Prior distribution configuration.")
+    # Add other ModelSpec parameters as needed based on the Meridian API
+    # These can be expanded as more features are needed
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+        "coerce_types_to_string": False,
+    }
+
+
+class MeridianFitSchema(BaseModel):
+    """Schema for Meridian fit configuration."""
+
+    num_samples: int = Field(1000, description="Number of posterior samples to draw.")
+    num_warmup: int = Field(500, description="Number of warmup steps for MCMC.")
+    num_chains: int = Field(4, description="Number of MCMC chains to run.")
+    random_seed: int | None = Field(None, description="Random seed for reproducibility.")
+    progress_bar: bool = Field(True, description="Whether to display the progress bar.")
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+        "coerce_types_to_string": False,
+    }
+
+    @property
+    def fit_config_dict_without_non_provided_fields(self) -> dict[str, Any]:
+        """Return only non-None values.
+
+        Returns:
+            Dictionary of non-None values
+
+        """
+        return {key: value for key, value in self.model_dump().items() if value is not None}
+
+
+class MeridianModelSchema(BaseModel):
+    """Schema for Meridian model configuration."""
+
+    date_column: str = Field(..., description="Column name of the date variable.")
+    media_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    response_column: str = Field(..., description="Column name of the response variable.")
+    control_columns: list[str] | None = Field(None, description="Column names of control variables.")
+    geo_column: str | None = Field(None, description="Column name for geographic segmentation.")
+    seasonality_columns: list[str] | None = Field(None, description="Column names for seasonality variables.")
+    # Add other model parameters as needed
+
+    @field_validator("media_columns")
+    def validate_media_columns(cls, v):
+        """Validate media columns are not empty.
+
+        Args:
+            v: Media columns value
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If media columns is empty
+
+        """
+        if v is not None and not v:
+            raise ValueError("media_columns must not be empty")
+        return v
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+        "coerce_types_to_string": False,
+    }
+
+
+class MeridianStringConfigSchema(BaseModel):
+    """Schema for Meridian evaluation config dictionary."""
+
+    model_config: dict[str, Any] = Field(..., description="Model configuration.")
+    fit_config: dict[str, Any] = Field(..., description="Fit configuration.")
+    response_column: str = Field(..., description="Name of the target column.")
+    revenue_column: str | None = Field(None, description="Name of the revenue column.")
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "extra": "allow",
+        "coerce_types_to_string": False,
+    }

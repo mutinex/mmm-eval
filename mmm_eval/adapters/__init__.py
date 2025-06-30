@@ -1,17 +1,19 @@
 """Adapters for different MMM frameworks."""
 
-from mmm_eval.configs import PyMCConfig
+from mmm_eval.configs import PyMCConfig, MeridianConfig
 
 from .base import BaseAdapter
 from .pymc import PyMCAdapter
+from .meridian import MeridianAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
     "pymc-marketing": PyMCAdapter,
+    "meridian": MeridianAdapter,
 }
 
 
-def get_adapter(framework: str, config: PyMCConfig):
+def get_adapter(framework: str, config: PyMCConfig | MeridianConfig):
     """Get an adapter instance for the specified framework.
 
     Args:
@@ -34,6 +36,7 @@ def get_adapter(framework: str, config: PyMCConfig):
 
 __all__ = [
     "PyMCAdapter",
+    "MeridianAdapter",
     "get_adapter",
     "ADAPTER_REGISTRY",
 ]
