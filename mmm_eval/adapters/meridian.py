@@ -1,10 +1,15 @@
-"""Meridian adapter for MMM evaluation."""
+"""WIP: Meridian adapter for MMM evaluation.
+"""
 
 import logging
 from typing import Any
 
 import numpy as np
 import pandas as pd
+import meridian
+from meridian.model.spec import ModelSpec
+from meridian.model.model import Meridian
+from meridian.data import data_frame_input_data_builder as data_builder
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import MeridianConfig
@@ -13,31 +18,74 @@ from mmm_eval.data.constants import InputDataframeConstants
 logger = logging.getLogger(__name__)
 
 
+def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+    # KPI, population, and control variables
+    builder = (
+        data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
+            .with_kpi(df, kpi_col=InputDataframeConstants.RESPONSE_COL)
+            .with_revenue_per_kpi(df, revenue_col=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL)
+    )
+    if "population" in df.columns:
+        builder = builder.with_population(df)
+    
+    # controls (non-intervenable, e.g. macroeconomics)
+    builder = builder.with_controls(df, control_cols=config.control_columns)
+
+    # add paid media
+    # TODO: add support for impressions/reach/frequency
+    builder = builder.with_media(
+        df,
+        media_spend_cols=[f"{channel}_spend" for channel in config.channel_columns],
+        media_channels=config.channel_columns,
+    )
+
+    # organic media
+    if config.organic_media_columns:
+        builder = builder.with_organic_media(
+            df,
+            organic_media_cols=config.organic_media_columns,
+            organic_media_channels=config.organic_media_channels,
+            media_time_col=config.date_column,
+        )
+
+    # non-media treatments (anything that is "intervenable", e.g. pricing/promotions)
+    if config.non_media_treatments_columns:
+        builder = builder.with_non_media_treatments(
+            df,
+            non_media_treatments_cols=config.non_media_treatments_columns,
+        )
+
+    return builder.build()
+
+
 class MeridianAdapter(BaseAdapter):
     """Adapter for Google Meridian MMM framework."""
 
     def __init__(self, config: MeridianConfig):
         """Initialize the Meridian adapter.
 
+        Meridian needs the following
+
         Args:
             config: MeridianConfig object
-
         """
-        self.model_config = config.meridian_model_config_dict
-        self.model_spec_config = config.model_spec_config_dict
-        self.fit_config = config.fit_config_dict
+        self.config = config
+
+        # response and revenue columns are constants so don't need to be set here
+        # population, if provided, needs to be called "population" in the DF
         self.date_column = config.date_column
         self.channel_spend_columns = config.channel_columns
-        self.control_columns = config.control_columns
+        # impressions, reach, frequency, etc.
+        self.channel_metric_columns = config.channel_metric_columns or None
+        self.organic_media_columns = config.organic_media_columns
+        self.organic_media_channels = config.organic_media_channels
+        self.non_media_treatments_columns = config.non_media_treatments_columns
+        self.non_media_treatments_channels = config.non_media_treatments_channels
+
         self.model = None
         self.trace = None
         self._channel_roi_df = None
         self.is_fitted = False
-
-        # Store original values to reset on subsequent fit calls
-        self._original_channel_spend_columns = config.channel_columns.copy()
-        self._original_model_config = config.meridian_model_config_dict.copy()
-        self._original_model_spec_config = config.model_spec_config_dict.copy()
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the Meridian model to data.
@@ -46,61 +94,20 @@ class MeridianAdapter(BaseAdapter):
             data: Training data
 
         """
-        # Reset to original values at the start of each fit call
-        self.channel_spend_columns = self._original_channel_spend_columns.copy()
-        self.model_config = self._original_model_config.copy()
-        self.model_spec_config = self._original_model_spec_config.copy()
+        # build Meridian data object
+        data_object = construct_meridian_data_object(data, self.config)
 
-        # Identify channel spend columns that sum to zero and remove them from modelling
-        channel_spend_data = data[self.channel_spend_columns]
-        zero_spend_channels = channel_spend_data.columns[channel_spend_data.sum() == 0].tolist()
+        # Create and fit the Meridian model
+        self.model = Meridian(
+            input_data=data_object,
+            model_spec=self.config.model_spec_config,
+        )
+        self.trace = self.model.sample_posterior(**self.config.fit_config)
 
-        if zero_spend_channels:
-            logger.info(f"Dropping channels with zero spend: {zero_spend_channels}")
-            # Remove zero-spend channels from the list
-            self.channel_spend_columns = [col for col in self.channel_spend_columns if col not in zero_spend_channels]
-            # Update the model config to reflect the new channel spend columns
-            self.model_config["media_columns"] = self.channel_spend_columns
-            data = data.drop(columns=zero_spend_channels)
+        # Compute channel contributions for ROI calculations
+        self._channel_roi_df = self._compute_channel_contributions(data)
+        self.is_fitted = True
 
-        try:
-            # Import Meridian modules
-            import meridian
-            from meridian.model.spec import ModelSpec
-            from meridian.model.model import Meridian
-            import tensorflow_probability as tfp
-            from meridian.prior_distribution import PriorDistribution
-
-            # Create prior distribution
-            prior = PriorDistribution(
-                roi_m=tfp.distributions.LogNormal(
-                    self.model_spec_config["prior"]["roi_mu"],
-                    self.model_spec_config["prior"]["roi_sigma"],
-                    name=self.model_spec_config["prior"]["name"]
-                )
-            )
-
-            # Create model specification
-            model_spec = ModelSpec(prior=prior)
-
-            # Create and fit the Meridian model
-            self.model = Meridian(
-                input_data=data,
-                model_spec=model_spec,
-                **self.model_config
-            )
-
-            # Fit the model using sample_posterior
-            self.trace = self.model.sample_posterior(**self.fit_config)
-
-            # Compute channel contributions for ROI calculations
-            self._channel_roi_df = self._compute_channel_contributions(data)
-            self.is_fitted = True
-
-        except ImportError:
-            logger.warning("Meridian not available. Using placeholder implementation.")
-            # Fallback to placeholder implementation
-            self.is_fitted = True
 
     def predict(self, data: pd.DataFrame) -> np.ndarray:
         """Make predictions using the fitted model.

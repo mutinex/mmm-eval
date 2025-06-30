@@ -240,7 +240,7 @@ class MeridianModelSchema(BaseModel):
     """Schema for Meridian model configuration."""
 
     date_column: str = Field(..., description="Column name of the date variable.")
-    media_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    channel_spend_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
     response_column: str = Field(..., description="Column name of the response variable.")
     control_columns: list[str] | None = Field(None, description="Column names of control variables.")
     geo_column: str | None = Field(None, description="Column name for geographic segmentation.")
