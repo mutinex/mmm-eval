@@ -90,8 +90,8 @@ class MeridianAdapter(BaseAdapter):
                 **self.model_config
             )
 
-            # Fit the model
-            self.trace = self.model.fit(**self.fit_config)
+            # Fit the model using sample_posterior
+            self.trace = self.model.sample_posterior(**self.fit_config)
 
             # Compute channel contributions for ROI calculations
             self._channel_roi_df = self._compute_channel_contributions(data)

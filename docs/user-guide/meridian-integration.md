@@ -53,7 +53,18 @@ prior_config = MeridianPriorDistributionSchema(
     name="roi_m"
 )
 
-model_spec_config = MeridianModelSpecSchema(prior=prior_config)
+model_spec_config = MeridianModelSpecSchema(
+    prior=prior_config,
+    media_effects_dist="log_normal",           # Distribution for media effects
+    hill_before_adstock=False,                 # Apply Hill transformation before adstock
+    max_lag=8,                                 # Maximum lag for adstock
+    unique_sigma_for_each_geo=False,           # Unique sigma per geography
+    media_prior_type="log_normal",             # Prior type for media variables
+    organic_media_prior_type="contribution",   # Prior type for organic media
+    non_media_treatments_prior_type="contribution",  # Prior type for non-media treatments
+    knots=10,                                  # Knots for spline transformations
+    baseline_geo="US",                         # Baseline geography
+)
 
 model_config = MeridianModelSchema(
     date_column="date",
@@ -62,9 +73,11 @@ model_config = MeridianModelSchema(
 )
 
 fit_config = MeridianFitSchema(
-    num_samples=1000,
-    num_warmup=500,
-    num_chains=4,
+    n_chains=4,          # Number of MCMC chains
+    n_adapt=500,         # Number of adaptation steps
+    n_burnin=500,        # Number of burn-in steps
+    n_keep=1000,         # Number of posterior samples to keep
+    seed=42,             # Random seed for reproducibility
 )
 
 config = MeridianConfig(
@@ -102,7 +115,16 @@ Configures the model specification:
 
 ```python
 model_spec_config = MeridianModelSpecSchema(
-    prior=prior_config
+    prior=prior_config,
+    media_effects_dist="log_normal",           # Distribution for media effects
+    hill_before_adstock=False,                 # Apply Hill transformation before adstock
+    max_lag=8,                                 # Maximum lag for adstock
+    unique_sigma_for_each_geo=False,           # Unique sigma per geography
+    media_prior_type="log_normal",             # Prior type for media variables
+    organic_media_prior_type="contribution",   # Prior type for organic media
+    non_media_treatments_prior_type="contribution",  # Prior type for non-media treatments
+    knots=10,                                  # Knots for spline transformations
+    baseline_geo="US",                         # Baseline geography
 )
 ```
 
@@ -127,11 +149,11 @@ Configures the MCMC fitting parameters:
 
 ```python
 fit_config = MeridianFitSchema(
-    num_samples=1000,      # Number of posterior samples
-    num_warmup=500,        # Number of warmup steps
-    num_chains=4,          # Number of MCMC chains
-    random_seed=42,        # Random seed for reproducibility
-    progress_bar=True      # Show progress bar
+    n_chains=4,          # Number of MCMC chains
+    n_adapt=500,         # Number of adaptation steps
+    n_burnin=500,        # Number of burn-in steps
+    n_keep=1000,         # Number of posterior samples to keep
+    seed=42,             # Random seed for reproducibility
 )
 ```
 
@@ -147,6 +169,42 @@ prior_config = MeridianPriorDistributionSchema(
     roi_mu=-0.5,      # Lower mean for conservative estimates
     roi_sigma=0.5,    # Tighter standard deviation
     name="roi_m"
+)
+```
+
+### Advanced ModelSpec Configuration
+
+The ModelSpec supports many advanced parameters for fine-tuning your model:
+
+```python
+model_spec_config = MeridianModelSpecSchema(
+    prior=prior_config,
+    # Media effects configuration
+    media_effects_dist="log_normal",           # or "normal", "gamma"
+    hill_before_adstock=False,                 # Apply Hill transformation before adstock
+    
+    # Adstock configuration
+    max_lag=8,                                 # Maximum lag for adstock transformation
+    
+    # Geographic modeling
+    unique_sigma_for_each_geo=False,           # Use unique sigma per geography
+    baseline_geo="US",                         # Baseline geography for comparisons
+    
+    # Prior type configurations
+    media_prior_type="log_normal",             # Prior for paid media
+    organic_media_prior_type="contribution",   # Prior for organic media
+    non_media_treatments_prior_type="contribution",  # Prior for non-media treatments
+    
+    # Calibration periods
+    roi_calibration_period=[0.8, 1.2],        # ROI calibration range
+    rf_roi_calibration_period=[0.9, 1.1],     # RF ROI calibration range
+    
+    # Spline transformations
+    knots=10,                                  # Number of knots for splines
+    
+    # Holdout and scaling
+    holdout_id=[1, 2, 3],                      # Holdout period identifiers
+    control_population_scaling_id=[1, 2],      # Control scaling identifiers
 )
 ```
 

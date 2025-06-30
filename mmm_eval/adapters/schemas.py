@@ -177,8 +177,24 @@ class MeridianModelSpecSchema(BaseModel):
     """Schema for Meridian ModelSpec configuration."""
 
     prior: MeridianPriorDistributionSchema = Field(..., description="Prior distribution configuration.")
-    # Add other ModelSpec parameters as needed based on the Meridian API
-    # These can be expanded as more features are needed
+    media_effects_dist: str = Field("log_normal", description="Distribution type for media effects.")
+    hill_before_adstock: bool = Field(False, description="Whether to apply Hill transformation before adstock.")
+    max_lag: int | None = Field(8, description="Maximum lag for adstock transformation.")
+    unique_sigma_for_each_geo: bool = Field(False, description="Whether to use unique sigma for each geography.")
+    media_prior_type: str | None = Field(None, description="Prior type for media variables.")
+    rf_prior_type: str | None = Field(None, description="Prior type for reach and frequency variables.")
+    paid_media_prior_type: str | None = Field(None, description="Prior type for paid media variables.")
+    roi_calibration_period: list[float] | None = Field(None, description="ROI calibration period array.")
+    rf_roi_calibration_period: list[float] | None = Field(None, description="Reach and frequency ROI calibration period array.")
+    organic_media_prior_type: str = Field("contribution", description="Prior type for organic media variables.")
+    organic_rf_prior_type: str = Field("contribution", description="Prior type for organic reach and frequency variables.")
+    non_media_treatments_prior_type: str = Field("contribution", description="Prior type for non-media treatment variables.")
+    non_media_baseline_values: list[float | str] | None = Field(None, description="Baseline values for non-media variables.")
+    knots: int | list[int] | None = Field(None, description="Knots for spline transformations.")
+    baseline_geo: int | str | None = Field(None, description="Baseline geography identifier.")
+    holdout_id: list[int] | None = Field(None, description="Holdout period identifiers.")
+    control_population_scaling_id: list[int] | None = Field(None, description="Control population scaling identifiers.")
+    non_media_population_scaling_id: list[int] | None = Field(None, description="Non-media population scaling identifiers.")
 
     model_config = {
         "arbitrary_types_allowed": True,
@@ -190,11 +206,18 @@ class MeridianModelSpecSchema(BaseModel):
 class MeridianFitSchema(BaseModel):
     """Schema for Meridian fit configuration."""
 
-    num_samples: int = Field(1000, description="Number of posterior samples to draw.")
-    num_warmup: int = Field(500, description="Number of warmup steps for MCMC.")
-    num_chains: int = Field(4, description="Number of MCMC chains to run.")
-    random_seed: int | None = Field(None, description="Random seed for reproducibility.")
-    progress_bar: bool = Field(True, description="Whether to display the progress bar.")
+    n_chains: int | list[int] = Field(4, description="Number of MCMC chains to run.")
+    n_adapt: int = Field(500, description="Number of adaptation steps.")
+    n_burnin: int = Field(500, description="Number of burn-in steps.")
+    n_keep: int = Field(1000, description="Number of posterior samples to keep.")
+    current_state: dict[str, Any] | None = Field(None, description="Current state for MCMC sampling.")
+    init_step_size: int | None = Field(None, description="Initial step size for MCMC.")
+    dual_averaging_kwargs: dict[str, int] | None = Field(None, description="Dual averaging parameters.")
+    max_tree_depth: int = Field(10, description="Maximum tree depth for NUTS sampler.")
+    max_energy_diff: float = Field(500.0, description="Maximum energy difference for NUTS sampler.")
+    unrolled_leapfrog_steps: int = Field(1, description="Number of unrolled leapfrog steps.")
+    parallel_iterations: int = Field(10, description="Number of parallel iterations.")
+    seed: int | list[int] | None = Field(None, description="Random seed for reproducibility.")
 
     model_config = {
         "arbitrary_types_allowed": True,

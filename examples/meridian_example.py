@@ -61,7 +61,12 @@ def create_meridian_config() -> MeridianConfig:
     
     # Create model specification
     model_spec_config = MeridianModelSpecSchema(
-        prior=prior_config
+        prior=prior_config,
+        media_effects_dist="log_normal",
+        hill_before_adstock=False,
+        max_lag=8,
+        organic_media_prior_type="contribution",
+        non_media_treatments_prior_type="contribution",
     )
     
     # Create model configuration
@@ -74,11 +79,11 @@ def create_meridian_config() -> MeridianConfig:
     
     # Create fit configuration
     fit_config = MeridianFitSchema(
-        num_samples=1000,
-        num_warmup=500,
-        num_chains=4,
-        random_seed=42,
-        progress_bar=True
+        n_chains=4,
+        n_adapt=500,
+        n_burnin=500,
+        n_keep=1000,
+        seed=42,
     )
     
     # Create the complete configuration
