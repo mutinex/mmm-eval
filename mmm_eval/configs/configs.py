@@ -208,93 +208,101 @@ class MeridianConfig(BaseConfig):
             A validated MeridianConfig instance
 
         """
-        cls._validate_inputs(model_object, revenue_column)
+        pass
+        # cls._validate_inputs(model_object, revenue_column)
 
-        model_config = cls._extract_model_config(model_object)
-        model_spec_config = cls._extract_model_spec_config(model_object)
-        fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else MeridianFitSchema()
+        # model_config = cls._extract_model_config(model_object)
+        # model_spec_config = cls._extract_model_spec_config(model_object)
+        # fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else MeridianFitSchema()
 
-        return cls(
-            meridian_model_config=model_config,
-            model_spec_config=model_spec_config,
-            fit_config=fit_config,
-            revenue_column=revenue_column,
-            response_column=response_column,
-        )
+        # return cls(
+        #     meridian_model_config=model_config,
+        #     model_spec_config=model_spec_config,
+        #     fit_config=fit_config,
+        #     revenue_column=revenue_column,
+        #     response_column=response_column,
+        # )
 
     @staticmethod
     def _validate_inputs(model_object: Any, revenue_column: str) -> None:
         """Validate the input parameters."""
-        if model_object is None:
-            raise ValueError("`model_object` is required.")
-        if not revenue_column:
-            raise ValueError("`revenue_column` is required")
+        pass
+        # if model_object is None:
+        #     raise ValueError("`model_object` is required.")
+        # if not revenue_column:
+        #     raise ValueError("`revenue_column` is required")
 
     @staticmethod
     def _extract_model_config(model_object: Any) -> MeridianModelSchema:
         """Extract and validate model configuration from a model object."""
         # This would need to be implemented based on the actual Meridian model object structure
         # For now, return a default configuration
-        return MeridianModelSchema(
-            date_column="date",
-            media_columns=["media1", "media2"],  # Default columns
-            response_column="response",
-        )
+        pass
+        # return MeridianModelSchema(
+        #     date_column="date",
+        #     media_columns=["media1", "media2"],  # Default columns
+        #     response_column="response",
+        # )
 
     @staticmethod
     def _extract_model_spec_config(model_object: Any) -> MeridianModelSpecSchema:
         """Extract and validate model specification configuration from a model object."""
         # This would need to be implemented based on the actual Meridian model object structure
         # For now, return a default configuration
-        from mmm_eval.adapters.schemas import MeridianPriorDistributionSchema
+        pass
+        # from mmm_eval.adapters.schemas import MeridianPriorDistributionSchema
         
-        prior = MeridianPriorDistributionSchema()
-        return MeridianModelSpecSchema(prior=prior)
+        # prior = MeridianPriorDistributionSchema()
+        # return MeridianModelSpecSchema(prior=prior)
 
     @staticmethod
     def _extract_fit_config(fit_kwargs: dict[str, Any]) -> MeridianFitSchema:
         """Extract and validate fit configuration from fit kwargs."""
-        fit_fields = set(MeridianFitSchema.model_fields.keys())
-        filtered_config = {key: value for key, value in fit_kwargs.items() if key in fit_fields}
-        return MeridianFitSchema(**filtered_config)
+        pass
+        # fit_fields = set(MeridianFitSchema.model_fields.keys())
+        # filtered_config = {key: value for key, value in fit_kwargs.items() if key in fit_fields}
+        # return MeridianFitSchema(**filtered_config)
 
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "MeridianConfig":
         """Save the config to a JSON file."""
-        config_dict = self.model_dump()
-        config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG].items()
-        }
-        config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG].items()
-        }
-        config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG].items()
-        }
-        BaseConfig._save_json_file(save_path, file_name, config_dict)
-        return self
+        pass
+        # config_dict = self.model_dump()
+        # config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = {
+        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG].items()
+        # }
+        # config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = {
+        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG].items()
+        # }
+        # config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = {
+        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG].items()
+        # }
+        # BaseConfig._save_json_file(save_path, file_name, config_dict)
+        # return self
 
     @classmethod
     def load_model_config_from_json(cls, config_path: str) -> "MeridianConfig":
         """Load the config from a JSON file."""
-        config_dict = cls._load_json_file(config_path)
-        return cls._from_string_dict(config_dict)
+        pass
+        # config_dict = cls._load_json_file(config_path)
+        # return cls._from_string_dict(config_dict)
 
     @classmethod
     def _from_string_dict(cls, config_dict: dict[str, Any]) -> "MeridianConfig":
-        if ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG in config_dict:
-            rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG])
-            hydrated_model_config = rehydrator.rehydrate_config()
-            config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = MeridianModelSchema(
-                **hydrated_model_config
-            )
-        if ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG in config_dict:
-            rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG])
-            hydrated_model_spec_config = rehydrator.rehydrate_config()
-            config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = MeridianModelSpecSchema(
-                **hydrated_model_spec_config
-            )
-        if ConfigConstants.MeridianConfigAttributes.FIT_CONFIG in config_dict:
-            rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG])
-            hydrated_fit_config = rehydrator.rehydrate_config()
-            config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = MeridianFitSchema(**hydrated_fit_config)
-        return cls.model_validate(config_dict)
+        pass
+        # if ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG in config_dict:
+        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG])
+        #     hydrated_model_config = rehydrator.rehydrate_config()
+        #     config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = MeridianModelSchema(
+        #         **hydrated_model_config
+        #     )
+        # if ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG in config_dict:
+        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG])
+        #     hydrated_model_spec_config = rehydrator.rehydrate_config()
+        #     config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = MeridianModelSpecSchema(
+        #         **hydrated_model_spec_config
+        #     )
+        # if ConfigConstants.MeridianConfigAttributes.FIT_CONFIG in config_dict:
+        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG])
+        #     hydrated_fit_config = rehydrator.rehydrate_config()
+        #     config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = MeridianFitSchema(**hydrated_fit_config)
+        # return cls.model_validate(config_dict)

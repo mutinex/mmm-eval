@@ -121,10 +121,10 @@ class MeridianConfigRehydrator(ConfigRehydrator):
         """
         super().__init__(config)
         # Import Meridian modules when available
-        try:
-            import meridian
-            import tensorflow_probability as tfp
-            self.class_registry = self.build_class_registry(meridian, tfp, np)
-        except ImportError:
-            # Fallback to basic registry if Meridian is not available
-            self.class_registry = self.build_class_registry(np)
+        # try:
+        #     import meridian
+        #     import tensorflow_probability as tfp
+        #     self.class_registry = self.build_class_registry(meridian, tfp, np)
+        # except ImportError:
+        #     # Fallback to basic registry if Meridian is not available
+        #     self.class_registry = self.build_class_registry(np)
