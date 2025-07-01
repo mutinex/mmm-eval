@@ -81,6 +81,12 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
     return builder.build()
 
 
+def construct_holdout_mask(max_train_date: pd.Timestamp, time_index, geo_index):
+    full_index = pd.to_datetime(time_index)
+    test_index = full_index[full_index > max_train_date]
+
+    return full_index.isin(test_index)
+
 class MeridianAdapter(BaseAdapter):
     """Adapter for Google Meridian MMM framework."""
 
@@ -103,10 +109,9 @@ class MeridianAdapter(BaseAdapter):
 
         self.model = None
         self.trace = None
-        self._channel_roi_df = None
         self.is_fitted = False
 
-    def fit(self, data: pd.DataFrame) -> None:
+    def fit(self, data: pd.DataFrame, max_train_date: pd.Timestamp | None = None) -> None:
         """Fit the Meridian model to data.
 
         Args:
@@ -115,6 +120,7 @@ class MeridianAdapter(BaseAdapter):
         """
         # build Meridian data object
         self.training_data = construct_meridian_data_object(data, self.config)
+        self.max_train_date = max_train_date
 
         # parse Prior object if provided
         model_spec_kwargs = dict(self.config.model_spec_config)
@@ -125,6 +131,14 @@ class MeridianAdapter(BaseAdapter):
                                                   name=constants.ROI_M)
             )
             model_spec_kwargs["prior"] = prior_object
+
+        # if max train date is provided, construct a mask that is True for all dates before max_train_date
+        self.holdout_mask = None
+        if self.max_train_date:
+            self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time, self.training_data.kpi.geo)
+
+        # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
+        model_spec_kwargs["holdout_id"] = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
 
         # Create and fit the Meridian model
         model_spec = ModelSpec(
@@ -137,15 +151,12 @@ class MeridianAdapter(BaseAdapter):
         self.trace = self.model.sample_posterior(**dict(self.config.fit_config))
 
         # Compute channel contributions for ROI calculations
-        #self._channel_roi_df = self._compute_channel_contributions(data)
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
 
-    def predict(self, data: pd.DataFrame) -> np.ndarray:
+    def predict(self) -> np.ndarray:
         """Make predictions using the fitted model.
-
-        DOESN'T CURRENTLY WORK
 
         Args:
             data: Input data for prediction
@@ -157,17 +168,17 @@ class MeridianAdapter(BaseAdapter):
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction")
         
-        # build Meridian data object
-        data_object = construct_meridian_data_object(data, self.config)
+        # shape (n_chains, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False)
+        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
 
-        if InputDataframeConstants.RESPONSE_COL in data.columns:
-            data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
+        # if holdout mask is provided, use it to mask the predictions to restrict only to the
+        # holdout period
+        if self.holdout_mask is not None:
+            posterior_mean = posterior_mean[self.holdout_mask]
         
-        # FIXME: this doesn't consider adstock carryover from the training set
-        # shape (n_chans, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(new_data=data_object,
-                                                 aggregate_geos=True, aggregate_times=False)
-        return np.mean(preds_tensor, axis=(0, 1))
+        return posterior_mean
+        
         
 
     def get_channel_roi(
