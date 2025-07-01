@@ -240,15 +240,22 @@ class MeridianModelSchema(BaseModel):
     """Schema for Meridian model configuration."""
 
     date_column: str = Field(..., description="Column name of the date variable.")
-    channel_spend_columns: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    media_channels: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    channel_spend_columns: list[str] = Field(min_length=1, description="Column names of the media channel metric variables.")
+    channel_impressions_columns: list[str] | None = Field(None, description="Column names of the media channel impressions variables.")
+    channel_reach_columns: list[str] | None = Field(None, description="Column names of the media channel reach variables.")
+    channel_frequency_columns: list[str] | None = Field(None, description="Column names of the media channel frequency variables.")
+
+    organic_media_columns: list[str] | None = Field(None, description="Column names of the organic media variables.")
+    organic_media_channels: list[str] | None = Field(None, description="Channel names of the organic media variables.")
+    non_media_treatment_columns: list[str] | None = Field(None, description="Column names of the non-media treatment variables.")
+    
     response_column: str = Field(..., description="Column name of the response variable.")
     control_columns: list[str] | None = Field(None, description="Column names of control variables.")
-    geo_column: str | None = Field(None, description="Column name for geographic segmentation.")
-    seasonality_columns: list[str] | None = Field(None, description="Column names for seasonality variables.")
     # Add other model parameters as needed
 
-    @field_validator("media_columns")
-    def validate_media_columns(cls, v):
+    @field_validator("media_channels")
+    def validate_media_channels(cls, v):
         """Validate media columns are not empty.
 
         Args:
@@ -262,7 +269,7 @@ class MeridianModelSchema(BaseModel):
 
         """
         if v is not None and not v:
-            raise ValueError("media_columns must not be empty")
+            raise ValueError("media_channels must not be empty")
         return v
 
     model_config = {

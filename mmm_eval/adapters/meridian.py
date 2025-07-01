@@ -6,10 +6,14 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import meridian
+import xarray as xr
+import tensorflow_probability as tfp
 from meridian.model.spec import ModelSpec
 from meridian.model.model import Meridian
 from meridian.data import data_frame_input_data_builder as data_builder
+from meridian.model import prior_distribution
+from meridian import constants
+from meridian.analysis.analyzer import Analyzer
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import MeridianConfig
@@ -19,40 +23,59 @@ logger = logging.getLogger(__name__)
 
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+    model_schema = config.meridian_model_config
+
     # KPI, population, and control variables
     builder = (
         data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
-            .with_kpi(df, kpi_col=InputDataframeConstants.RESPONSE_COL)
-            .with_revenue_per_kpi(df, revenue_col=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL)
+            .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
+            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col=config.revenue_column)
     )
     if "population" in df.columns:
         builder = builder.with_population(df)
     
     # controls (non-intervenable, e.g. macroeconomics)
-    builder = builder.with_controls(df, control_cols=config.control_columns)
+    builder = builder.with_controls(df, time_col=config.date_column,
+                                    control_cols=model_schema.control_columns)
 
     # add paid media
-    # TODO: add support for impressions/reach/frequency
-    builder = builder.with_media(
-        df,
-        media_spend_cols=[f"{channel}_spend" for channel in config.channel_columns],
-        media_channels=config.channel_columns,
-    )
+    # without impressions/reach/frequency: media_cols = media_spend_cols
+    # with impressions: media_cols = impressions cols
+    # with reach/frequency: media_cols = use .with_reach() instead
+    if model_schema.channel_reach_columns:
+        builder = builder.with_reach(
+            df,
+            reach_cols=model_schema.channel_reach_columns,
+            frequency_cols=model_schema.channel_frequency_columns,
+            rf_spend_cols=model_schema.channel_spend_columns,
+            rf_channels=model_schema.media_channels,
+            time_col=config.date_column,
+        )
+    else:
+        media_cols = model_schema.channel_impressions_columns or model_schema.channel_spend_columns
+        builder = builder.with_media(
+            df,
+            media_cols=media_cols,
+            media_spend_cols=model_schema.channel_spend_columns,
+            media_channels=model_schema.media_channels,
+            time_col=config.date_column,
+        )
 
     # organic media
-    if config.organic_media_columns:
+    if model_schema.organic_media_columns:
         builder = builder.with_organic_media(
             df,
-            organic_media_cols=config.organic_media_columns,
-            organic_media_channels=config.organic_media_channels,
+            organic_media_cols=model_schema.organic_media_columns,
+            organic_media_channels=model_schema.organic_media_channels,
             media_time_col=config.date_column,
         )
 
     # non-media treatments (anything that is "intervenable", e.g. pricing/promotions)
-    if config.non_media_treatments_columns:
+    if model_schema.non_media_treatment_columns:
         builder = builder.with_non_media_treatments(
             df,
-            non_media_treatments_cols=config.non_media_treatments_columns,
+            non_media_treatment_cols=model_schema.non_media_treatment_columns,
+            time_col=config.date_column,
         )
 
     return builder.build()
@@ -70,17 +93,13 @@ class MeridianAdapter(BaseAdapter):
             config: MeridianConfig object
         """
         self.config = config
+        self.model_schema = config.meridian_model_config
 
         # response and revenue columns are constants so don't need to be set here
         # population, if provided, needs to be called "population" in the DF
         self.date_column = config.date_column
-        self.channel_spend_columns = config.channel_columns
-        # impressions, reach, frequency, etc.
-        self.channel_metric_columns = config.channel_metric_columns or None
-        self.organic_media_columns = config.organic_media_columns
-        self.organic_media_channels = config.organic_media_channels
-        self.non_media_treatments_columns = config.non_media_treatments_columns
-        self.non_media_treatments_channels = config.non_media_treatments_channels
+        self.channel_spend_columns = self.model_schema.channel_spend_columns
+        self.media_channels = self.model_schema.media_channels
 
         self.model = None
         self.trace = None
@@ -95,22 +114,38 @@ class MeridianAdapter(BaseAdapter):
 
         """
         # build Meridian data object
-        data_object = construct_meridian_data_object(data, self.config)
+        self.training_data = construct_meridian_data_object(data, self.config)
+
+        # parse Prior object if provided
+        model_spec_kwargs = dict(self.config.model_spec_config)
+        if prior_spec := self.config.model_spec_config.prior:
+            # FIXME: make the functional form configurable
+            prior_object = prior_distribution.PriorDistribution(
+                roi_m=tfp.distributions.LogNormal(prior_spec.roi_mu, prior_spec.roi_sigma,
+                                                  name=constants.ROI_M)
+            )
+            model_spec_kwargs["prior"] = prior_object
 
         # Create and fit the Meridian model
-        self.model = Meridian(
-            input_data=data_object,
-            model_spec=self.config.model_spec_config,
+        model_spec = ModelSpec(
+            **model_spec_kwargs
         )
-        self.trace = self.model.sample_posterior(**self.config.fit_config)
+        self.model = Meridian(
+            input_data=self.training_data,
+            model_spec=model_spec,
+        )
+        self.trace = self.model.sample_posterior(**dict(self.config.fit_config))
 
         # Compute channel contributions for ROI calculations
-        self._channel_roi_df = self._compute_channel_contributions(data)
+        #self._channel_roi_df = self._compute_channel_contributions(data)
+        self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
 
     def predict(self, data: pd.DataFrame) -> np.ndarray:
         """Make predictions using the fitted model.
+
+        DOESN'T CURRENTLY WORK
 
         Args:
             data: Input data for prediction
@@ -121,31 +156,25 @@ class MeridianAdapter(BaseAdapter):
         """
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction")
+        
+        # build Meridian data object
+        data_object = construct_meridian_data_object(data, self.config)
 
-        if self.model is None:
-            # Placeholder implementation if Meridian is not available
-            logger.warning("Using placeholder prediction - Meridian model not available")
-            return np.random.normal(100, 10, len(data))
-
-        try:
-            # Remove response column if present
-            if InputDataframeConstants.RESPONSE_COL in data.columns:
-                data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
-
-            # Make predictions using Meridian model
-            predictions = self.model.predict(data)
-            return predictions
-
-        except Exception as e:
-            logger.error(f"Error making predictions: {e}")
-            # Fallback to placeholder predictions
-            return np.random.normal(100, 10, len(data))
+        if InputDataframeConstants.RESPONSE_COL in data.columns:
+            data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
+        
+        # FIXME: this doesn't consider adstock carryover from the training set
+        # shape (n_chans, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(new_data=data_object,
+                                                 aggregate_geos=True, aggregate_times=False)
+        return np.mean(preds_tensor, axis=(0, 1))
+        
 
     def get_channel_roi(
         self,
         start_date: pd.Timestamp | None = None,
         end_date: pd.Timestamp | None = None,
-    ) -> pd.Series:
+    ) -> dict[str, float]:
         """Get channel ROI estimates.
 
         Args:
@@ -159,156 +188,19 @@ class MeridianAdapter(BaseAdapter):
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before computing ROI")
 
-        if self._channel_roi_df is None:
-            logger.warning("Channel ROI data not available. Returning placeholder ROIs.")
-            # Return placeholder ROIs
-            return pd.Series(
-                {channel: np.random.uniform(0.5, 2.0) for channel in self.channel_spend_columns}
-            )
+        training_date_index = pd.to_datetime(self.training_data.kpi.time)
+        roi_date_index = training_date_index.copy()
+        if start_date:
+            roi_date_index = roi_date_index[roi_date_index >= start_date]
+        if end_date:
+            roi_date_index = roi_date_index[roi_date_index < end_date]
 
-        # Validate date range
-        self._validate_start_end_dates(start_date, end_date, self._channel_roi_df.index)
+        selected_times = [bool(e) for e in training_date_index.isin(roi_date_index)]
 
-        # Filter the contribution DataFrame by date range
-        date_range_df = self._channel_roi_df.loc[start_date:end_date]
-
-        if date_range_df.empty:
-            raise ValueError(f"No data found for date range {start_date} to {end_date}")
-
-        return pd.Series(self._calculate_rois(date_range_df))
-
-    def _compute_channel_contributions(self, data: pd.DataFrame) -> pd.DataFrame:
-        """Compute channel contributions and return the DataFrame for ROI calculations.
-
-        Args:
-            data: Input DataFrame containing the training data
-
-        Returns:
-            DataFrame containing channel contributions and spend data
-
-        """
-        if self.model is None:
-            logger.warning("Meridian model not available. Using placeholder contributions.")
-            # Create placeholder contributions
-            contribution_df = pd.DataFrame(
-                np.random.uniform(10, 100, (len(data), len(self.channel_spend_columns))),
-                columns=[f"{col}_response_units" for col in self.channel_spend_columns],
-                index=data.index
-            )
-            
-            # Add original data columns
-            data_subset = data.filter(
-                items=[
-                    self.date_column,
-                    InputDataframeConstants.RESPONSE_COL,
-                    InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
-                    *self.channel_spend_columns,
-                ]
-            ).set_index(self.date_column)
-
-            contribution_df = pd.merge(
-                contribution_df,
-                data_subset,
-                left_index=True,
-                right_index=True,
-            )
-
-            return contribution_df
-
-        try:
-            # Compute channel contributions using Meridian model
-            # This would need to be implemented based on the actual Meridian API
-            # For now, return placeholder data
-            contribution_df = pd.DataFrame(
-                np.random.uniform(10, 100, (len(data), len(self.channel_spend_columns))),
-                columns=[f"{col}_response_units" for col in self.channel_spend_columns],
-                index=data.index
-            )
-            
-            # Add original data columns
-            data_subset = data.filter(
-                items=[
-                    self.date_column,
-                    InputDataframeConstants.RESPONSE_COL,
-                    InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
-                    *self.channel_spend_columns,
-                ]
-            ).set_index(self.date_column)
-
-            contribution_df = pd.merge(
-                contribution_df,
-                data_subset,
-                left_index=True,
-                right_index=True,
-            )
-
-            return contribution_df
-
-        except Exception as e:
-            logger.error(f"Error computing channel contributions: {e}")
-            # Return empty DataFrame as fallback
-            return pd.DataFrame()
-
-    def _calculate_rois(self, contribution_df: pd.DataFrame) -> dict[str, float]:
-        """Calculate ROIs from a contribution DataFrame.
-
-        Args:
-            contribution_df: DataFrame containing channel contributions and spend data
-
-        Returns:
-            Dictionary mapping channel names to ROI percentages
-
-        """
-        # Calculate average revenue per unit
-        avg_rev_per_unit = np.divide(
-            contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL],
-            contribution_df[InputDataframeConstants.RESPONSE_COL],
-            out=np.full_like(contribution_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL], np.nan),
-            where=contribution_df[InputDataframeConstants.RESPONSE_COL] != 0,
-        )
-
-        # Forward fill three periods, then fill any remaining with the mean
-        avg_rev_per_unit = pd.Series(avg_rev_per_unit, index=contribution_df.index)
-        original_mean = avg_rev_per_unit.mean()
-        avg_rev_per_unit = avg_rev_per_unit.fillna(method="ffill", limit=3)
-        avg_rev_per_unit = avg_rev_per_unit.fillna(original_mean)
+        # (n_chains, n_draws, n_channels)
+        rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
 
         rois = {}
-        for channel in self.channel_spend_columns:
-            total_spend = contribution_df[channel].sum()
-            # Handle edge case where total spend is zero
-            if total_spend == 0:
-                rois[channel] = np.nan
-                continue
-
-            channel_revenue = contribution_df[f"{channel}_response_units"] * avg_rev_per_unit
-            # Return as a percentage
-            rois[channel] = 100 * (channel_revenue.sum() / total_spend - 1).item()
-
+        for channel, roi in zip(self.media_channels, rois_per_channel):
+            rois[channel] = float(roi)
         return rois
-
-    def _validate_start_end_dates(
-        self,
-        start_date: pd.Timestamp | None,
-        end_date: pd.Timestamp | None,
-        date_range: pd.DatetimeIndex,
-    ) -> None:
-        """Validate start/end dates passed to `get_channel_roi`.
-
-        Args:
-            start_date: Left bound for calculating ROI estimates
-            end_date: Right bound for calculating ROI estimates
-            date_range: Date range of the training data which will be subset
-
-        Raises:
-            ValueError: If start_date is not before end_date
-
-        """
-        if start_date is not None and end_date is not None and start_date >= end_date:
-            raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
-
-        if start_date is not None and start_date < date_range.min():
-            logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
-
-        if end_date is not None and end_date > date_range.max():
-            logger.info(f"End date is after the last date in the training data: {date_range.max()}")

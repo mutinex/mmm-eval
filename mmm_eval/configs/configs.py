@@ -165,7 +165,7 @@ class MeridianConfig(BaseConfig):
     @property
     def channel_columns(self) -> list[str]:
         """Return the channel columns."""
-        return self.meridian_model_config.media_columns
+        return self.meridian_model_config.media_channels
 
     @computed_field
     @property
