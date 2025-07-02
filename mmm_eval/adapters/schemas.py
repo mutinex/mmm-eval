@@ -278,6 +278,7 @@ class MeridianModelSchema(BaseModel):
     
     response_column: str = Field(..., description="Column name of the response variable.")
     control_columns: list[str] | None = Field(None, description="Column names of control variables.")
+    revenue_per_kpi_column: str = Field(..., description="Column name of the revenue per KPI variable.")
 
     @field_validator("media_channels")
     def validate_media_channels(cls, v):

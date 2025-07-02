@@ -55,8 +55,9 @@ class DataValidator:
         self._validate_data_size(df)
         self._validate_response_and_revenue_columns_xor_zeroes(df)
 
-        if self.control_columns:
-            self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
+        # TODO: only run for PyMC adapter
+        # if self.control_columns:
+        #     self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 
     def _validate_schema(self, df: pd.DataFrame) -> None:
         """Check if DataFrame matches the schema."""
@@ -80,8 +81,6 @@ class DataValidator:
     def _validate_response_and_revenue_columns_xor_zeroes(self, df: pd.DataFrame) -> None:
         """Ensure that there are no cases where exactly one of response_column and revenue_column is non-zero."""
         if self.response_column != self.revenue_column:
-            print(f"\n\n\n\n {df.columns}")
-            print("\n\n\n")
             response_zero = df[self.response_column] == 0
             revenue_zero = df[self.revenue_column] == 0
 

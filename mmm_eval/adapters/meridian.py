@@ -21,17 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
-    # first, convert from pure revenue to "revenue_per_kpi" as expected by Meridian
-    df["revenue_per_kpi"] = df[config.revenue_column]/df[InputDataframeConstants.RESPONSE_COL]
-    df = df.drop(columns=config.revenue_column)
-
     model_schema = config.meridian_model_config
+
+    #print(df.columns)
 
     # KPI, population, and control variables
     builder = (
         data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
             .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
-            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col="revenue_per_kpi")
+            # FIXME: probably require user to provide revenue, and we calculate revenue per KPI here
+            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col="revenue")
     )
     if "population" in df.columns:
         builder = builder.with_population(df)
@@ -94,8 +93,6 @@ class MeridianAdapter(BaseAdapter):
 
     def __init__(self, config: MeridianConfig):
         """Initialize the Meridian adapter.
-
-        Meridian needs the following
 
         Args:
             config: MeridianConfig object

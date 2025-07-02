@@ -91,7 +91,7 @@ class BaseValidationTest(ABC):
 
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
-        train_idx, test_idx = split_timeseries_data(data, ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
+        train_idx, test_idx = split_timeseries_data(data, ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_PROPORTION,
                                                     date_column=self.date_column)
         return data[train_idx], data[test_idx]
 
@@ -125,6 +125,7 @@ def split_timeseries_data(data: pd.DataFrame, test_proportion: float, date_colum
     return train_mask, test_mask
 
 
+# TODO: add logic to ensure there's actually enough data to satisfy splits
 def split_timeseries_cv(data: pd.DataFrame, n_splits: int, test_size: int, date_column: str) -> tuple[np.ndarray, np.ndarray]:
     """
     Generator yielding train/test masks for rolling CV, globally based on date.

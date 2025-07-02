@@ -160,12 +160,19 @@ class MeridianConfig(BaseConfig):
     def date_column(self) -> str:
         """Return the date column."""
         return self.meridian_model_config.date_column
+    
+    # @computed_field
+    # @property
+    # def response_column(self) -> str:
+    #     """Return the response column."""
+    #     return self.meridian_model_config.response_column
 
+    # TODO: consider renaming to "channel_spend_columns"
     @computed_field
     @property
     def channel_columns(self) -> list[str]:
         """Return the channel columns."""
-        return self.meridian_model_config.media_channels
+        return self.meridian_model_config.channel_spend_columns
 
     @computed_field
     @property
