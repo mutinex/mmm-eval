@@ -20,17 +20,22 @@ from mmm_eval.data.constants import InputDataframeConstants
 logger = logging.getLogger(__name__)
 
 
-def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
-    model_schema = config.meridian_model_config
+REVENUE_PER_KPI_COL = "revenue_per_kpi"
 
+
+def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+    # convert from "revenue" to "revenue_per_kpi"
+    df[REVENUE_PER_KPI_COL] = df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]/df[InputDataframeConstants.RESPONSE_COL]
+    df = df.drop(columns=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL)
+
+    model_schema = config.meridian_model_config
     #print(df.columns)
 
     # KPI, population, and control variables
     builder = (
         data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
             .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
-            # FIXME: probably require user to provide revenue, and we calculate revenue per KPI here
-            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col="revenue")
+            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col=REVENUE_PER_KPI_COL)
     )
     if "population" in df.columns:
         builder = builder.with_population(df)
