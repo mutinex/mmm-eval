@@ -2,11 +2,9 @@
 """
 
 import logging
-from typing import Any
 
 import numpy as np
 import pandas as pd
-import xarray as xr
 import tensorflow_probability as tfp
 from meridian.model.spec import ModelSpec
 from meridian.model.model import Meridian
@@ -23,13 +21,17 @@ logger = logging.getLogger(__name__)
 
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+    # first, convert from pure revenue to "revenue_per_kpi" as expected by Meridian
+    df["revenue_per_kpi"] = df[config.revenue_column]/df[InputDataframeConstants.RESPONSE_COL]
+    df = df.drop(columns=config.revenue_column)
+
     model_schema = config.meridian_model_config
 
     # KPI, population, and control variables
     builder = (
         data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
             .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
-            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col=config.revenue_column)
+            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col="revenue_per_kpi")
     )
     if "population" in df.columns:
         builder = builder.with_population(df)
@@ -136,9 +138,8 @@ class MeridianAdapter(BaseAdapter):
         self.holdout_mask = None
         if self.max_train_date:
             self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time, self.training_data.kpi.geo)
-
-        # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
-        model_spec_kwargs["holdout_id"] = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
+            # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
+            model_spec_kwargs["holdout_id"] = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
 
         # Create and fit the Meridian model
         model_spec = ModelSpec(
@@ -153,7 +154,6 @@ class MeridianAdapter(BaseAdapter):
         # Compute channel contributions for ROI calculations
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
-
 
     def predict(self) -> np.ndarray:
         """Make predictions using the fitted model.
@@ -179,7 +179,19 @@ class MeridianAdapter(BaseAdapter):
         
         return posterior_mean
         
+    
+    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+        """Fit the Meridian model and make predictions.
         
+        Args:
+            train: Training data
+            test: Test data
+        """
+        # FIXME: ensure the adapter is reset to a fresh state after predict is called
+        train_and_test = pd.concat([train, test])
+        self.fit(train_and_test, max_train_date=train[self.date_column].max())
+        return self.predict()
+
 
     def get_channel_roi(
         self,
