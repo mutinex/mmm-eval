@@ -1,6 +1,19 @@
+"""
+For PyMC we have FitSchema and ModelSchema
+
+Mapping to Meridian:
+FitSchema -> FitSchema (rename since Meridian really has no fit step?)
+ModelSchema -> ModelSpecSchema
+
+What's currently in Meridian's ModelSchema is basically all related to the construction of the
+data object, should it be a different schema?
+"""
+
+
+
 from typing import Annotated, Any
 
-from pydantic import BaseModel, Field, InstanceOf, field_validator
+from pydantic import BaseModel, Field, InstanceOf, field_validator, model_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
 
@@ -204,7 +217,10 @@ class MeridianModelSpecSchema(BaseModel):
 
 
 class MeridianFitSchema(BaseModel):
-    """Schema for Meridian fit configuration."""
+    """Schema for Meridian fit configuration.
+    
+    These arguments are passed to the Meridian model's sample_posterior() method.
+    """
 
     n_chains: int | list[int] = Field(4, description="Number of MCMC chains to run.")
     n_adapt: int = Field(500, description="Number of adaptation steps.")
@@ -237,22 +253,31 @@ class MeridianFitSchema(BaseModel):
 
 
 class MeridianModelSchema(BaseModel):
-    """Schema for Meridian model configuration."""
+    """Schema for Meridian model configuration.
+    
+    These arguments are passed to the DataFrameInputDataBuilder class for constructing a
+    data object to be fed into the Meridian model.
 
+    See here for how to determine whether to consider a particular feature a non-media
+    treatment or a control:
+    https://developers.google.com/meridian/docs/advanced-modeling/organic-and-non-media-variables?hl=en
+    """
     date_column: str = Field(..., description="Column name of the date variable.")
     media_channels: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
     channel_spend_columns: list[str] = Field(min_length=1, description="Column names of the media channel metric variables.")
     channel_impressions_columns: list[str] | None = Field(None, description="Column names of the media channel impressions variables.")
+
+    # these two depend on one another, so we need to validate them together
     channel_reach_columns: list[str] | None = Field(None, description="Column names of the media channel reach variables.")
     channel_frequency_columns: list[str] | None = Field(None, description="Column names of the media channel frequency variables.")
 
+    # these two depend on one another, so we need to validate them together
     organic_media_columns: list[str] | None = Field(None, description="Column names of the organic media variables.")
     organic_media_channels: list[str] | None = Field(None, description="Channel names of the organic media variables.")
     non_media_treatment_columns: list[str] | None = Field(None, description="Column names of the non-media treatment variables.")
     
     response_column: str = Field(..., description="Column name of the response variable.")
     control_columns: list[str] | None = Field(None, description="Column names of control variables.")
-    # Add other model parameters as needed
 
     @field_validator("media_channels")
     def validate_media_channels(cls, v):
@@ -271,6 +296,82 @@ class MeridianModelSchema(BaseModel):
         if v is not None and not v:
             raise ValueError("media_channels must not be empty")
         return v
+
+    @field_validator("channel_reach_columns", "channel_frequency_columns", mode="after")
+    def validate_reach_frequency_columns(cls, v, info):
+        """Validate that exactly zero or two of channel_reach_columns and channel_frequency_columns are provided.
+
+        Args:
+            v: The value being validated
+            info: Validation info containing the field name
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If exactly zero or two of the fields are not provided
+
+        """
+        # Get the current values of both fields
+        reach_columns = getattr(info.data, "channel_reach_columns", None)
+        frequency_columns = getattr(info.data, "channel_frequency_columns", None)
+        
+        # Count how many are provided (not None and not empty)
+        provided_count = sum(1 for field in [reach_columns, frequency_columns] 
+                           if field is not None and len(field) > 0)
+        
+        if provided_count not in [0, 2]:
+            raise ValueError("Exactly zero or two of channel_reach_columns and channel_frequency_columns must be provided")
+        
+        return v
+
+    @field_validator("organic_media_columns", "organic_media_channels", mode="after")
+    def validate_organic_media_fields(cls, v, info):
+        """Validate that exactly zero or two of organic_media_columns and organic_media_channels are provided.
+
+        Args:
+            v: The value being validated
+            info: Validation info containing the field name
+
+        Returns:
+            Validated value
+
+        Raises:
+            ValueError: If exactly zero or two of the fields are not provided
+
+        """
+        # Get the current values of both fields
+        organic_columns = getattr(info.data, "organic_media_columns", None)
+        organic_channels = getattr(info.data, "organic_media_channels", None)
+        
+        # Count how many are provided (not None and not empty)
+        provided_count = sum(1 for field in [organic_columns, organic_channels] 
+                           if field is not None and len(field) > 0)
+        
+        if provided_count not in [0, 2]:
+            raise ValueError("Exactly zero or two of organic_media_columns and organic_media_channels must be provided")
+        
+        return v
+
+    @model_validator(mode="after")
+    def validate_reach_impressions_mutual_exclusion(self):
+        """Validate that channel_reach_columns and channel_impressions_columns are not both provided.
+
+        Returns:
+            Self
+
+        Raises:
+            ValueError: If both fields are provided
+
+        """
+        reach_columns = self.channel_reach_columns
+        impressions_columns = self.channel_impressions_columns
+        
+        if (reach_columns is not None and len(reach_columns) > 0 and 
+            impressions_columns is not None and len(impressions_columns) > 0):
+            raise ValueError("channel_reach_columns and channel_impressions_columns cannot both be provided")
+        
+        return self
 
     model_config = {
         "arbitrary_types_allowed": True,
