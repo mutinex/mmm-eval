@@ -6,6 +6,7 @@ from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
+from pydantic import PositiveFloat, PositiveInt
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
@@ -120,7 +121,7 @@ class BaseValidationTest(ABC):
 
 
 def split_timeseries_data(
-    data: pd.DataFrame, test_proportion: float, date_column: str
+    data: pd.DataFrame, test_proportion: PositiveFloat, date_column: str
 ) -> tuple[np.ndarray, np.ndarray]:
     """Split data globally based on date.
 
@@ -131,7 +132,7 @@ def split_timeseries_data(
 
     Returns:
         boolean masks for training and test data respectively
-    
+
     """
     if test_proportion <= 0 or test_proportion >= 1:
         raise ValueError("`test_proportion` must be in the range (0, 1)")
@@ -148,13 +149,13 @@ def split_timeseries_data(
 
 
 def split_timeseries_cv(
-    data: pd.DataFrame, n_splits: int, test_size: int, date_column: str
+    data: pd.DataFrame, n_splits: PositiveInt, test_size: PositiveInt, date_column: str
 ) -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
     """Produce train/test masks for rolling CV, split globally based on date.
 
-    This simulates monthly refreshes and utilises the last `test_size` data points for
+    This simulates regular refreshes and utilises the last `test_size` data points for
     testing in the first fold, using all prior data for training. For a dataset with
-    T dates, the tests folds follow the pattern [T-4, T], [T-8, T-4], ...
+    T dates, the subsequen test folds follow the pattern [T-4, T], [T-8, T-4], ...
 
     Arguments:
         data: dataframe of MMM data to be split
