@@ -1,16 +1,3 @@
-"""
-For PyMC we have FitSchema and ModelSchema
-
-Mapping to Meridian:
-FitSchema -> FitSchema (rename since Meridian really has no fit step?)
-ModelSchema -> ModelSpecSchema
-
-What's currently in Meridian's ModelSchema is basically all related to the construction of the
-data object, should it be a different schema?
-"""
-
-
-
 from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, InstanceOf, field_validator, model_validator

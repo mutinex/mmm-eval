@@ -59,7 +59,6 @@ class DataValidator:
         self._validate_data_size(df)
         self._validate_response_and_revenue_columns_xor_zeroes(df)
 
-        # TODO: only run for PyMC adapter
         if self.control_columns and self.framework == FrameworkNames.PYMC_MARKETING:
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 
