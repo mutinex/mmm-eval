@@ -65,7 +65,7 @@ class ValidationTestOrchestrator:
         results: dict[ValidationTestNames, ValidationTestResult] = {}
         for test_name in test_names:
             logger.info(f"Running test: {test_name}")
-            test_instance = self.tests[test_name]()
+            test_instance = self.tests[test_name](adapter.date_column)
             test_result = test_instance.run_with_error_handling(adapter, data)
             results[test_name] = test_result
 

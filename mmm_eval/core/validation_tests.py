@@ -47,12 +47,13 @@ class AccuracyTest(BaseValidationTest):
         """Run the accuracy test."""
         # Split data into train/test sets
         train, test = self._split_data_holdout(data)
-        adapter.fit(train)  # fit() modifies model in-place, returns None
-        predictions = adapter.predict(test)  # predict() on same model instance
+        predictions = adapter.fit_and_predict(train, test)
+        actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
+        assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
         # Calculate metrics
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
-            actual=test[InputDataframeConstants.RESPONSE_COL],
+            actual=actual,
             predicted=predictions,
         )
 
@@ -101,13 +102,14 @@ class CrossValidationTest(BaseValidationTest):
             test = data.iloc[test_idx]
 
             # Get predictions
-            adapter.fit(train)
-            predictions = adapter.predict(test)
+            predictions = adapter.fit_and_predict(train, test)
+            actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
+            assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
             # Add in fold results
             fold_metrics.append(
                 AccuracyMetricResults.populate_object_with_metrics(
-                    actual=test[InputDataframeConstants.RESPONSE_COL],
+                    actual=actual,
                     predicted=predictions,
                 )
             )
