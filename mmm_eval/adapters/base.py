@@ -45,16 +45,17 @@ class BaseAdapter(ABC):
         """
         pass
 
-
     @abstractmethod
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit on training data and make predictions on test data.
 
         Args:
-            data: Input data for prediction
-            
+            train: dataset to train model on
+            test: dataset to make predictions using
+
         Returns:
-            Predicted values
+            Predicted values.
+        
         """
         pass
 

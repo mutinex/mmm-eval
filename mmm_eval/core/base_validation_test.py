@@ -2,10 +2,10 @@
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit, train_test_split
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
@@ -92,8 +92,9 @@ class BaseValidationTest(ABC):
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
-        train_idx, test_idx = split_timeseries_data(data, ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_PROPORTION,
-                                                    date_column=self.date_column)
+        train_idx, test_idx = split_timeseries_data(
+            data, ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_PROPORTION, date_column=self.date_column
+        )
         return data[train_idx], data[test_idx]
 
     def _split_data_time_series_cv(self, data: pd.DataFrame) -> list[tuple[np.ndarray, np.ndarray]]:
@@ -108,12 +109,19 @@ class BaseValidationTest(ABC):
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
-        return list(split_timeseries_cv(data, ValidationTestConstants.N_SPLITS,
-                                        ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
-                                        date_column=self.date_column))
+        return list(
+            split_timeseries_cv(
+                data,
+                ValidationTestConstants.N_SPLITS,
+                ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
+                date_column=self.date_column,
+            )
+        )
 
 
-def split_timeseries_data(data: pd.DataFrame, test_proportion: float, date_column: str) -> tuple[np.ndarray, np.ndarray]:
+def split_timeseries_data(
+    data: pd.DataFrame, test_proportion: float, date_column: str
+) -> tuple[np.ndarray, np.ndarray]:
     """Split data globally based on date."""
     sorted_dates = sorted(data[date_column].unique())
     split_idx = int(len(sorted_dates) * (1 - test_proportion))
@@ -126,7 +134,9 @@ def split_timeseries_data(data: pd.DataFrame, test_proportion: float, date_colum
 
 
 # TODO: add logic to ensure there's actually enough data to satisfy splits
-def split_timeseries_cv(data: pd.DataFrame, n_splits: int, test_size: int, date_column: str) -> tuple[np.ndarray, np.ndarray]:
+def split_timeseries_cv(
+    data: pd.DataFrame, n_splits: int, test_size: int, date_column: str
+) -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
     """Produce train/test masks for rolling CV, split globally based on date.
 
     This simulates monthly refreshes and utilises the last `test_size` data points for
@@ -141,13 +151,14 @@ def split_timeseries_cv(data: pd.DataFrame, n_splits: int, test_size: int, date_
 
     Yields:
         integer masks corresponding training and test set indices.
+
     """
     sorted_dates = sorted(data[date_column].unique())
     n_dates = len(sorted_dates)
 
     for i in range(n_splits):
         test_end = n_dates - i * test_size
-        test_start = n_dates - (i+1) * test_size
+        test_start = n_dates - (i + 1) * test_size
         test_dates = sorted_dates[test_start:test_end]
         train_dates = sorted_dates[:test_start]
 
