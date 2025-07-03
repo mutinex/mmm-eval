@@ -64,6 +64,7 @@ class DataValidator:
 
         # Import locally to avoid circular imports
         from mmm_eval.adapters import SupportedFrameworks
+
         if self.control_columns and self.framework == SupportedFrameworks.PYMC_MARKETING:
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 

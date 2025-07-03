@@ -1,5 +1,7 @@
 """Main evaluator for MMM frameworks."""
 
+from typing import TYPE_CHECKING
+
 import pandas as pd
 
 from mmm_eval.configs.base import BaseConfig
@@ -7,6 +9,9 @@ from mmm_eval.core.exceptions import InvalidTestNameError
 from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
 from mmm_eval.core.validation_test_results import ValidationResults
 from mmm_eval.core.validation_tests_models import ValidationTestNames
+
+if TYPE_CHECKING:
+    from mmm_eval.adapters import SupportedFrameworks
 
 
 class Evaluator:
@@ -48,7 +53,7 @@ class Evaluator:
 
         return converted_names
 
-    def evaluate_framework(self, framework: str, config: BaseConfig) -> ValidationResults:
+    def evaluate_framework(self, framework: "SupportedFrameworks", config: BaseConfig) -> ValidationResults:
         """Evaluate an MMM framework using the unified API.
 
         Args:

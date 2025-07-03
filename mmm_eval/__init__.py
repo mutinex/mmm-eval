@@ -10,8 +10,8 @@ __email__ = "joseph.kang@mutinex.co"
 # Core functionality
 # Adapters
 from .adapters import (
-    get_adapter,
     SupportedFrameworks,
+    get_adapter,
 )
 from .adapters.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config

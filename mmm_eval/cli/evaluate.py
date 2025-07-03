@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from mmm_eval.adapters import ADAPTER_REGISTRY, SupportedFrameworks
+from mmm_eval.adapters import SupportedFrameworks
 from mmm_eval.configs import get_config
 from mmm_eval.core import run_evaluation
 from mmm_eval.core.validation_tests_models import ValidationTestNames

@@ -1,7 +1,8 @@
 """Data pipeline for MMM evaluation."""
 
-import pandas as pd
 from typing import TYPE_CHECKING
+
+import pandas as pd
 
 if TYPE_CHECKING:
     from mmm_eval.adapters import SupportedFrameworks
