@@ -199,7 +199,7 @@ class MeridianAdapter(BaseAdapter):
         self,
         start_date: pd.Timestamp | None = None,
         end_date: pd.Timestamp | None = None,
-    ) -> dict[str, float]:
+    ) -> pd.Series:
         """Get channel ROI estimates.
 
         Args:
@@ -228,4 +228,4 @@ class MeridianAdapter(BaseAdapter):
         rois = {}
         for channel, roi in zip(self.media_channels, rois_per_channel):
             rois[channel] = float(roi)
-        return rois
+        return pd.Series(rois)

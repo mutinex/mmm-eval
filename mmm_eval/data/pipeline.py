@@ -5,6 +5,7 @@ import pandas as pd
 from .constants import DataPipelineConstants, InputDataframeConstants
 from .processor import DataProcessor
 from .validation import DataValidator
+from mmm_eval.core.validation_tests_models import FrameworkNames
 
 
 class DataPipeline:
@@ -16,6 +17,7 @@ class DataPipeline:
     def __init__(
         self,
         data: pd.DataFrame,
+        framework: FrameworkNames,
         control_columns: list[str] | None,
         channel_columns: list[str],
         date_column: str,
@@ -27,6 +29,7 @@ class DataPipeline:
 
         Args:
             data: DataFrame containing the data
+            framework: name of supported framework
             control_columns: List of control columns
             channel_columns: List of channel columns
             date_column: Name of the date column
@@ -39,12 +42,14 @@ class DataPipeline:
         self.data = data
         self.processor = DataProcessor(
             date_column=date_column,
+            framework=framework,
             response_column=response_column,
             revenue_column=revenue_column,
             control_columns=control_columns,
             channel_columns=channel_columns,
         )
         self.validator = DataValidator(
+            framework=framework,
             date_column=date_column,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,

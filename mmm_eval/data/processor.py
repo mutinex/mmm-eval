@@ -7,6 +7,7 @@ from mmm_eval.data.exceptions import (
     InvalidDateFormatError,
     MissingRequiredColumnsError,
 )
+from mmm_eval.core.validation_tests_models import FrameworkNames
 
 
 class DataProcessor:
