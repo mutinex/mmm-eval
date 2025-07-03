@@ -98,8 +98,8 @@ class CrossValidationTest(BaseValidationTest):
             logger.info(f"Running cross-validation fold {i+1} of {len(cv_splits)}")
 
             # Get train/test data
-            train = data.iloc[train_idx]
-            test = data.iloc[test_idx]
+            train = data.loc[train_idx]
+            test = data.loc[test_idx]
 
             # Get predictions
             predictions = adapter.fit_and_predict(train, test)
@@ -177,9 +177,9 @@ class RefreshStabilityTest(BaseValidationTest):
 
             # Get train/test data
             # todo(): Can we somehow store these training changes in the adapter for use in time series holdout test
-            current_data = data.iloc[train_idx]
+            current_data = data.loc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
+            refresh_data = pd.concat([current_data, data.loc[refresh_idx]], ignore_index=True)
             # Get common dates for roi stability comparison
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,

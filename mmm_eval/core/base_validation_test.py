@@ -124,7 +124,8 @@ def split_timeseries_data(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Split data globally based on date."""
     sorted_dates = sorted(data[date_column].unique())
-    split_idx = int(len(sorted_dates) * (1 - test_proportion))
+    # rounding eliminates possibility of floating point precision issues
+    split_idx = int(round(len(sorted_dates) * (1 - test_proportion)))
     cutoff = sorted_dates[split_idx]
 
     train_mask = data[date_column] < cutoff
@@ -133,7 +134,6 @@ def split_timeseries_data(
     return train_mask, test_mask
 
 
-# TODO: add logic to ensure there's actually enough data to satisfy splits
 def split_timeseries_cv(
     data: pd.DataFrame, n_splits: int, test_size: int, date_column: str
 ) -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
@@ -155,6 +155,17 @@ def split_timeseries_cv(
     """
     sorted_dates = sorted(data[date_column].unique())
     n_dates = len(sorted_dates)
+
+    # assuming the minimum training set size allowable is equal to `test_size`, ensure there's
+    # enough data temporally to do the splits
+    n_required_dates = test_size * (n_splits + 1)
+    if n_dates < n_required_dates:
+        raise ValueError(
+            "Insufficient timeseries data provided for splitting. In order to "
+            f"perform {n_splits} splits with test_size={test_size}, at least "
+            f"{n_required_dates} unique dates are required, but only {n_dates} "
+            f"dates are available."
+        )
 
     for i in range(n_splits):
         test_end = n_dates - i * test_size

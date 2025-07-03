@@ -55,7 +55,7 @@ class BaseAdapter(ABC):
 
         Returns:
             Predicted values.
-        
+
         """
         pass
 
