@@ -30,6 +30,7 @@ class TestDataPipeline:
         # Run pipeline
         pipeline = DataPipeline(
             data=df,
+            framework="pymc-marketing",
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -53,6 +54,7 @@ class TestDataPipeline:
         # Run pipeline with default settings
         pipeline = DataPipeline(
             data=df,
+            framework="pymc-marketing",
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -75,6 +77,7 @@ class TestDataPipeline:
         # Run pipeline with custom column names
         pipeline = DataPipeline(
             data=df,
+            framework="pymc-marketing",
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",
@@ -98,6 +101,7 @@ class TestDataPipeline:
         # Run pipeline with strict requirements
         pipeline = DataPipeline(
             data=df,
+            framework="pymc-marketing",
             control_columns=["control_var1"],
             channel_columns=["facebook"],
             date_column="custom_date",

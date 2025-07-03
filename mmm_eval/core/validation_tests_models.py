@@ -5,6 +5,23 @@
 from enum import StrEnum
 
 
+class SupportedFrameworks(StrEnum):
+    """Define the names of supported MMM frameworks."""
+
+    PYMC_MARKETING = "pymc-marketing"
+    MERIDIAN = "meridian"
+
+    @classmethod
+    def all_frameworks(cls) -> list["SupportedFrameworks"]:
+        """Return all framework names as a list."""
+        return list(cls)
+
+    @classmethod
+    def all_frameworks_as_str(cls) -> list[str]:
+        """Return all framework names as a list of strings."""
+        return [framework.value for framework in cls]
+
+
 class ValidationTestNames(StrEnum):
     """Define the names of the validation tests."""
 

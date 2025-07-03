@@ -25,6 +25,7 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
+            framework="pymc-marketing",
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -38,6 +39,7 @@ class TestDataValidator:
         df = pd.DataFrame()
 
         validator = DataValidator(
+            framework="pymc-marketing",
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -58,6 +60,7 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
+            framework="pymc-marketing",
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,

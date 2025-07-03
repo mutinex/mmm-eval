@@ -2,7 +2,6 @@
 
 import pandas as pd
 
-from mmm_eval.adapters import get_adapter
 from mmm_eval.configs.base import BaseConfig
 from mmm_eval.core.exceptions import InvalidTestNameError
 from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
@@ -63,6 +62,9 @@ class Evaluator:
             ValueError: If any test name is invalid
 
         """
+        # Import get_adapter locally to avoid circular import
+        from mmm_eval.adapters import get_adapter
+
         # Initialize the adapter
         adapter = get_adapter(framework, config)
 

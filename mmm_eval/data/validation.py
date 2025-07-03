@@ -5,6 +5,8 @@ import logging
 import pandas as pd
 import pandera.pandas as pa
 
+# from mmm_eval.core.validation_tests_models import SupportedFrameworks  # Removed to fix circular import
+
 from .constants import DataPipelineConstants
 from .exceptions import DataValidationError, EmptyDataFrameError
 from .schemas import ValidatedDataSchema
@@ -17,6 +19,7 @@ class DataValidator:
 
     def __init__(
         self,
+        framework: str,
         date_column: str,
         response_column: str,
         revenue_column: str,
@@ -26,6 +29,7 @@ class DataValidator:
         """Initialize validator with validation rules.
 
         Args:
+            framework: name of framework being used
             date_column: Name of the date column
             response_column: Name of the response column
             revenue_column: Name of the revenue column
@@ -33,6 +37,7 @@ class DataValidator:
             min_number_observations: Minimum required number of observations for time series CV
 
         """
+        self.framework = framework
         self.date_column = date_column
         self.response_column = response_column
         self.revenue_column = revenue_column
@@ -55,7 +60,7 @@ class DataValidator:
         self._validate_data_size(df)
         self._validate_response_and_revenue_columns_xor_zeroes(df)
 
-        if self.control_columns:
+        if self.control_columns and self.framework == "pymc-marketing":
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 
     def _validate_schema(self, df: pd.DataFrame) -> None:
@@ -80,8 +85,6 @@ class DataValidator:
     def _validate_response_and_revenue_columns_xor_zeroes(self, df: pd.DataFrame) -> None:
         """Ensure that there are no cases where exactly one of response_column and revenue_column is non-zero."""
         if self.response_column != self.revenue_column:
-            print(f"\n\n\n\n {df.columns}")
-            print("\n\n\n")
             response_zero = df[self.response_column] == 0
             revenue_zero = df[self.revenue_column] == 0
 
