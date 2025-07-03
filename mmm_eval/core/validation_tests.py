@@ -47,7 +47,6 @@ class AccuracyTest(BaseValidationTest):
         """Run the accuracy test."""
         # Split data into train/test sets
         train, test = self._split_data_holdout(data)
-
         predictions = adapter.fit_and_predict(train, test)
         actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
         assert len(actual) == len(predictions), "Actual and predicted lengths must match"
