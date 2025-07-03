@@ -47,12 +47,13 @@ class AccuracyTest(BaseValidationTest):
         """Run the accuracy test."""
         # Split data into train/test sets
         train, test = self._split_data_holdout(data)
-        adapter.fit(train)  # fit() modifies model in-place, returns None
-        predictions = adapter.predict(test)  # predict() on same model instance
+        predictions = adapter.fit_and_predict(train, test)
+        actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
+        assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
         # Calculate metrics
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
-            actual=test[InputDataframeConstants.RESPONSE_COL],
+            actual=actual,
             predicted=predictions,
         )
 
@@ -97,17 +98,18 @@ class CrossValidationTest(BaseValidationTest):
             logger.info(f"Running cross-validation fold {i+1} of {len(cv_splits)}")
 
             # Get train/test data
-            train = data.iloc[train_idx]
-            test = data.iloc[test_idx]
+            train = data.loc[train_idx]
+            test = data.loc[test_idx]
 
             # Get predictions
-            adapter.fit(train)
-            predictions = adapter.predict(test)
+            predictions = adapter.fit_and_predict(train, test)
+            actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
+            assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
             # Add in fold results
             fold_metrics.append(
                 AccuracyMetricResults.populate_object_with_metrics(
-                    actual=test[InputDataframeConstants.RESPONSE_COL],
+                    actual=actual,
                     predicted=predictions,
                 )
             )
@@ -175,9 +177,9 @@ class RefreshStabilityTest(BaseValidationTest):
 
             # Get train/test data
             # todo(): Can we somehow store these training changes in the adapter for use in time series holdout test
-            current_data = data.iloc[train_idx]
+            current_data = data.loc[train_idx]
             # Combine current data with refresh data for retraining
-            refresh_data = pd.concat([current_data, data.iloc[refresh_idx]], ignore_index=True)
+            refresh_data = pd.concat([current_data, data.loc[refresh_idx]], ignore_index=True)
             # Get common dates for roi stability comparison
             common_start_date, common_end_date = self._get_common_dates(
                 baseline_data=current_data,

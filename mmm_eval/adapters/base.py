@@ -46,6 +46,20 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
+    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+        """Fit on training data and make predictions on test data.
+
+        Args:
+            train: dataset to train model on
+            test: dataset to make predictions using
+
+        Returns:
+            Predicted values.
+
+        """
+        pass
+
+    @abstractmethod
     def get_channel_roi(
         self,
         start_date: pd.Timestamp | None = None,

@@ -2,10 +2,11 @@
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import TimeSeriesSplit, train_test_split
+from pydantic import PositiveFloat, PositiveInt
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
@@ -25,8 +26,9 @@ class BaseValidationTest(ABC):
     the required methods to provide a unified testing interface.
     """
 
-    def __init__(self):
+    def __init__(self, date_column: str):
         """Initialize the validation test."""
+        self.date_column = date_column
         self.rng = np.random.default_rng(ValidationTestConstants.RANDOM_STATE)
 
     def run_with_error_handling(self, adapter: BaseAdapter, data: pd.DataFrame) -> "ValidationTestResult":
@@ -91,13 +93,10 @@ class BaseValidationTest(ABC):
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
-        train, test = train_test_split(
-            data,
-            test_size=ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_SIZE,
-            random_state=ValidationTestConstants.RANDOM_STATE,
+        train_idx, test_idx = split_timeseries_data(
+            data, ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_PROPORTION, date_column=self.date_column
         )
-
-        return train, test
+        return data[train_idx], data[test_idx]
 
     def _split_data_time_series_cv(self, data: pd.DataFrame) -> list[tuple[np.ndarray, np.ndarray]]:
         """Split the data into train and test sets using time series cross-validation.
@@ -111,9 +110,83 @@ class BaseValidationTest(ABC):
         """
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
-        cv = TimeSeriesSplit(
-            n_splits=ValidationTestConstants.N_SPLITS,
-            test_size=ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
+        return list(
+            split_timeseries_cv(
+                data,
+                ValidationTestConstants.N_SPLITS,
+                ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE,
+                date_column=self.date_column,
+            )
         )
 
-        return list(cv.split(data))
+
+def split_timeseries_data(
+    data: pd.DataFrame, test_proportion: PositiveFloat, date_column: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """Split data globally based on date.
+
+    Arguments:
+        data: timeseries data to split, possibly with another index like geography
+        test_proportion: proportion of test data, must be in (0, 1)
+        date_column: name of the date column
+
+    Returns:
+        boolean masks for training and test data respectively
+
+    """
+    if test_proportion <= 0 or test_proportion >= 1:
+        raise ValueError("`test_proportion` must be in the range (0, 1)")
+
+    sorted_dates = sorted(data[date_column].unique())
+    # rounding eliminates possibility of floating point precision issues
+    split_idx = int(round(len(sorted_dates) * (1 - test_proportion)))
+    cutoff = sorted_dates[split_idx]
+
+    train_mask = data[date_column] < cutoff
+    test_mask = data[date_column] >= cutoff
+
+    return train_mask, test_mask
+
+
+def split_timeseries_cv(
+    data: pd.DataFrame, n_splits: PositiveInt, test_size: PositiveInt, date_column: str
+) -> Generator[tuple[np.ndarray, np.ndarray], None, None]:
+    """Produce train/test masks for rolling CV, split globally based on date.
+
+    This simulates regular refreshes and utilises the last `test_size` data points for
+    testing in the first fold, using all prior data for training. For a dataset with
+    T dates, the subsequen test folds follow the pattern [T-4, T], [T-8, T-4], ...
+
+    Arguments:
+        data: dataframe of MMM data to be split
+        n_splits: number of unique folds to generate
+        test_size: the number of observations in each testing fold
+        date_column: the name of the date column in the dataframe to split by
+
+    Yields:
+        integer masks corresponding training and test set indices.
+
+    """
+    sorted_dates = sorted(data[date_column].unique())
+    n_dates = len(sorted_dates)
+
+    # assuming the minimum training set size allowable is equal to `test_size`, ensure there's
+    # enough data temporally to do the splits
+    n_required_dates = test_size * (n_splits + 1)
+    if n_dates < n_required_dates:
+        raise ValueError(
+            "Insufficient timeseries data provided for splitting. In order to "
+            f"perform {n_splits} splits with test_size={test_size}, at least "
+            f"{n_required_dates} unique dates are required, but only {n_dates} "
+            f"dates are available."
+        )
+
+    for i in range(n_splits):
+        test_end = n_dates - i * test_size
+        test_start = n_dates - (i + 1) * test_size
+        test_dates = sorted_dates[test_start:test_end]
+        train_dates = sorted_dates[:test_start]
+
+        train_mask = data[date_column].isin(train_dates)
+        test_mask = data[date_column].isin(test_dates)
+        yield train_mask, test_mask
