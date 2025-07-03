@@ -2,12 +2,13 @@ import pandas as pd
 
 from mmm_eval.configs.base import BaseConfig
 from mmm_eval.core.evaluator import Evaluator
-from mmm_eval.core.validation_tests_models import SupportedFrameworks
+
+# from mmm_eval.core.validation_tests_models import SupportedFrameworks  # Removed to fix circular import
 from mmm_eval.data.pipeline import DataPipeline
 
 
 def run_evaluation(
-    framework: SupportedFrameworks,
+    framework: str,
     data: pd.DataFrame,
     config: BaseConfig,
     test_names: tuple[str, ...] | None = None,
