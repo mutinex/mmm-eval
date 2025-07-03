@@ -9,8 +9,8 @@ from pymc_marketing.mmm import MMM
 from mmm_eval.adapters.schemas import (
     PyMCFitSchema,
     PyMCModelSchema,
-    MeridianFitSchema,
-    MeridianModelSchema,
+    MeridianSamplePosteriorSchema,
+    MeridianInputDataBuilderSchema,
     MeridianModelSpecSchema,
 )
 from mmm_eval.configs.base import BaseConfig
@@ -151,39 +151,33 @@ class PyMCConfig(BaseConfig):
 class MeridianConfig(BaseConfig):
     """Evaluation config for the Google Meridian MMM framework."""
 
-    meridian_model_config: MeridianModelSchema = Field(..., description="Model configuration")
+    input_data_builder_config: MeridianInputDataBuilderSchema = Field(..., description="Input data builder configuration")
     model_spec_config: MeridianModelSpecSchema = Field(..., description="Model specification configuration")
-    fit_config: MeridianFitSchema = Field(default=MeridianFitSchema(), description="Fit configuration")
+    sample_posterior_config: MeridianSamplePosteriorSchema = Field(default=MeridianSamplePosteriorSchema(), description="Sample posterior configuration")
 
     @computed_field
     @property
     def date_column(self) -> str:
         """Return the date column."""
-        return self.meridian_model_config.date_column
-    
-    # @computed_field
-    # @property
-    # def response_column(self) -> str:
-    #     """Return the response column."""
-    #     return self.meridian_model_config.response_column
+        return self.input_data_builder_config.date_column
 
     # TODO: consider renaming to "channel_spend_columns"
     @computed_field
     @property
     def channel_columns(self) -> list[str]:
         """Return the channel columns."""
-        return self.meridian_model_config.channel_spend_columns
+        return self.input_data_builder_config.channel_spend_columns
 
     @computed_field
     @property
     def control_columns(self) -> list[str] | None:
         """Return the control columns."""
-        return self.meridian_model_config.control_columns
+        return self.input_data_builder_config.control_columns
 
     @property
-    def meridian_model_config_dict(self) -> dict[str, Any]:
-        """Return the model configuration as a dictionary."""
-        return self.meridian_model_config.model_dump()
+    def input_data_builder_config_dict(self) -> dict[str, Any]:
+        """Return the input data builder configuration as a dictionary."""
+        return self.input_data_builder_config.model_dump()
 
     @property
     def model_spec_config_dict(self) -> dict[str, Any]:
@@ -191,9 +185,9 @@ class MeridianConfig(BaseConfig):
         return self.model_spec_config.model_dump()
 
     @property
-    def fit_config_dict(self) -> dict[str, Any]:
-        """Return the fit configuration as a dictionary of user provided values."""
-        return self.fit_config.fit_config_dict_without_non_provided_fields
+    def sample_posterior_config_dict(self) -> dict[str, Any]:
+        """Return the sample posterior configuration as a dictionary of user provided values."""
+        return self.sample_posterior_config.fit_config_dict_without_non_provided_fields
 
     @classmethod
     def from_model_object(
@@ -220,7 +214,7 @@ class MeridianConfig(BaseConfig):
 
         # model_config = cls._extract_model_config(model_object)
         # model_spec_config = cls._extract_model_spec_config(model_object)
-        # fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else MeridianFitSchema()
+        # fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else MeridianInputDataBuilderSchema()
 
         # return cls(
         #     meridian_model_config=model_config,
@@ -240,12 +234,12 @@ class MeridianConfig(BaseConfig):
         #     raise ValueError("`revenue_column` is required")
 
     @staticmethod
-    def _extract_model_config(model_object: Any) -> MeridianModelSchema:
+    def _extract_model_config(model_object: Any) -> MeridianInputDataBuilderSchema:
         """Extract and validate model configuration from a model object."""
         # This would need to be implemented based on the actual Meridian model object structure
         # For now, return a default configuration
         pass
-        # return MeridianModelSchema(
+        # return MeridianInputDataBuilderSchema(
         #     date_column="date",
         #     media_columns=["media1", "media2"],  # Default columns
         #     response_column="response",
@@ -263,12 +257,12 @@ class MeridianConfig(BaseConfig):
         # return MeridianModelSpecSchema(prior=prior)
 
     @staticmethod
-    def _extract_fit_config(fit_kwargs: dict[str, Any]) -> MeridianFitSchema:
+    def _extract_fit_config(fit_kwargs: dict[str, Any]) -> MeridianSamplePosteriorSchema:
         """Extract and validate fit configuration from fit kwargs."""
         pass
-        # fit_fields = set(MeridianFitSchema.model_fields.keys())
+        # fit_fields = set(MeridianSamplePosteriorSchema.model_fields.keys())
         # filtered_config = {key: value for key, value in fit_kwargs.items() if key in fit_fields}
-        # return MeridianFitSchema(**filtered_config)
+        # return MeridianSamplePosteriorSchema(**filtered_config)
 
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "MeridianConfig":
         """Save the config to a JSON file."""
@@ -299,7 +293,7 @@ class MeridianConfig(BaseConfig):
         # if ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG in config_dict:
         #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG])
         #     hydrated_model_config = rehydrator.rehydrate_config()
-        #     config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = MeridianModelSchema(
+        #     config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = MeridianInputDataBuilderSchema(
         #         **hydrated_model_config
         #     )
         # if ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG in config_dict:
@@ -311,5 +305,5 @@ class MeridianConfig(BaseConfig):
         # if ConfigConstants.MeridianConfigAttributes.FIT_CONFIG in config_dict:
         #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG])
         #     hydrated_fit_config = rehydrator.rehydrate_config()
-        #     config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = MeridianFitSchema(**hydrated_fit_config)
+        #     config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = MeridianSamplePosteriorSchema(**hydrated_fit_config)
         # return cls.model_validate(config_dict)

@@ -28,8 +28,7 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
     df[REVENUE_PER_KPI_COL] = df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]/df[InputDataframeConstants.RESPONSE_COL]
     df = df.drop(columns=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL)
 
-    model_schema = config.meridian_model_config
-    #print(df.columns)
+    input_data_builder_schema = config.input_data_builder_config
 
     # KPI, population, and control variables
     builder = (
@@ -42,45 +41,45 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
     
     # controls (non-intervenable, e.g. macroeconomics)
     builder = builder.with_controls(df, time_col=config.date_column,
-                                    control_cols=model_schema.control_columns)
+                                    control_cols=input_data_builder_schema.control_columns)
 
     # add paid media
     # without impressions/reach/frequency: media_cols = media_spend_cols
     # with impressions: media_cols = impressions cols
     # with reach/frequency: media_cols = use .with_reach() instead
-    if model_schema.channel_reach_columns:
+    if input_data_builder_schema.channel_reach_columns:
         builder = builder.with_reach(
             df,
-            reach_cols=model_schema.channel_reach_columns,
-            frequency_cols=model_schema.channel_frequency_columns,
-            rf_spend_cols=model_schema.channel_spend_columns,
-            rf_channels=model_schema.media_channels,
+            reach_cols=input_data_builder_schema.channel_reach_columns,
+            frequency_cols=input_data_builder_schema.channel_frequency_columns,
+            rf_spend_cols=input_data_builder_schema.channel_spend_columns,
+            rf_channels=input_data_builder_schema.media_channels,
             time_col=config.date_column,
         )
     else:
-        media_cols = model_schema.channel_impressions_columns or model_schema.channel_spend_columns
+        media_cols = input_data_builder_schema.channel_impressions_columns or input_data_builder_schema.channel_spend_columns
         builder = builder.with_media(
             df,
             media_cols=media_cols,
-            media_spend_cols=model_schema.channel_spend_columns,
-            media_channels=model_schema.media_channels,
+            media_spend_cols=input_data_builder_schema.channel_spend_columns,
+            media_channels=input_data_builder_schema.media_channels,
             time_col=config.date_column,
         )
 
     # organic media
-    if model_schema.organic_media_columns:
+    if input_data_builder_schema.organic_media_columns:
         builder = builder.with_organic_media(
             df,
-            organic_media_cols=model_schema.organic_media_columns,
-            organic_media_channels=model_schema.organic_media_channels,
+            organic_media_cols=input_data_builder_schema.organic_media_columns,
+            organic_media_channels=input_data_builder_schema.organic_media_channels,
             media_time_col=config.date_column,
         )
 
     # non-media treatments (anything that is "intervenable", e.g. pricing/promotions)
-    if model_schema.non_media_treatment_columns:
+    if input_data_builder_schema.non_media_treatment_columns:
         builder = builder.with_non_media_treatments(
             df,
-            non_media_treatment_cols=model_schema.non_media_treatment_columns,
+            non_media_treatment_cols=input_data_builder_schema.non_media_treatment_columns,
             time_col=config.date_column,
         )
 
@@ -103,13 +102,13 @@ class MeridianAdapter(BaseAdapter):
             config: MeridianConfig object
         """
         self.config = config
-        self.model_schema = config.meridian_model_config
+        self.input_data_builder_schema = config.input_data_builder_config
 
         # response and revenue columns are constants so don't need to be set here
         # population, if provided, needs to be called "population" in the DF
         self.date_column = config.date_column
-        self.channel_spend_columns = self.model_schema.channel_spend_columns
-        self.media_channels = self.model_schema.media_channels
+        self.channel_spend_columns = self.input_data_builder_schema.channel_spend_columns
+        self.media_channels = self.input_data_builder_schema.media_channels
 
         self.model = None
         self.trace = None
@@ -151,7 +150,7 @@ class MeridianAdapter(BaseAdapter):
             input_data=self.training_data,
             model_spec=model_spec,
         )
-        self.trace = self.model.sample_posterior(**dict(self.config.fit_config))
+        self.trace = self.model.sample_posterior(**dict(self.config.sample_posterior_config))
 
         # Compute channel contributions for ROI calculations
         self.analyzer = Analyzer(self.model)

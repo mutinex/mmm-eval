@@ -216,8 +216,8 @@ class MeridianModelSpecSchema(BaseModel):
     }
 
 
-class MeridianFitSchema(BaseModel):
-    """Schema for Meridian fit configuration.
+class MeridianSamplePosteriorSchema(BaseModel):
+    """Schema for Meridian sample_posterior configuration.
     
     These arguments are passed to the Meridian model's sample_posterior() method.
     """
@@ -252,8 +252,8 @@ class MeridianFitSchema(BaseModel):
         return {key: value for key, value in self.model_dump().items() if value is not None}
 
 
-class MeridianModelSchema(BaseModel):
-    """Schema for Meridian model configuration.
+class MeridianInputDataBuilderSchema(BaseModel):
+    """Schema for Meridian input data builder configuration.
     
     These arguments are passed to the DataFrameInputDataBuilder class for constructing a
     data object to be fed into the Meridian model.

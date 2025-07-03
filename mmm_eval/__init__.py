@@ -18,8 +18,8 @@ from .configs import PyMCConfig, MeridianConfig, PyMCConfigRehydrator, MeridianC
 from .adapters.schemas import (
     MeridianPriorDistributionSchema,
     MeridianModelSpecSchema,
-    MeridianModelSchema,
-    MeridianFitSchema,
+    MeridianInputDataBuilderSchema,
+    MeridianSamplePosteriorSchema,
 )
 from .core import run_evaluation
 from .core.base_validation_test import BaseValidationTest
@@ -61,8 +61,8 @@ __all__ = [
     # Schemas
     "MeridianPriorDistributionSchema",
     "MeridianModelSpecSchema",
-    "MeridianModelSchema",
-    "MeridianFitSchema",
+    "MeridianInputDataBuilderSchema",
+    "MeridianSamplePosteriorSchema",
     # Core API
     "Evaluator",
     "ValidationTestResult",

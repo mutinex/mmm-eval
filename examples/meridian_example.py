@@ -8,8 +8,8 @@ from mmm_eval import (
     MeridianConfig,
     MeridianPriorDistributionSchema,
     MeridianModelSpecSchema,
-    MeridianModelSchema,
-    MeridianFitSchema,
+    MeridianInputDataBuilderSchema,
+    MeridianSamplePosteriorSchema,
 )
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -70,15 +70,16 @@ def create_meridian_config() -> MeridianConfig:
     )
     
     # Create model configuration
-    model_config = MeridianModelSchema(
+    model_config = MeridianInputDataBuilderSchema(
         date_column="date",
-        media_columns=["tv_spend", "digital_spend", "radio_spend"],
+        media_channels=["tv_spend", "digital_spend", "radio_spend"],
+        channel_spend_columns=["tv_spend", "digital_spend", "radio_spend"],
         response_column=InputDataframeConstants.RESPONSE_COL,
         control_columns=["control_var1", "control_var2"],
     )
     
     # Create fit configuration
-    fit_config = MeridianFitSchema(
+    fit_config = MeridianSamplePosteriorSchema(
         n_chains=4,
         n_adapt=500,
         n_burnin=500,
@@ -88,9 +89,9 @@ def create_meridian_config() -> MeridianConfig:
     
     # Create the complete configuration
     config = MeridianConfig(
-        meridian_model_config=model_config,
+        input_data_builder_config=model_config,
         model_spec_config=model_spec_config,
-        fit_config=fit_config,
+        sample_posterior_config=fit_config,
         revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
         response_column=InputDataframeConstants.RESPONSE_COL,
     )
