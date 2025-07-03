@@ -18,7 +18,7 @@ class DataValidator:
 
     def __init__(
         self,
-        framework: str,
+        framework: FrameworkNames,
         date_column: str,
         response_column: str,
         revenue_column: str,

@@ -42,7 +42,6 @@ class DataPipeline:
         self.data = data
         self.processor = DataProcessor(
             date_column=date_column,
-            framework=framework,
             response_column=response_column,
             revenue_column=revenue_column,
             control_columns=control_columns,
