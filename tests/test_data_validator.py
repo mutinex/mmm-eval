@@ -4,6 +4,7 @@ import pandas as pd
 import pandera.pandas as pa
 import pytest
 
+from mmm_eval.adapters import SupportedFrameworks
 from mmm_eval.data import DataValidator
 from mmm_eval.data.constants import InputDataframeConstants
 from mmm_eval.data.exceptions import DataValidationError, EmptyDataFrameError
@@ -25,7 +26,7 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
-            framework="pymc-marketing",
+            framework=SupportedFrameworks.PYMC_MARKETING,
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -39,7 +40,7 @@ class TestDataValidator:
         df = pd.DataFrame()
 
         validator = DataValidator(
-            framework="pymc-marketing",
+            framework=SupportedFrameworks.PYMC_MARKETING,
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
@@ -60,7 +61,7 @@ class TestDataValidator:
         )
 
         validator = DataValidator(
-            framework="pymc-marketing",
+            framework=SupportedFrameworks.PYMC_MARKETING,
             date_column=InputDataframeConstants.DATE_COL,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,

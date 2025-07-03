@@ -1,9 +1,13 @@
 """Data validation for MMM evaluation."""
 
 import logging
+from typing import TYPE_CHECKING
 
 import pandas as pd
 import pandera.pandas as pa
+
+if TYPE_CHECKING:
+    from mmm_eval.adapters import SupportedFrameworks
 
 from .constants import DataPipelineConstants
 from .exceptions import DataValidationError, EmptyDataFrameError
@@ -17,7 +21,7 @@ class DataValidator:
 
     def __init__(
         self,
-        framework: str,
+        framework: "SupportedFrameworks",
         date_column: str,
         response_column: str,
         revenue_column: str,
@@ -58,7 +62,9 @@ class DataValidator:
         self._validate_data_size(df)
         self._validate_response_and_revenue_columns_xor_zeroes(df)
 
-        if self.control_columns and self.framework == "pymc-marketing":
+        # Import locally to avoid circular imports
+        from mmm_eval.adapters import SupportedFrameworks
+        if self.control_columns and self.framework == SupportedFrameworks.PYMC_MARKETING:
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 
     def _validate_schema(self, df: pd.DataFrame) -> None:

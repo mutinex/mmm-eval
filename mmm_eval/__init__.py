@@ -11,6 +11,7 @@ __email__ = "joseph.kang@mutinex.co"
 # Adapters
 from .adapters import (
     get_adapter,
+    SupportedFrameworks,
 )
 from .adapters.pymc import PyMCAdapter
 from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
@@ -64,6 +65,7 @@ __all__ = [
     # Adapters
     "get_adapter",
     "PyMCAdapter",
+    "SupportedFrameworks",
     # Data utilities
     "DataLoader",
     "DataProcessor",

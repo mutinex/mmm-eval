@@ -2,7 +2,7 @@ import logging
 
 import click
 
-from mmm_eval.adapters import ADAPTER_REGISTRY
+from mmm_eval.adapters import ADAPTER_REGISTRY, SupportedFrameworks
 from mmm_eval.configs import get_config
 from mmm_eval.core import run_evaluation
 from mmm_eval.core.validation_tests_models import ValidationTestNames
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 @click.command()
 @click.option(
     "--framework",
-    type=click.Choice(list(ADAPTER_REGISTRY.keys())),
+    type=click.Choice([framework.value for framework in SupportedFrameworks]),
     required=True,
     help="Open source MMM framework to evaluate",
 )
@@ -74,9 +74,12 @@ def main(
     logger.info("Loading input data...")
     data = DataLoader(input_data_path).load()
 
+    # Convert string framework to enum
+    framework_enum = SupportedFrameworks(framework)
+
     # Run evaluation
     logger.info(f"Running evaluation suite for {framework} framework...")
-    results = run_evaluation(framework, data, config, test_names)
+    results = run_evaluation(framework_enum, data, config, test_names)
 
     # Save results
     if results.empty:

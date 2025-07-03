@@ -1,14 +1,16 @@
 import pandas as pd
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mmm_eval.adapters import SupportedFrameworks
 
 from mmm_eval.configs.base import BaseConfig
 from mmm_eval.core.evaluator import Evaluator
-
-# from mmm_eval.core.validation_tests_models import SupportedFrameworks  # Removed to fix circular import
 from mmm_eval.data.pipeline import DataPipeline
 
 
 def run_evaluation(
-    framework: str,
+    framework: "SupportedFrameworks",
     data: pd.DataFrame,
     config: BaseConfig,
     test_names: tuple[str, ...] | None = None,

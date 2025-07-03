@@ -1,17 +1,37 @@
 """Adapters for different MMM frameworks."""
 
+from enum import StrEnum
+
 from mmm_eval.configs import PyMCConfig
 
 from .base import BaseAdapter
 from .pymc import PyMCAdapter
 
+
+class SupportedFrameworks(StrEnum):
+    """Define the names of supported MMM frameworks."""
+
+    PYMC_MARKETING = "pymc-marketing"
+    MERIDIAN = "meridian"
+
+    @classmethod
+    def all_frameworks(cls) -> list["SupportedFrameworks"]:
+        """Return all framework names as a list."""
+        return list(cls)
+
+    @classmethod
+    def all_frameworks_as_str(cls) -> list[str]:
+        """Return all framework names as a list of strings."""
+        return [framework.value for framework in cls]
+
+
 # Registry of available adapters
 ADAPTER_REGISTRY = {
-    "pymc-marketing": PyMCAdapter,
+    SupportedFrameworks.PYMC_MARKETING: PyMCAdapter,
 }
 
 
-def get_adapter(framework: str, config: PyMCConfig):
+def get_adapter(framework: SupportedFrameworks, config: PyMCConfig):
     """Get an adapter instance for the specified framework.
 
     Args:
@@ -34,6 +54,7 @@ def get_adapter(framework: str, config: PyMCConfig):
 
 __all__ = [
     "PyMCAdapter",
+    "SupportedFrameworks",
     "get_adapter",
     "ADAPTER_REGISTRY",
 ]

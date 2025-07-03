@@ -1,8 +1,11 @@
 """Data pipeline for MMM evaluation."""
 
 import pandas as pd
+from typing import TYPE_CHECKING
 
-# from mmm_eval.core.validation_tests_models import SupportedFrameworks  # Removed to fix circular import
+if TYPE_CHECKING:
+    from mmm_eval.adapters import SupportedFrameworks
+
 from .constants import DataPipelineConstants, InputDataframeConstants
 from .processor import DataProcessor
 from .validation import DataValidator
@@ -17,7 +20,7 @@ class DataPipeline:
     def __init__(
         self,
         data: pd.DataFrame,
-        framework: str,
+        framework: "SupportedFrameworks",
         control_columns: list[str] | None,
         channel_columns: list[str],
         date_column: str,
