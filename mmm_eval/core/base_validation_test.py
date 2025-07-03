@@ -122,7 +122,20 @@ class BaseValidationTest(ABC):
 def split_timeseries_data(
     data: pd.DataFrame, test_proportion: float, date_column: str
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Split data globally based on date."""
+    """Split data globally based on date.
+
+    Arguments:
+        data: timeseries data to split, possibly with another index like geography
+        test_proportion: proportion of test data, must be in (0, 1)
+        date_column: name of the date column
+
+    Returns:
+        boolean masks for training and test data respectively
+    
+    """
+    if test_proportion <= 0 or test_proportion >= 1:
+        raise ValueError("`test_proportion` must be in the range (0, 1)")
+
     sorted_dates = sorted(data[date_column].unique())
     # rounding eliminates possibility of floating point precision issues
     split_idx = int(round(len(sorted_dates) * (1 - test_proportion)))
