@@ -97,10 +97,6 @@ class PyMCAdapter(BaseAdapter):
             data, extend_idata=False, include_last_observations=True, **self.predict_kwargs
         )
         return predictions
-    
-    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
-        self.fit(train)
-        return self.predict(test)
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit on training data and make predictions on test data.
