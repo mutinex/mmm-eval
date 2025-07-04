@@ -158,22 +158,6 @@ class PyMCStringConfigSchema(BaseModel):
         "coerce_types_to_string": False,  # Allow type coercion
     }
 
-
-# Meridian-specific schemas
-# class MeridianPriorDistributionSchema(BaseModel):
-#     """Schema for Meridian prior distribution configuration."""
-
-#     roi_mu: float = Field(0.0, description="Mean of the log-normal ROI prior distribution.")
-#     roi_sigma: float = Field(1.0, ge=0.0, description="Standard deviation of the log-normal ROI prior distribution.")
-#     name: str = Field("roi_m", description="Name of the ROI parameter.")
-
-#     model_config = {
-#         "arbitrary_types_allowed": True,
-#         "extra": "allow",
-#         "coerce_types_to_string": False,
-#     }
-
-
 class MeridianModelSpecSchema(BaseModel):
     """Schema for Meridian ModelSpec configuration."""
 
