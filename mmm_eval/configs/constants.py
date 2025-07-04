@@ -34,17 +34,6 @@ class ConfigConstants:
     class MeridianConfigAttributes:
         """Fields for the Meridian schema."""
 
-        MERIDIAN_MODEL_CONFIG = "meridian_model_config"
+        INPUT_DATA_BUILDER_CONFIG = "input_data_builder_config"
         MODEL_SPEC_CONFIG = "model_spec_config"
-        FIT_CONFIG = "fit_config"
-
-    class MeridianIntersectingFitPredictKwargs:
-        """Kwargs for the intersect of Meridian fit and predict schemas."""
-
-        PROGRESS_BAR = "progress_bar"
-        RANDOM_SEED = "random_seed"
-
-        @classmethod
-        def all(cls):
-            """Return list of all valid kwargs."""
-            return [cls.PROGRESS_BAR, cls.RANDOM_SEED]
+        SAMPLE_POSTERIOR_CONFIG = "sample_posterior_config"

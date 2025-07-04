@@ -277,8 +277,9 @@ class PerturbationTest(BaseValidationTest):
         adapter.fit(data)
         original_rois = adapter.get_channel_roi()
 
-        # FIXME: this won't work for Meridian if impressions or reach + frequency are provided,
-        # since those are the features that will go into the actual regression
+        # TODO: support case for Meridian where impressions or reach + frequency are
+        # provided, need to perturb those since those are the features that will go into
+        # the actual regression
         # Add noise to spend data and retrain
         noisy_data = self._add_gaussian_noise_to_spend(
             df=data,
