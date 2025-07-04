@@ -1,26 +1,9 @@
 # This file contains the models for the validation tests
 
 # todo(): Possibly move to the constants file
+# todo(): add enum for framework names
 
 from enum import StrEnum
-
-
-class FrameworkNames(StrEnum):
-    """Define the names of supported MMM frameworks."""
-
-    PYMC_MARKETING = "pymc-marketing"
-    MERIDIAN = "meridian"
-
-    @classmethod
-    def all_frameworks(cls) -> list["FrameworkNames"]:
-        """Return all framework names as a list."""
-        return list(cls)
-
-    @classmethod
-    def all_frameworks_as_str(cls) -> list[str]:
-        """Return all framework names as a list of strings."""
-        return [framework.value for framework in cls]
-
 
 class ValidationTestNames(StrEnum):
     """Define the names of the validation tests."""
