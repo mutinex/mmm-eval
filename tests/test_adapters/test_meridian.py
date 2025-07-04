@@ -3,8 +3,9 @@
 import pandas as pd
 import pytest
 from unittest.mock import Mock, patch, ANY
+import numpy as np
 
-from mmm_eval.adapters.meridian import construct_meridian_data_object, REVENUE_PER_KPI_COL
+from mmm_eval.adapters.meridian import construct_meridian_data_object, REVENUE_PER_KPI_COL, MeridianAdapter
 from mmm_eval.configs import MeridianConfig
 from mmm_eval.adapters.schemas import (
     MeridianInputDataBuilderSchema,
@@ -71,7 +72,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend", "digital_spend"],
+            media_channels=["tv", "digital"],
             channel_spend_columns=["tv_spend", "digital_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
@@ -97,7 +98,7 @@ class TestConstructMeridianDataObject:
             ANY,
             media_cols=["tv_spend", "digital_spend"],
             media_spend_cols=["tv_spend", "digital_spend"],
-            media_channels=["tv_spend", "digital_spend"],
+            media_channels=["tv", "digital"],
             time_col="date",
         )
         mock_builder.build.assert_called_once()
@@ -115,7 +116,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
@@ -156,7 +157,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
@@ -181,7 +182,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
@@ -211,7 +212,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
             control_columns=["control_var1", "control_var2"],
@@ -241,7 +242,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
             control_columns=None,
@@ -559,7 +560,7 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
@@ -591,12 +592,148 @@ class TestConstructMeridianDataObject:
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
-            media_channels=["tv_spend"],
+            media_channels=["tv"],
             channel_spend_columns=["tv_spend"],
             response_column=InputDataframeConstants.RESPONSE_COL,
         )
         config = self._create_config(input_config)
 
         # Execute and verify it raises an error
-        with pytest.raises(KeyError):
-            construct_meridian_data_object(df_missing_columns, config) 
+        with pytest.raises(ValueError):
+            construct_meridian_data_object(df_missing_columns, config)
+
+
+class TestMeridianAdapter:
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        self.df = pd.DataFrame({
+            "date": pd.date_range("2023-01-01", periods=5),
+            InputDataframeConstants.RESPONSE_COL: [100.0] * 5,
+            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 5,
+            "tv_spend": [500.0] * 5,
+        })
+        self.mock_prior = Mock(spec=PriorDistribution)
+        self.input_config = MeridianInputDataBuilderSchema(
+            date_column="date",
+            media_channels=["tv"],
+            channel_spend_columns=["tv_spend"],
+            response_column=InputDataframeConstants.RESPONSE_COL,
+        )
+        self.model_spec = MeridianModelSpecSchema(
+            prior=self.mock_prior,
+            media_effects_dist="log_normal",
+            hill_before_adstock=False,
+            max_lag=8,
+        )
+        self.posterior_config = MeridianSamplePosteriorSchema(
+            n_chains=1,
+            n_adapt=2,
+            n_burnin=2,
+            n_keep=2,
+            seed=42,
+        )
+        self.config = MeridianConfig(
+            input_data_builder_config=self.input_config,
+            model_spec_config=self.model_spec,
+            sample_posterior_config=self.posterior_config,
+            revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
+        )
+
+    @patch("mmm_eval.adapters.meridian.construct_meridian_data_object")
+    @patch("mmm_eval.adapters.meridian.ModelSpec")
+    @patch("mmm_eval.adapters.meridian.Meridian")
+    @patch("mmm_eval.adapters.meridian.Analyzer")
+    def test_fit_sets_state_and_calls_dependencies(self, mock_analyzer, mock_meridian, mock_modelspec, mock_construct):
+        mock_training_data = Mock()
+        mock_construct.return_value = mock_training_data
+        mock_model = Mock()
+        mock_meridian.return_value = mock_model
+        mock_trace = Mock()
+        mock_model.sample_posterior.return_value = mock_trace
+        mock_analyzer_instance = Mock()
+        mock_analyzer.return_value = mock_analyzer_instance
+
+        adapter = MeridianAdapter(self.config)
+        adapter.fit(self.df)
+
+        mock_construct.assert_called_once_with(self.df, self.config)
+        mock_modelspec.assert_called_once()
+        mock_meridian.assert_called_once_with(input_data=mock_training_data, model_spec=ANY)
+        mock_model.sample_posterior.assert_called_once_with(**dict(self.posterior_config))
+        mock_analyzer.assert_called_once_with(mock_model)
+        assert adapter.training_data == mock_training_data
+        assert adapter.model == mock_model
+        assert adapter.trace == mock_trace
+        assert adapter.analyzer == mock_analyzer_instance
+        assert adapter.is_fitted is True
+
+    @patch("mmm_eval.adapters.meridian.Analyzer")
+    def test_predict_returns_posterior_mean_and_applies_holdout_mask(self, mock_analyzer):
+        adapter = MeridianAdapter(self.config)
+        adapter.is_fitted = True
+        adapter.analyzer = mock_analyzer_instance = Mock()
+        # Simulate expected_outcome returns (chains, draws, times)
+        preds_tensor = np.ones((2, 2, 5)) * 10
+        mock_analyzer_instance.expected_outcome.return_value = preds_tensor
+        # No holdout mask
+        assert np.allclose(adapter.predict(), np.mean(preds_tensor, axis=(0, 1)))
+        # With holdout mask
+        adapter.holdout_mask = np.array([False, True, True, False, True])
+        masked = np.mean(preds_tensor, axis=(0, 1))[adapter.holdout_mask]
+        assert np.allclose(adapter.predict(), masked)
+
+    def test_predict_raises_if_not_fitted(self):
+        adapter = MeridianAdapter(self.config)
+        with pytest.raises(RuntimeError):
+            adapter.predict()
+
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict")
+    def test_fit_and_predict_calls_fit_and_predict(self, mock_predict, mock_fit):
+        adapter = MeridianAdapter(self.config)
+        train = self.df.iloc[:3]
+        test = self.df.iloc[3:]
+        mock_predict.return_value = np.array([1, 2])
+        result = adapter.fit_and_predict(train, test)
+        mock_fit.assert_called_once()
+        mock_predict.assert_called_once()
+        assert np.all(result == np.array([1, 2]))
+
+    @patch("mmm_eval.adapters.meridian.Analyzer")
+    def test_get_channel_roi_returns_series(self, mock_analyzer):
+        adapter = MeridianAdapter(self.config)
+        adapter.is_fitted = True
+        adapter.analyzer = mock_analyzer_instance = Mock()
+        # Simulate roi returns (chains, draws, channels)
+        roi_tensor = np.ones((2, 2, 1)) * 5.0
+        mock_analyzer_instance.roi.return_value = roi_tensor
+        adapter.media_channels = ["tv"]
+        # Simulate training_data.kpi.time
+        adapter.training_data = Mock()
+        adapter.training_data.kpi.time = pd.date_range("2023-01-01", periods=5)
+        # No date filtering
+        result = adapter.get_channel_roi()
+        assert isinstance(result, pd.Series)
+        assert result["tv"] == 5.0
+        # With date filtering
+        result = adapter.get_channel_roi(start_date=pd.Timestamp("2023-01-03"))
+        assert isinstance(result, pd.Series)
+
+    def test_get_channel_roi_raises_if_not_fitted(self):
+        adapter = MeridianAdapter(self.config)
+        with pytest.raises(RuntimeError):
+            adapter.get_channel_roi()
+
+    def test_fit_resets_state(self):
+        # Fit once, then change state, then fit again and check reset
+        with patch("mmm_eval.adapters.meridian.construct_meridian_data_object", return_value=Mock()), \
+             patch("mmm_eval.adapters.meridian.ModelSpec"), \
+             patch("mmm_eval.adapters.meridian.Meridian") as mock_meridian, \
+             patch("mmm_eval.adapters.meridian.Analyzer"):
+            adapter = MeridianAdapter(self.config)
+            adapter.fit(self.df)
+            adapter.model = "not a model"
+            adapter.is_fitted = False
+            adapter.fit(self.df)
+            assert adapter.model != "not a model"
+            assert adapter.is_fitted is True 
