@@ -108,7 +108,7 @@ class PyMCConfigRehydrator(ConfigRehydrator):
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
 
-
+# TODO: implement
 class MeridianConfigRehydrator(ConfigRehydrator):
     """Rehydrate a config with Meridian objects."""
 
@@ -119,12 +119,4 @@ class MeridianConfigRehydrator(ConfigRehydrator):
             config: The config to rehydrate.
 
         """
-        super().__init__(config)
-        # Import Meridian modules when available
-        # try:
-        #     import meridian
-        #     import tensorflow_probability as tfp
-        #     self.class_registry = self.build_class_registry(meridian, tfp, np)
-        # except ImportError:
-        #     # Fallback to basic registry if Meridian is not available
-        #     self.class_registry = self.build_class_registry(np)
+        raise NotImplementedError

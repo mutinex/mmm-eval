@@ -193,6 +193,7 @@ class MeridianConfig(BaseConfig):
         """Return the sample posterior configuration as a dictionary of user provided values."""
         return self.sample_posterior_config.fit_config_dict_without_non_provided_fields
 
+    # TODO: implement this and the methods below
     @classmethod
     def from_model_object(
         cls,
@@ -213,101 +214,45 @@ class MeridianConfig(BaseConfig):
             A validated MeridianConfig instance
 
         """
-        pass
-        # cls._validate_inputs(model_object, revenue_column)
-
-        # model_config = cls._extract_model_config(model_object)
-        # model_spec_config = cls._extract_model_spec_config(model_object)
-        # fit_config = cls._extract_fit_config(fit_kwargs) if fit_kwargs else MeridianInputDataBuilderSchema()
-
-        # return cls(
-        #     meridian_model_config=model_config,
-        #     model_spec_config=model_spec_config,
-        #     fit_config=fit_config,
-        #     revenue_column=revenue_column,
-        #     response_column=response_column,
-        # )
+        raise NotImplementedError
 
     @staticmethod
     def _validate_inputs(model_object: Any, revenue_column: str) -> None:
         """Validate the input parameters."""
-        pass
-        # if model_object is None:
-        #     raise ValueError("`model_object` is required.")
-        # if not revenue_column:
-        #     raise ValueError("`revenue_column` is required")
+        raise NotImplementedError
 
     @staticmethod
     def _extract_model_config(model_object: Any) -> MeridianInputDataBuilderSchema:
         """Extract and validate model configuration from a model object."""
         # This would need to be implemented based on the actual Meridian model object structure
         # For now, return a default configuration
-        pass
-        # return MeridianInputDataBuilderSchema(
-        #     date_column="date",
-        #     media_columns=["media1", "media2"],  # Default columns
-        #     response_column="response",
-        # )
+        raise NotImplementedError
 
     @staticmethod
     def _extract_model_spec_config(model_object: Any) -> MeridianModelSpecSchema:
         """Extract and validate model specification configuration from a model object."""
         # This would need to be implemented based on the actual Meridian model object structure
         # For now, return a default configuration
-        pass
-        # from mmm_eval.adapters.schemas import MeridianPriorDistributionSchema
-
-        # prior = MeridianPriorDistributionSchema()
-        # return MeridianModelSpecSchema(prior=prior)
+        raise NotImplementedError
 
     @staticmethod
     def _extract_fit_config(fit_kwargs: dict[str, Any]) -> MeridianSamplePosteriorSchema:
         """Extract and validate fit configuration from fit kwargs."""
-        pass
-        # fit_fields = set(MeridianSamplePosteriorSchema.model_fields.keys())
-        # filtered_config = {key: value for key, value in fit_kwargs.items() if key in fit_fields}
-        # return MeridianSamplePosteriorSchema(**filtered_config)
+        raise NotImplementedError
+
 
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "MeridianConfig":
         """Save the config to a JSON file."""
-        pass
-        # config_dict = self.model_dump()
-        # config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = {
-        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG].items()
-        # }
-        # config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = {
-        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG].items()
-        # }
-        # config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = {
-        #     k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG].items()
-        # }
-        # BaseConfig._save_json_file(save_path, file_name, config_dict)
-        # return self
+        raise NotImplementedError
+
 
     @classmethod
     def load_model_config_from_json(cls, config_path: str) -> "MeridianConfig":
         """Load the config from a JSON file."""
-        pass
-        # config_dict = cls._load_json_file(config_path)
-        # return cls._from_string_dict(config_dict)
+        raise NotImplementedError
+
 
     @classmethod
     def _from_string_dict(cls, config_dict: dict[str, Any]) -> "MeridianConfig":
-        pass
-        # if ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG in config_dict:
-        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG])
-        #     hydrated_model_config = rehydrator.rehydrate_config()
-        #     config_dict[ConfigConstants.MeridianConfigAttributes.MERIDIAN_MODEL_CONFIG] = MeridianInputDataBuilderSchema(
-        #         **hydrated_model_config
-        #     )
-        # if ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG in config_dict:
-        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG])
-        #     hydrated_model_spec_config = rehydrator.rehydrate_config()
-        #     config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = MeridianModelSpecSchema(
-        #         **hydrated_model_spec_config
-        #     )
-        # if ConfigConstants.MeridianConfigAttributes.FIT_CONFIG in config_dict:
-        #     rehydrator = MeridianConfigRehydrator(config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG])
-        #     hydrated_fit_config = rehydrator.rehydrate_config()
-        #     config_dict[ConfigConstants.MeridianConfigAttributes.FIT_CONFIG] = MeridianSamplePosteriorSchema(**hydrated_fit_config)
-        # return cls.model_validate(config_dict)
+        raise NotImplementedError
+
