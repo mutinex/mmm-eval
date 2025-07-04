@@ -17,7 +17,6 @@ from .adapters.pymc import PyMCAdapter
 from .adapters.schemas import (
     MeridianInputDataBuilderSchema,
     MeridianModelSpecSchema,
-    MeridianPriorDistributionSchema,
     MeridianSamplePosteriorSchema,
 )
 from .configs import MeridianConfig, MeridianConfigRehydrator, PyMCConfig, PyMCConfigRehydrator, get_config
@@ -59,7 +58,6 @@ __all__ = [
     "MeridianConfigRehydrator",
     "get_config",
     # Schemas
-    "MeridianPriorDistributionSchema",
     "MeridianModelSpecSchema",
     "MeridianInputDataBuilderSchema",
     "MeridianSamplePosteriorSchema",

@@ -3,6 +3,7 @@ from typing import Annotated, Any
 from pydantic import BaseModel, Field, InstanceOf, field_validator, model_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
+from meridian.model.prior_distribution import PriorDistribution
 
 
 class PyMCFitSchema(BaseModel):
@@ -159,24 +160,24 @@ class PyMCStringConfigSchema(BaseModel):
 
 
 # Meridian-specific schemas
-class MeridianPriorDistributionSchema(BaseModel):
-    """Schema for Meridian prior distribution configuration."""
+# class MeridianPriorDistributionSchema(BaseModel):
+#     """Schema for Meridian prior distribution configuration."""
 
-    roi_mu: float = Field(0.0, description="Mean of the log-normal ROI prior distribution.")
-    roi_sigma: float = Field(1.0, ge=0.0, description="Standard deviation of the log-normal ROI prior distribution.")
-    name: str = Field("roi_m", description="Name of the ROI parameter.")
+#     roi_mu: float = Field(0.0, description="Mean of the log-normal ROI prior distribution.")
+#     roi_sigma: float = Field(1.0, ge=0.0, description="Standard deviation of the log-normal ROI prior distribution.")
+#     name: str = Field("roi_m", description="Name of the ROI parameter.")
 
-    model_config = {
-        "arbitrary_types_allowed": True,
-        "extra": "allow",
-        "coerce_types_to_string": False,
-    }
+#     model_config = {
+#         "arbitrary_types_allowed": True,
+#         "extra": "allow",
+#         "coerce_types_to_string": False,
+#     }
 
 
 class MeridianModelSpecSchema(BaseModel):
     """Schema for Meridian ModelSpec configuration."""
 
-    prior: MeridianPriorDistributionSchema = Field(..., description="Prior distribution configuration.")
+    prior: InstanceOf[PriorDistribution] = Field(..., description="Prior distribution configuration.")
     media_effects_dist: str = Field("log_normal", description="Distribution type for media effects.")
     hill_before_adstock: bool = Field(False, description="Whether to apply Hill transformation before adstock.")
     max_lag: int | None = Field(8, description="Maximum lag for adstock transformation.")

@@ -5,11 +5,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-import tensorflow_probability as tfp
-from meridian import constants
 from meridian.analysis.analyzer import Analyzer
 from meridian.data import data_frame_input_data_builder as data_builder
-from meridian.model import prior_distribution
 from meridian.model.model import Meridian
 from meridian.model.spec import ModelSpec
 
@@ -24,6 +21,8 @@ REVENUE_PER_KPI_COL = "revenue_per_kpi"
 
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+    df = df.copy()
+    
     # convert from "revenue" to "revenue_per_kpi"
     df[REVENUE_PER_KPI_COL] = (
         df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL] / df[InputDataframeConstants.RESPONSE_COL]
@@ -42,9 +41,10 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
         builder = builder.with_population(df)
 
     # controls (non-intervenable, e.g. macroeconomics)
-    builder = builder.with_controls(
-        df, time_col=config.date_column, control_cols=input_data_builder_schema.control_columns
-    )
+    if input_data_builder_schema.control_columns:
+        builder = builder.with_controls(
+            df, time_col=config.date_column, control_cols=input_data_builder_schema.control_columns
+        )
 
     # add paid media
     # without impressions/reach/frequency: media_cols = media_spend_cols
@@ -134,12 +134,6 @@ class MeridianAdapter(BaseAdapter):
 
         # parse Prior object if provided
         model_spec_kwargs = dict(self.config.model_spec_config)
-        if prior_spec := self.config.model_spec_config.prior:
-            # FIXME: make the functional form configurable
-            prior_object = prior_distribution.PriorDistribution(
-                roi_m=tfp.distributions.LogNormal(prior_spec.roi_mu, prior_spec.roi_sigma, name=constants.ROI_M)
-            )
-            model_spec_kwargs["prior"] = prior_object
 
         # if max train date is provided, construct a mask that is True for all dates before max_train_date
         self.holdout_mask = None
