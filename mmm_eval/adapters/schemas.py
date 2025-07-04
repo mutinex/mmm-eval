@@ -1,9 +1,9 @@
 from typing import Annotated, Any
 
+from meridian.model.prior_distribution import PriorDistribution
 from pydantic import BaseModel, Field, InstanceOf, field_validator, model_validator
 from pymc_marketing.mmm.components.adstock import AdstockTransformation
 from pymc_marketing.mmm.components.saturation import SaturationTransformation
-from meridian.model.prior_distribution import PriorDistribution
 
 
 class PyMCFitSchema(BaseModel):
@@ -157,6 +157,7 @@ class PyMCStringConfigSchema(BaseModel):
         "extra": "allow",
         "coerce_types_to_string": False,  # Allow type coercion
     }
+
 
 class MeridianModelSpecSchema(BaseModel):
     """Schema for Meridian ModelSpec configuration."""

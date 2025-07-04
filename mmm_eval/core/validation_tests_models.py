@@ -5,6 +5,7 @@
 
 from enum import StrEnum
 
+
 class ValidationTestNames(StrEnum):
     """Define the names of the validation tests."""
 

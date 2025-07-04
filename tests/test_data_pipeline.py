@@ -82,7 +82,14 @@ class TestDataPipeline:
             data=df,
             framework="meridian",
             control_columns=["Competitor_Sales", "GQV"],
-            channel_columns=["Channel0_spend", "Channel1_spend", "Channel2_spend", "Channel3_spend", "Channel4_spend", "Channel5_spend"],
+            channel_columns=[
+                "Channel0_spend",
+                "Channel1_spend",
+                "Channel2_spend",
+                "Channel3_spend",
+                "Channel4_spend",
+                "Channel5_spend",
+            ],
             date_column="time",
             response_column="response",
             revenue_column="revenue",
@@ -95,7 +102,7 @@ class TestDataPipeline:
         assert InputDataframeConstants.RESPONSE_COL in result.columns
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL in result.columns
         assert pd.api.types.is_datetime64_any_dtype(result["time"])
-        
+
         # Check that Meridian-specific columns are preserved
         assert "geo" in result.columns
         assert "population" in result.columns
@@ -182,7 +189,14 @@ class TestDataPipeline:
             data=df,
             framework="meridian",
             control_columns=["Competitor_Sales", "GQV"],
-            channel_columns=["Channel0_spend", "Channel1_spend", "Channel2_spend", "Channel3_spend", "Channel4_spend", "Channel5_spend"],
+            channel_columns=[
+                "Channel0_spend",
+                "Channel1_spend",
+                "Channel2_spend",
+                "Channel3_spend",
+                "Channel4_spend",
+                "Channel5_spend",
+            ],
             date_column="time",
             response_column="response",
             revenue_column="revenue",

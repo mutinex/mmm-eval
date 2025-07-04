@@ -240,19 +240,15 @@ class MeridianConfig(BaseConfig):
         """Extract and validate fit configuration from fit kwargs."""
         raise NotImplementedError
 
-
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "MeridianConfig":
         """Save the config to a JSON file."""
         raise NotImplementedError
-
 
     @classmethod
     def load_model_config_from_json(cls, config_path: str) -> "MeridianConfig":
         """Load the config from a JSON file."""
         raise NotImplementedError
 
-
     @classmethod
     def _from_string_dict(cls, config_dict: dict[str, Any]) -> "MeridianConfig":
         raise NotImplementedError
-

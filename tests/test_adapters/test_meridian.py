@@ -1,19 +1,20 @@
 """Unit tests for Meridian adapter."""
 
+from unittest.mock import ANY, Mock, patch
+
+import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import Mock, patch, ANY
-import numpy as np
+from meridian.model.prior_distribution import PriorDistribution
 
-from mmm_eval.adapters.meridian import construct_meridian_data_object, REVENUE_PER_KPI_COL, MeridianAdapter
-from mmm_eval.configs import MeridianConfig
+from mmm_eval.adapters.meridian import REVENUE_PER_KPI_COL, MeridianAdapter, construct_meridian_data_object
 from mmm_eval.adapters.schemas import (
     MeridianInputDataBuilderSchema,
     MeridianModelSpecSchema,
     MeridianSamplePosteriorSchema,
 )
+from mmm_eval.configs import MeridianConfig
 from mmm_eval.data.constants import InputDataframeConstants
-from meridian.model.prior_distribution import PriorDistribution
 
 
 class TestConstructMeridianDataObject:
@@ -22,13 +23,15 @@ class TestConstructMeridianDataObject:
     def setup_method(self):
         """Set up test data and configurations."""
         # Create base test data
-        self.base_df = pd.DataFrame({
-            "date": pd.date_range("2023-01-01", periods=10),
-            InputDataframeConstants.RESPONSE_COL: [100.0] * 10,
-            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 10,
-            "tv_spend": [500.0] * 10,
-            "digital_spend": [300.0] * 10,
-        })
+        self.base_df = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=10),
+                InputDataframeConstants.RESPONSE_COL: [100.0] * 10,
+                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 10,
+                "tv_spend": [500.0] * 10,
+                "digital_spend": [300.0] * 10,
+            }
+        )
 
         # Create mock prior distribution
         self.mock_prior = Mock(spec=PriorDistribution)
@@ -51,7 +54,7 @@ class TestConstructMeridianDataObject:
         )
 
     def _create_config(self, input_data_builder_config: MeridianInputDataBuilderSchema) -> MeridianConfig:
-        """Helper method to create a MeridianConfig."""
+        """Create a MeridianConfig."""
         return MeridianConfig(
             input_data_builder_config=input_data_builder_config,
             model_spec_config=self.base_model_spec_config,
@@ -59,7 +62,7 @@ class TestConstructMeridianDataObject:
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_basic_functionality(self, mock_builder_class):
         """Test basic functionality with required fields only."""
         # Setup
@@ -79,20 +82,15 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
-        assert result is not None
         mock_builder_class.assert_called_once_with(kpi_type="non_revenue")
         mock_builder.with_kpi.assert_called_once_with(
-            ANY, 
-            time_col="date", 
-            kpi_col=InputDataframeConstants.RESPONSE_COL
+            ANY, time_col="date", kpi_col=InputDataframeConstants.RESPONSE_COL
         )
         mock_builder.with_revenue_per_kpi.assert_called_once_with(
-            ANY, 
-            time_col="date", 
-            revenue_per_kpi_col=REVENUE_PER_KPI_COL
+            ANY, time_col="date", revenue_per_kpi_col=REVENUE_PER_KPI_COL
         )
         mock_builder.with_media.assert_called_once_with(
             ANY,
@@ -103,7 +101,7 @@ class TestConstructMeridianDataObject:
         )
         mock_builder.build.assert_called_once()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_revenue_per_kpi_calculation(self, mock_builder_class):
         """Test that revenue_per_kpi is calculated correctly."""
         # Setup
@@ -130,17 +128,16 @@ class TestConstructMeridianDataObject:
 
         # The DataFrame passed to with_kpi should have the correct columns
         called_df = mock_builder.with_kpi.call_args[0][0]
-        expected_revenue_per_kpi = self.base_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL] / self.base_df[InputDataframeConstants.RESPONSE_COL]
-        assert REVENUE_PER_KPI_COL in called_df.columns
-        pd.testing.assert_series_equal(
-            called_df[REVENUE_PER_KPI_COL], 
-            expected_revenue_per_kpi, 
-            check_names=False
+        expected_revenue_per_kpi = (
+            self.base_df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]
+            / self.base_df[InputDataframeConstants.RESPONSE_COL]
         )
+        assert REVENUE_PER_KPI_COL in called_df.columns
+        pd.testing.assert_series_equal(called_df[REVENUE_PER_KPI_COL], expected_revenue_per_kpi, check_names=False)
         # The revenue column should be dropped in the DataFrame passed to with_kpi
         assert InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL not in called_df.columns
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_population_column(self, mock_builder_class):
         """Test handling when population column is present."""
         # Setup
@@ -164,12 +161,12 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_population, config)
+        construct_meridian_data_object(df_with_population, config)
 
         # Verify
         mock_builder.with_population.assert_called_once_with(ANY)
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_without_population_column(self, mock_builder_class):
         """Test handling when population column is not present."""
         # Setup
@@ -189,12 +186,12 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
         mock_builder.with_population.assert_not_called()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_control_columns(self, mock_builder_class):
         """Test handling when control columns are provided."""
         # Setup
@@ -220,7 +217,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_controls, config)
+        construct_meridian_data_object(df_with_controls, config)
 
         # Verify
         mock_builder.with_controls.assert_called_once_with(
@@ -229,7 +226,7 @@ class TestConstructMeridianDataObject:
             control_cols=["control_var1", "control_var2"],
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_without_control_columns(self, mock_builder_class):
         """Test handling when control columns are not provided."""
         # Setup
@@ -250,12 +247,12 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
         mock_builder.with_controls.assert_not_called()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_reach_frequency_media(self, mock_builder_class):
         """Test handling when reach/frequency columns are provided."""
         # Setup
@@ -281,7 +278,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_rf, config)
+        construct_meridian_data_object(df_with_rf, config)
 
         # Verify
         mock_builder.with_reach.assert_called_once_with(
@@ -294,7 +291,7 @@ class TestConstructMeridianDataObject:
         )
         mock_builder.with_media.assert_not_called()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_impressions_media(self, mock_builder_class):
         """Test handling when impressions columns are provided."""
         # Setup
@@ -318,7 +315,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_impressions, config)
+        construct_meridian_data_object(df_with_impressions, config)
 
         # Verify
         mock_builder.with_media.assert_called_once_with(
@@ -329,7 +326,7 @@ class TestConstructMeridianDataObject:
             time_col="date",
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_spend_only_media(self, mock_builder_class):
         """Test handling when only spend columns are provided (no impressions/reach)."""
         # Setup
@@ -349,7 +346,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
         mock_builder.with_media.assert_called_once_with(
@@ -360,7 +357,7 @@ class TestConstructMeridianDataObject:
             time_col="date",
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_organic_media(self, mock_builder_class):
         """Test handling when organic media columns are provided."""
         # Setup
@@ -386,7 +383,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_organic, config)
+        construct_meridian_data_object(df_with_organic, config)
 
         # Verify
         mock_builder.with_organic_media.assert_called_once_with(
@@ -396,7 +393,7 @@ class TestConstructMeridianDataObject:
             media_time_col="date",
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_without_organic_media(self, mock_builder_class):
         """Test handling when organic media columns are not provided."""
         # Setup
@@ -418,12 +415,12 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
         mock_builder.with_organic_media.assert_not_called()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_with_non_media_treatments(self, mock_builder_class):
         """Test handling when non-media treatment columns are provided."""
         # Setup
@@ -449,7 +446,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_with_treatments, config)
+        construct_meridian_data_object(df_with_treatments, config)
 
         # Verify
         mock_builder.with_non_media_treatments.assert_called_once_with(
@@ -458,7 +455,7 @@ class TestConstructMeridianDataObject:
             time_col="date",
         )
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_without_non_media_treatments(self, mock_builder_class):
         """Test handling when non-media treatment columns are not provided."""
         # Setup
@@ -479,12 +476,12 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(self.base_df, config)
+        construct_meridian_data_object(self.base_df, config)
 
         # Verify
         mock_builder.with_non_media_treatments.assert_not_called()
 
-    @patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder')
+    @patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder")
     def test_comprehensive_scenario(self, mock_builder_class):
         """Test a comprehensive scenario with all optional features enabled."""
         # Setup
@@ -522,7 +519,7 @@ class TestConstructMeridianDataObject:
         config = self._create_config(input_config)
 
         # Execute
-        result = construct_meridian_data_object(df_comprehensive, config)
+        construct_meridian_data_object(df_comprehensive, config)
 
         # Verify all methods were called
         mock_builder.with_population.assert_called_once_with(ANY)
@@ -566,7 +563,7 @@ class TestConstructMeridianDataObject:
         )
         config = self._create_config(input_config)
 
-        with patch('mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder') as mock_builder_class:
+        with patch("mmm_eval.adapters.meridian.data_builder.DataFrameInputDataBuilder") as mock_builder_class:
             mock_builder = Mock()
             mock_builder_class.return_value = mock_builder
             mock_builder.with_kpi.return_value = mock_builder
@@ -580,15 +577,19 @@ class TestConstructMeridianDataObject:
             # The DataFrame passed to with_kpi should have the correct columns
             called_df = mock_builder.with_kpi.call_args[0][0]
             # Check for inf or NaN in the revenue_per_kpi column
-            assert called_df[REVENUE_PER_KPI_COL].isnull().any() or (called_df[REVENUE_PER_KPI_COL] == float('inf')).any()
+            assert (
+                called_df[REVENUE_PER_KPI_COL].isnull().any() or (called_df[REVENUE_PER_KPI_COL] == float("inf")).any()
+            )
 
     def test_missing_required_columns(self):
         """Test handling when required columns are missing."""
         # Setup
-        df_missing_columns = pd.DataFrame({
-            "date": pd.date_range("2023-01-01", periods=10),
-            # Missing response and revenue columns
-        })
+        df_missing_columns = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=10),
+                # Missing response and revenue columns
+            }
+        )
 
         input_config = MeridianInputDataBuilderSchema(
             date_column="date",
@@ -604,14 +605,19 @@ class TestConstructMeridianDataObject:
 
 
 class TestMeridianAdapter:
+    """Test cases for MeridianAdapter class."""
+
     @pytest.fixture(autouse=True)
     def setup(self):
-        self.df = pd.DataFrame({
-            "date": pd.date_range("2023-01-01", periods=5),
-            InputDataframeConstants.RESPONSE_COL: [100.0] * 5,
-            InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 5,
-            "tv_spend": [500.0] * 5,
-        })
+        """Set up test fixtures."""
+        self.df = pd.DataFrame(
+            {
+                "date": pd.date_range("2023-01-01", periods=5),
+                InputDataframeConstants.RESPONSE_COL: [100.0] * 5,
+                InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL: [1000.0] * 5,
+                "tv_spend": [500.0] * 5,
+            }
+        )
         self.mock_prior = Mock(spec=PriorDistribution)
         self.input_config = MeridianInputDataBuilderSchema(
             date_column="date",
@@ -644,6 +650,7 @@ class TestMeridianAdapter:
     @patch("mmm_eval.adapters.meridian.Meridian")
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_fit_sets_state_and_calls_dependencies(self, mock_analyzer, mock_meridian, mock_modelspec, mock_construct):
+        """Test that fit method sets state and calls dependencies correctly."""
         mock_training_data = Mock()
         mock_construct.return_value = mock_training_data
         mock_model = Mock()
@@ -669,6 +676,7 @@ class TestMeridianAdapter:
 
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_predict_returns_posterior_mean_and_applies_holdout_mask(self, mock_analyzer):
+        """Test that predict method returns posterior mean and applies holdout mask."""
         adapter = MeridianAdapter(self.config)
         adapter.is_fitted = True
         adapter.analyzer = mock_analyzer_instance = Mock()
@@ -683,6 +691,7 @@ class TestMeridianAdapter:
         assert np.allclose(adapter.predict(), masked)
 
     def test_predict_raises_if_not_fitted(self):
+        """Test that predict raises RuntimeError if model is not fitted."""
         adapter = MeridianAdapter(self.config)
         with pytest.raises(RuntimeError):
             adapter.predict()
@@ -690,6 +699,7 @@ class TestMeridianAdapter:
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict")
     def test_fit_and_predict_calls_fit_and_predict(self, mock_predict, mock_fit):
+        """Test that fit_and_predict calls fit and predict methods."""
         adapter = MeridianAdapter(self.config)
         train = self.df.iloc[:3]
         test = self.df.iloc[3:]
@@ -701,6 +711,7 @@ class TestMeridianAdapter:
 
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_get_channel_roi_returns_series(self, mock_analyzer):
+        """Test that get_channel_roi returns a pandas Series."""
         adapter = MeridianAdapter(self.config)
         adapter.is_fitted = True
         adapter.analyzer = mock_analyzer_instance = Mock()
@@ -720,20 +731,24 @@ class TestMeridianAdapter:
         assert isinstance(result, pd.Series)
 
     def test_get_channel_roi_raises_if_not_fitted(self):
+        """Test that get_channel_roi raises RuntimeError if model is not fitted."""
         adapter = MeridianAdapter(self.config)
         with pytest.raises(RuntimeError):
             adapter.get_channel_roi()
 
     def test_fit_resets_state(self):
+        """Test that fit method resets state on each call."""
         # Fit once, then change state, then fit again and check reset
-        with patch("mmm_eval.adapters.meridian.construct_meridian_data_object", return_value=Mock()), \
-             patch("mmm_eval.adapters.meridian.ModelSpec"), \
-             patch("mmm_eval.adapters.meridian.Meridian") as mock_meridian, \
-             patch("mmm_eval.adapters.meridian.Analyzer"):
+        with (
+            patch("mmm_eval.adapters.meridian.construct_meridian_data_object", return_value=Mock()),
+            patch("mmm_eval.adapters.meridian.ModelSpec"),
+            patch("mmm_eval.adapters.meridian.Meridian"),
+            patch("mmm_eval.adapters.meridian.Analyzer"),
+        ):
             adapter = MeridianAdapter(self.config)
             adapter.fit(self.df)
             adapter.model = "not a model"
             adapter.is_fitted = False
             adapter.fit(self.df)
             assert adapter.model != "not a model"
-            assert adapter.is_fitted is True 
+            assert adapter.is_fitted is True
