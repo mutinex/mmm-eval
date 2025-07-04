@@ -8,7 +8,6 @@ import pandera.pandas as pa
 from .constants import DataPipelineConstants
 from .exceptions import DataValidationError, EmptyDataFrameError
 from .schemas import ValidatedDataSchema
-from mmm_eval.core.validation_tests_models import FrameworkNames
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +17,7 @@ class DataValidator:
 
     def __init__(
         self,
-        framework: FrameworkNames,
+        framework: str,
         date_column: str,
         response_column: str,
         revenue_column: str,
@@ -28,7 +27,7 @@ class DataValidator:
         """Initialize validator with validation rules.
 
         Args:
-            framework: a supported framework, one of `FrameworkNames`
+            framework: a supported framework, one of `pymc_marketing` or `meridian`
             date_column: Name of the date column
             response_column: Name of the response column
             revenue_column: Name of the revenue column
@@ -59,7 +58,8 @@ class DataValidator:
         self._validate_data_size(df)
         self._validate_response_and_revenue_columns_xor_zeroes(df)
 
-        if self.control_columns and self.framework == FrameworkNames.PYMC_MARKETING:
+        # feature scaling is done automatically in Meridian
+        if self.control_columns and self.framework == "pymc_marketing":
             self._check_control_variables_between_0_and_1(df=df, cols=self.control_columns)
 
     def _validate_schema(self, df: pd.DataFrame) -> None:

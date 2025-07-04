@@ -1,7 +1,6 @@
 """Adapters for different MMM frameworks."""
 
 from mmm_eval.configs import PyMCConfig, MeridianConfig
-from mmm_eval.core.validation_tests_models import FrameworkNames
 
 from .base import BaseAdapter
 from .pymc import PyMCAdapter
@@ -9,12 +8,12 @@ from .meridian import MeridianAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {
-    FrameworkNames.PYMC_MARKETING: PyMCAdapter,
-    FrameworkNames.MERIDIAN: MeridianAdapter,
+    "pymc_marketing": PyMCAdapter,
+    "meridian": MeridianAdapter,
 }
 
 
-def get_adapter(framework: FrameworkNames, config: PyMCConfig | MeridianConfig):
+def get_adapter(framework: str, config: PyMCConfig | MeridianConfig):
     """Get an adapter instance for the specified framework.
 
     Args:

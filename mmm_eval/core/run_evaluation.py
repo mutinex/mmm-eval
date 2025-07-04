@@ -41,4 +41,3 @@ def run_evaluation(
     ).evaluate_framework(framework=framework, config=config)
 
     return results.to_df()
- 

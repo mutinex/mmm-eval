@@ -5,7 +5,6 @@ import pandas as pd
 from .constants import DataPipelineConstants, InputDataframeConstants
 from .processor import DataProcessor
 from .validation import DataValidator
-from mmm_eval.core.validation_tests_models import FrameworkNames
 
 
 class DataPipeline:
@@ -17,7 +16,7 @@ class DataPipeline:
     def __init__(
         self,
         data: pd.DataFrame,
-        framework: FrameworkNames,
+        framework: str,
         control_columns: list[str] | None,
         channel_columns: list[str],
         date_column: str,
