@@ -62,7 +62,7 @@ class Evaluator:
         Raises:
             ValueError: If any test name is invalid
 
-        """        
+        """
         # Initialize the adapter
         adapter = get_adapter(framework, config)
 

@@ -185,16 +185,26 @@ class MeridianModelSpecSchema(BaseModel):
     rf_prior_type: str | None = Field(None, description="Prior type for reach and frequency variables.")
     paid_media_prior_type: str | None = Field(None, description="Prior type for paid media variables.")
     roi_calibration_period: list[float] | None = Field(None, description="ROI calibration period array.")
-    rf_roi_calibration_period: list[float] | None = Field(None, description="Reach and frequency ROI calibration period array.")
+    rf_roi_calibration_period: list[float] | None = Field(
+        None, description="Reach and frequency ROI calibration period array."
+    )
     organic_media_prior_type: str = Field("contribution", description="Prior type for organic media variables.")
-    organic_rf_prior_type: str = Field("contribution", description="Prior type for organic reach and frequency variables.")
-    non_media_treatments_prior_type: str = Field("contribution", description="Prior type for non-media treatment variables.")
-    non_media_baseline_values: list[float | str] | None = Field(None, description="Baseline values for non-media variables.")
+    organic_rf_prior_type: str = Field(
+        "contribution", description="Prior type for organic reach and frequency variables."
+    )
+    non_media_treatments_prior_type: str = Field(
+        "contribution", description="Prior type for non-media treatment variables."
+    )
+    non_media_baseline_values: list[float | str] | None = Field(
+        None, description="Baseline values for non-media variables."
+    )
     knots: int | list[int] | None = Field(None, description="Knots for spline transformations.")
     baseline_geo: int | str | None = Field(None, description="Baseline geography identifier.")
     holdout_id: list[int] | None = Field(None, description="Holdout period identifiers.")
     control_population_scaling_id: list[int] | None = Field(None, description="Control population scaling identifiers.")
-    non_media_population_scaling_id: list[int] | None = Field(None, description="Non-media population scaling identifiers.")
+    non_media_population_scaling_id: list[int] | None = Field(
+        None, description="Non-media population scaling identifiers."
+    )
 
     model_config = {
         "arbitrary_types_allowed": True,
@@ -205,7 +215,7 @@ class MeridianModelSpecSchema(BaseModel):
 
 class MeridianSamplePosteriorSchema(BaseModel):
     """Schema for Meridian sample_posterior configuration.
-    
+
     These arguments are passed to the Meridian model's sample_posterior() method.
     """
 
@@ -232,7 +242,7 @@ class MeridianSamplePosteriorSchema(BaseModel):
     def fit_config_dict_without_non_provided_fields(self) -> dict[str, Any]:
         """Return only non-None values.
 
-        Returns:
+        Returns
             Dictionary of non-None values
 
         """
@@ -241,7 +251,7 @@ class MeridianSamplePosteriorSchema(BaseModel):
 
 class MeridianInputDataBuilderSchema(BaseModel):
     """Schema for Meridian input data builder configuration.
-    
+
     These arguments are passed to the DataFrameInputDataBuilder class for constructing a
     data object to be fed into the Meridian model.
 
@@ -249,20 +259,31 @@ class MeridianInputDataBuilderSchema(BaseModel):
     treatment or a control:
     https://developers.google.com/meridian/docs/advanced-modeling/organic-and-non-media-variables?hl=en
     """
+
     date_column: str = Field(..., description="Column name of the date variable.")
     media_channels: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
-    channel_spend_columns: list[str] = Field(min_length=1, description="Column names of the media channel metric variables.")
-    channel_impressions_columns: list[str] | None = Field(None, description="Column names of the media channel impressions variables.")
+    channel_spend_columns: list[str] = Field(
+        min_length=1, description="Column names of the media channel metric variables."
+    )
+    channel_impressions_columns: list[str] | None = Field(
+        None, description="Column names of the media channel impressions variables."
+    )
 
     # these two depend on one another, so we need to validate them together
-    channel_reach_columns: list[str] | None = Field(None, description="Column names of the media channel reach variables.")
-    channel_frequency_columns: list[str] | None = Field(None, description="Column names of the media channel frequency variables.")
+    channel_reach_columns: list[str] | None = Field(
+        None, description="Column names of the media channel reach variables."
+    )
+    channel_frequency_columns: list[str] | None = Field(
+        None, description="Column names of the media channel frequency variables."
+    )
 
     # these two depend on one another, so we need to validate them together
     organic_media_columns: list[str] | None = Field(None, description="Column names of the organic media variables.")
     organic_media_channels: list[str] | None = Field(None, description="Channel names of the organic media variables.")
-    non_media_treatment_columns: list[str] | None = Field(None, description="Column names of the non-media treatment variables.")
-    
+    non_media_treatment_columns: list[str] | None = Field(
+        None, description="Column names of the non-media treatment variables."
+    )
+
     response_column: str = Field(..., description="Column name of the response variable.")
     control_columns: list[str] | None = Field(None, description="Column names of control variables.")
 
@@ -302,14 +323,15 @@ class MeridianInputDataBuilderSchema(BaseModel):
         # Get the current values of both fields
         reach_columns = getattr(info.data, "channel_reach_columns", None)
         frequency_columns = getattr(info.data, "channel_frequency_columns", None)
-        
+
         # Count how many are provided (not None and not empty)
-        provided_count = sum(1 for field in [reach_columns, frequency_columns] 
-                           if field is not None and len(field) > 0)
-        
+        provided_count = sum(1 for field in [reach_columns, frequency_columns] if field is not None and len(field) > 0)
+
         if provided_count not in [0, 2]:
-            raise ValueError("Exactly zero or two of channel_reach_columns and channel_frequency_columns must be provided")
-        
+            raise ValueError(
+                "Exactly zero or two of channel_reach_columns and channel_frequency_columns must be provided"
+            )
+
         return v
 
     @field_validator("organic_media_columns", "organic_media_channels", mode="after")
@@ -330,34 +352,37 @@ class MeridianInputDataBuilderSchema(BaseModel):
         # Get the current values of both fields
         organic_columns = getattr(info.data, "organic_media_columns", None)
         organic_channels = getattr(info.data, "organic_media_channels", None)
-        
+
         # Count how many are provided (not None and not empty)
-        provided_count = sum(1 for field in [organic_columns, organic_channels] 
-                           if field is not None and len(field) > 0)
-        
+        provided_count = sum(1 for field in [organic_columns, organic_channels] if field is not None and len(field) > 0)
+
         if provided_count not in [0, 2]:
             raise ValueError("Exactly zero or two of organic_media_columns and organic_media_channels must be provided")
-        
+
         return v
 
     @model_validator(mode="after")
     def validate_reach_impressions_mutual_exclusion(self):
         """Validate that channel_reach_columns and channel_impressions_columns are not both provided.
 
-        Returns:
+        Returns
             Self
 
-        Raises:
+        Raises
             ValueError: If both fields are provided
 
         """
         reach_columns = self.channel_reach_columns
         impressions_columns = self.channel_impressions_columns
-        
-        if (reach_columns is not None and len(reach_columns) > 0 and 
-            impressions_columns is not None and len(impressions_columns) > 0):
+
+        if (
+            reach_columns is not None
+            and len(reach_columns) > 0
+            and impressions_columns is not None
+            and len(impressions_columns) > 0
+        ):
             raise ValueError("channel_reach_columns and channel_impressions_columns cannot both be provided")
-        
+
         return self
 
     model_config = {

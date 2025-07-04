@@ -2,11 +2,11 @@
 
 from mmm_eval.configs.base import BaseConfig
 
-from .configs import PyMCConfig, MeridianConfig
+from .configs import MeridianConfig, PyMCConfig
 
 # Registry of available configs
 CONFIG_REGISTRY = {
-    "pymc-marketing": PyMCConfig,
+    "pymc_marketing": PyMCConfig,
     "meridian": MeridianConfig,
 }
 

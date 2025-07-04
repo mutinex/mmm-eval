@@ -6,12 +6,12 @@ import logging
 import numpy as np
 import pandas as pd
 import tensorflow_probability as tfp
-from meridian.model.spec import ModelSpec
-from meridian.model.model import Meridian
-from meridian.data import data_frame_input_data_builder as data_builder
-from meridian.model import prior_distribution
 from meridian import constants
 from meridian.analysis.analyzer import Analyzer
+from meridian.data import data_frame_input_data_builder as data_builder
+from meridian.model import prior_distribution
+from meridian.model.model import Meridian
+from meridian.model.spec import ModelSpec
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.configs import MeridianConfig
@@ -25,23 +25,26 @@ REVENUE_PER_KPI_COL = "revenue_per_kpi"
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
     # convert from "revenue" to "revenue_per_kpi"
-    df[REVENUE_PER_KPI_COL] = df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL]/df[InputDataframeConstants.RESPONSE_COL]
+    df[REVENUE_PER_KPI_COL] = (
+        df[InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL] / df[InputDataframeConstants.RESPONSE_COL]
+    )
     df = df.drop(columns=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL)
 
     input_data_builder_schema = config.input_data_builder_config
 
     # KPI, population, and control variables
     builder = (
-        data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
-            .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
-            .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col=REVENUE_PER_KPI_COL)
+        data_builder.DataFrameInputDataBuilder(kpi_type="non_revenue")
+        .with_kpi(df, time_col=config.date_column, kpi_col=InputDataframeConstants.RESPONSE_COL)
+        .with_revenue_per_kpi(df, time_col=config.date_column, revenue_per_kpi_col=REVENUE_PER_KPI_COL)
     )
     if "population" in df.columns:
         builder = builder.with_population(df)
-    
+
     # controls (non-intervenable, e.g. macroeconomics)
-    builder = builder.with_controls(df, time_col=config.date_column,
-                                    control_cols=input_data_builder_schema.control_columns)
+    builder = builder.with_controls(
+        df, time_col=config.date_column, control_cols=input_data_builder_schema.control_columns
+    )
 
     # add paid media
     # without impressions/reach/frequency: media_cols = media_spend_cols
@@ -57,7 +60,9 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
             time_col=config.date_column,
         )
     else:
-        media_cols = input_data_builder_schema.channel_impressions_columns or input_data_builder_schema.channel_spend_columns
+        media_cols = (
+            input_data_builder_schema.channel_impressions_columns or input_data_builder_schema.channel_spend_columns
+        )
         builder = builder.with_media(
             df,
             media_cols=media_cols,
@@ -92,6 +97,7 @@ def construct_holdout_mask(max_train_date: pd.Timestamp, time_index, geo_index):
 
     return full_index.isin(test_index)
 
+
 class MeridianAdapter(BaseAdapter):
     """Adapter for Google Meridian MMM framework."""
 
@@ -100,6 +106,7 @@ class MeridianAdapter(BaseAdapter):
 
         Args:
             config: MeridianConfig object
+        
         """
         self.config = config
         self.input_data_builder_schema = config.input_data_builder_config
@@ -130,22 +137,23 @@ class MeridianAdapter(BaseAdapter):
         if prior_spec := self.config.model_spec_config.prior:
             # FIXME: make the functional form configurable
             prior_object = prior_distribution.PriorDistribution(
-                roi_m=tfp.distributions.LogNormal(prior_spec.roi_mu, prior_spec.roi_sigma,
-                                                  name=constants.ROI_M)
+                roi_m=tfp.distributions.LogNormal(prior_spec.roi_mu, prior_spec.roi_sigma, name=constants.ROI_M)
             )
             model_spec_kwargs["prior"] = prior_object
 
         # if max train date is provided, construct a mask that is True for all dates before max_train_date
         self.holdout_mask = None
         if self.max_train_date:
-            self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time, self.training_data.kpi.geo)
+            self.holdout_mask = construct_holdout_mask(
+                self.max_train_date, self.training_data.kpi.time, self.training_data.kpi.geo
+            )
             # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
-            model_spec_kwargs["holdout_id"] = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
+            model_spec_kwargs["holdout_id"] = np.repeat(
+                self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0
+            )
 
         # Create and fit the Meridian model
-        model_spec = ModelSpec(
-            **model_spec_kwargs
-        )
+        model_spec = ModelSpec(**model_spec_kwargs)
         self.model = Meridian(
             input_data=self.training_data,
             model_spec=model_spec,
@@ -168,7 +176,7 @@ class MeridianAdapter(BaseAdapter):
         """
         if not self.is_fitted:
             raise RuntimeError("Model must be fit before prediction")
-        
+
         # shape (n_chains, n_draws, n_times)
         preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
@@ -177,22 +185,21 @@ class MeridianAdapter(BaseAdapter):
         # holdout period
         if self.holdout_mask is not None:
             posterior_mean = posterior_mean[self.holdout_mask]
-        
+
         return posterior_mean
-        
-    
+
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit the Meridian model and make predictions.
-        
+
         Args:
             train: Training data
             test: Test data
+        
         """
         # FIXME: ensure the adapter is reset to a fresh state after predict is called
         train_and_test = pd.concat([train, test])
         self.fit(train_and_test, max_train_date=train[self.date_column].max())
         return self.predict()
-
 
     def get_channel_roi(
         self,
@@ -225,6 +232,6 @@ class MeridianAdapter(BaseAdapter):
         rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
 
         rois = {}
-        for channel, roi in zip(self.media_channels, rois_per_channel):
+        for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
             rois[channel] = float(roi)
         return pd.Series(rois)

@@ -1,10 +1,10 @@
 """Adapters for different MMM frameworks."""
 
-from mmm_eval.configs import PyMCConfig, MeridianConfig
+from mmm_eval.configs import MeridianConfig, PyMCConfig
 
 from .base import BaseAdapter
-from .pymc import PyMCAdapter
 from .meridian import MeridianAdapter
+from .pymc import PyMCAdapter
 
 # Registry of available adapters
 ADAPTER_REGISTRY = {

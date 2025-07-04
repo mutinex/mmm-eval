@@ -7,15 +7,15 @@ from pydantic import (
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.schemas import (
-    PyMCFitSchema,
-    PyMCModelSchema,
-    MeridianSamplePosteriorSchema,
     MeridianInputDataBuilderSchema,
     MeridianModelSpecSchema,
+    MeridianSamplePosteriorSchema,
+    PyMCFitSchema,
+    PyMCModelSchema,
 )
 from mmm_eval.configs.base import BaseConfig
 from mmm_eval.configs.constants import ConfigConstants
-from mmm_eval.configs.rehydrators import PyMCConfigRehydrator, MeridianConfigRehydrator
+from mmm_eval.configs.rehydrators import PyMCConfigRehydrator
 
 
 class PyMCConfig(BaseConfig):
@@ -151,9 +151,13 @@ class PyMCConfig(BaseConfig):
 class MeridianConfig(BaseConfig):
     """Evaluation config for the Google Meridian MMM framework."""
 
-    input_data_builder_config: MeridianInputDataBuilderSchema = Field(..., description="Input data builder configuration")
+    input_data_builder_config: MeridianInputDataBuilderSchema = Field(
+        ..., description="Input data builder configuration"
+    )
     model_spec_config: MeridianModelSpecSchema = Field(..., description="Model specification configuration")
-    sample_posterior_config: MeridianSamplePosteriorSchema = Field(default=MeridianSamplePosteriorSchema(), description="Sample posterior configuration")
+    sample_posterior_config: MeridianSamplePosteriorSchema = Field(
+        default=MeridianSamplePosteriorSchema(), description="Sample posterior configuration"
+    )
 
     @computed_field
     @property
@@ -252,7 +256,7 @@ class MeridianConfig(BaseConfig):
         # For now, return a default configuration
         pass
         # from mmm_eval.adapters.schemas import MeridianPriorDistributionSchema
-        
+
         # prior = MeridianPriorDistributionSchema()
         # return MeridianModelSpecSchema(prior=prior)
 

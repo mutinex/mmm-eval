@@ -29,7 +29,7 @@ RESPONSE_COLUMN = "quantity"
                 "--input-data-path",
                 "{data_path}",
                 "--framework",
-                "pymc-marketing",
+                "pymc_marketing",
                 "--output-path",
                 "{output_path}",
                 "--config-path",
@@ -41,7 +41,7 @@ RESPONSE_COLUMN = "quantity"
         (
             [
                 "--framework",
-                "pymc-marketing",
+                "pymc_marketing",
                 "--output-path",
                 "{output_path}",
                 "--config-path",

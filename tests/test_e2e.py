@@ -39,7 +39,7 @@ def test_cli_e2e_pymc_marketing(tmp_path):
             "--input-data-path",
             str(data_path),
             "--framework",
-            "pymc-marketing",
+            "pymc_marketing",
             "--output-path",
             str(output_path),
             "--config-path",
