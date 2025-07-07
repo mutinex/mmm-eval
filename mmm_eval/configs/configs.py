@@ -197,16 +197,17 @@ class MeridianConfig(BaseConfig):
     def from_model_object(
         cls,
         model_object: Any,  # Meridian model object
+        input_data_builder_config,
         revenue_column: str,
-        fit_kwargs: dict[str, Any] | None = None,
-        response_column: str | None = None,
+        sample_posterior_kwargs: dict[str, Any] | None = None,
     ) -> "MeridianConfig":
         """Create a MeridianConfig from a model object and fit kwargs.
 
         Args:
             model_object: The Meridian model object
             revenue_column: The column containing the revenue variable
-            fit_kwargs: The arguments passed to `.fit()` (optional, will use defaults if not provided)
+            sample_posterior_kwargs: The arguments passed to `.fit()` (optional, will use
+                defaults if not provided)
             response_column: The column containing the response variable (optional)
 
         Returns:
@@ -215,16 +216,15 @@ class MeridianConfig(BaseConfig):
         """
         cls._validate_inputs(model_object, revenue_column)
 
-        input_data_builder_config = cls._extract_input_data_builder_config(model_object)
         model_spec_config = cls._extract_model_spec_config(model_object)
-        sample_posterior_config = cls._extract_sample_posterior_config(fit_kwargs) if fit_kwargs else MeridianSamplePosteriorSchema()
+        sample_posterior_config = cls._extract_sample_posterior_config(sample_posterior_kwargs) if sample_posterior_kwargs else MeridianSamplePosteriorSchema()
 
         return cls(
             input_data_builder_config=input_data_builder_config,
             model_spec_config=model_spec_config,
             sample_posterior_config=sample_posterior_config,
             revenue_column=revenue_column,
-            response_column=response_column,
+            response_column=input_data_builder_config.response_column,
         )
 
     @staticmethod
@@ -235,21 +235,130 @@ class MeridianConfig(BaseConfig):
         if not revenue_column:
             raise ValueError("`revenue_column` is required")
 
-    @staticmethod
-    def _extract_input_data_builder_config(model_object: Any) -> MeridianInputDataBuilderSchema:
-        """Extract and validate input data builder configuration from a model object."""
-        # This would need to be implemented based on the actual Meridian model object structure
-        # For now, we'll need to extract the configuration from the model's input data
-        # This is a placeholder implementation - the actual implementation would depend on
-        # how the Meridian model stores its input data configuration
-        raise NotImplementedError("Extraction of input data builder config from Meridian model object not yet implemented")
+    # @staticmethod
+    # def _extract_input_data_builder_config(model_object: Any, channel_spend_columns: list[str],
+    #                                        channel_impressions_columns,
+    #                                        channel_reach_columns, channel_frequency_columns) -> MeridianInputDataBuilderSchema:
+    #     """Extract and validate input data builder configuration from a model object.
+        
+    #     This method examines the Meridian model's input_data structure to reconstruct
+    #     the input data builder configuration that was used to create the model.
+        
+    #     Args:
+    #         model_object: The Meridian model object
+            
+    #     Returns:
+    #         MeridianInputDataBuilderSchema containing the extracted configuration
+            
+    #     Raises:
+    #         ValueError: If the model object doesn't have the expected structure
+    #     """
+    #     if not hasattr(model_object, 'input_data'):
+    #         raise ValueError("Model object must have 'input_data' attribute")
+            
+    #     input_data = model_object.input_data
+        
+    #     # Extract basic information from input_data
+    #     config = {}
+        
+    #     # Extract date column - this is typically the time dimension
+    #     if hasattr(input_data, 'kpi') and input_data.kpi is not None and hasattr(input_data.kpi, 'time'):
+    #         # The time column name is not directly available, so we'll use a default
+    #         # This could be enhanced by examining the original data structure
+    #         config['date_column'] = 'date'  # Default assumption
+            
+    #     # Extract media channels and spend columns from media data
+    #     config['media_channels'] = [e.item() for e in list(input_data.media.media_channel)]
+    #     config['channel_spend_columns'] = channel_spend_columns
+    #     config['channel_impressions_columns'] = channel_impressions_columns
+    #     config['channel_reach_columns'] = channel_reach_columns
+    #     config['channel_frequency_columns'] = channel_frequency_columns
+    #     #if media_data is not None:
+    #         # Extract media channel information
+    #         # for media_component in media_data:
+    #         #     if hasattr(media_component, 'channel') and media_component.channel is not None:
+    #         #         media_channels.append(media_component.channel)
+                    
+    #         #     # Determine the type of media data (spend, impressions, reach/frequency)
+    #         #     if hasattr(media_component, 'spend') and media_component.spend is not None:
+    #         #         channel_spend_columns.append(f"{media_component.channel}_spend")
+                    
+    #         #     if hasattr(media_component, 'impressions') and media_component.impressions is not None:
+    #         #         channel_impressions_columns.append(f"{media_component.channel}_impressions")
+                    
+    #         #     if (hasattr(media_component, 'reach') and media_component.reach is not None and 
+    #         #         hasattr(media_component, 'frequency') and media_component.frequency is not None):
+    #         #         channel_reach_columns.append(f"{media_component.channel}_reach")
+    #         #         channel_frequency_columns.append(f"{media_component.channel}_frequency")
+            
+    #         # if media_channels:
+    #         #     config['media_channels'] = media_channels
+    #         # if channel_spend_columns:
+    #         #     config['channel_spend_columns'] = channel_spend_columns
+            
+    #         # if channel_impressions_columns:
+    #         #     config['channel_impressions_columns'] = channel_impressions_columns
+    #         # if channel_reach_columns:
+    #         #     config['channel_reach_columns'] = channel_reach_columns
+    #         #     config['channel_frequency_columns'] = channel_frequency_columns
+                
+    #     # Extract control columns
+    #     controls_data = getattr(input_data, 'controls', None)
+    #     if controls_data is not None:
+    #         control_columns = []
+    #         for control in controls_data:
+    #             if hasattr(control, 'name') and control.name is not None:
+    #                 control_columns.append(control.name)
+    #         if control_columns:
+    #             config['control_columns'] = control_columns
+                
+    #     # Extract organic media columns
+    #     organic_media_data = getattr(input_data, 'organic_media', None)
+    #     if organic_media_data is not None:
+    #         organic_media_columns = []
+    #         organic_media_channels = []
+    #         for organic in organic_media_data:
+    #             if hasattr(organic, 'name') and organic.name is not None:
+    #                 organic_media_columns.append(organic.name)
+    #             if hasattr(organic, 'channel') and organic.channel is not None:
+    #                 organic_media_channels.append(organic.channel)
+    #         if organic_media_columns:
+    #             config['organic_media_columns'] = organic_media_columns
+    #         if organic_media_channels:
+    #             config['organic_media_channels'] = organic_media_channels
+                
+    #     # Extract non-media treatment columns
+    #     non_media_treatments_data = getattr(input_data, 'non_media_treatments', None)
+    #     if non_media_treatments_data is not None:
+    #         non_media_treatment_columns = []
+    #         for treatment in non_media_treatments_data:
+    #             if hasattr(treatment, 'name') and treatment.name is not None:
+    #                 non_media_treatment_columns.append(treatment.name)
+    #         if non_media_treatment_columns:
+    #             config['non_media_treatment_columns'] = non_media_treatment_columns
+                
+    #     # Extract response column - this is typically the KPI
+    #     kpi_data = getattr(input_data, 'kpi', None)
+    #     if kpi_data is not None:
+    #         config['response_column'] = 'response'  # Default assumption
+            
+    #     # Validate that we have the minimum required fields
+    #     required_fields = ['media_channels', 'channel_spend_columns', 'response_column']
+    #     missing_fields = [field for field in required_fields if field not in config]
+    #     if missing_fields:
+    #         raise ValueError(f"Could not extract required fields from model: {missing_fields}")
+            
+    #     return MeridianInputDataBuilderSchema(**config)
 
     @staticmethod
     def _extract_model_spec_config(model_object: Any) -> MeridianModelSpecSchema:
         """Extract and validate model specification configuration from a model object."""
-        # Extract model spec fields from the model object
         model_spec_fields = set(MeridianModelSpecSchema.model_fields.keys())
-        filtered_config = {key: value for key, value in model_object.model_spec.__dict__.items() if key in model_spec_fields}
+        model_spec = model_object.model_spec
+        filtered_config = {}
+        for key in model_spec_fields:
+            if hasattr(model_spec, key):
+                filtered_config[key] = getattr(model_spec, key)
         return MeridianModelSpecSchema(**filtered_config)
 
     @staticmethod

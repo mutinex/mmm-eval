@@ -37,14 +37,47 @@ class MockMeridianModelObject:
         from meridian.model.prior_distribution import PriorDistribution
         import tensorflow_probability as tfp
         
+        # Create a proper prior distribution
+        prior = PriorDistribution(roi_m=tfp.distributions.LogNormal(0.2, 0.9))
+        
         # Mock model spec with prior distribution
         self.model_spec = type('MockModelSpec', (), {
-            'prior': PriorDistribution(roi_m=tfp.distributions.LogNormal(0.2, 0.9)),
+            'prior': prior,
             'media_effects_dist': 'log_normal',
             'hill_before_adstock': False,
             'max_lag': 8,
             'organic_media_prior_type': 'contribution',
             'non_media_treatments_prior_type': 'contribution',
+        })()
+        
+        # Mock input_data structure
+        self.input_data = type('MockInputData', (), {
+            'kpi': type('MockKPI', (), {'time': [1, 2, 3]})(),
+            'media': [
+                type('MockMedia', (), {
+                    'channel': 'channel_1',
+                    'spend': [100, 200, 300],
+                    'impressions': [1000, 2000, 3000]
+                })(),
+                type('MockMedia', (), {
+                    'channel': 'channel_2', 
+                    'spend': [150, 250, 350],
+                    'impressions': [1500, 2500, 3500]
+                })()
+            ],
+            'controls': [
+                type('MockControl', (), {'name': 'control_1'})(),
+                type('MockControl', (), {'name': 'control_2'})()
+            ],
+            'organic_media': [
+                type('MockOrganic', (), {
+                    'name': 'organic_1',
+                    'channel': 'organic_channel'
+                })()
+            ],
+            'non_media_treatments': [
+                type('MockTreatment', (), {'name': 'treatment_1'})()
+            ]
         })()
 
 
@@ -196,15 +229,33 @@ def test_meridian_config_from_model_object():
     revenue_column = "revenue"
     response_column = "quantity"
     
-    # Note: This will raise NotImplementedError for now since _extract_input_data_builder_config
-    # is not fully implemented, but we can test the validation and other parts
-    with pytest.raises(NotImplementedError, match="Extraction of input data builder config"):
-        config = MeridianConfig.from_model_object(
-            model_object=mock_model,
-            fit_kwargs=fit_kwargs,
-            revenue_column=revenue_column,
-            response_column=response_column,
-        )
+    # Now that _extract_input_data_builder_config is implemented, this should work
+    config = MeridianConfig.from_model_object(
+        model_object=mock_model,
+        fit_kwargs=fit_kwargs,
+        revenue_column=revenue_column,
+        response_column=response_column,
+    )
+    
+    # Verify the config was created successfully
+    assert config is not None
+    assert config.revenue_column == revenue_column
+    assert config.response_column == response_column
+    assert config.input_data_builder_config is not None
+    assert config.model_spec_config is not None
+    assert config.sample_posterior_config is not None
+    
+    # Verify extracted input data builder config
+    input_config = config.input_data_builder_config
+    assert input_config.media_channels == ["channel_1", "channel_2"]
+    assert input_config.channel_spend_columns == ["channel_1_spend", "channel_2_spend"]
+    assert input_config.channel_impressions_columns == ["channel_1_impressions", "channel_2_impressions"]
+    assert input_config.control_columns == ["control_1", "control_2"]
+    assert input_config.organic_media_columns == ["organic_1"]
+    assert input_config.organic_media_channels == ["organic_channel"]
+    assert input_config.non_media_treatment_columns == ["treatment_1"]
+    assert input_config.response_column == "response"
+    assert input_config.date_column == "date"
 
 
 def test_meridian_config_validation():
