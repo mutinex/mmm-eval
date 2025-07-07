@@ -107,3 +107,17 @@ class PyMCConfigRehydrator(ConfigRehydrator):
         """
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
+
+
+# TODO: implement
+class MeridianConfigRehydrator(ConfigRehydrator):
+    """Rehydrate a config with Meridian objects."""
+
+    def __init__(self, config):
+        """Initialize the MeridianConfigRehydrator.
+
+        Args:
+            config: The config to rehydrate.
+
+        """
+        raise NotImplementedError

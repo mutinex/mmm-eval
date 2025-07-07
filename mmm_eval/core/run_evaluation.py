@@ -26,6 +26,7 @@ def run_evaluation(
     # validate + process the input data
     data = DataPipeline(
         data=data,
+        framework=framework,
         date_column=config.date_column,
         response_column=config.response_column,
         revenue_column=config.revenue_column,

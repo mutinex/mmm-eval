@@ -1,10 +1,10 @@
 """mmm-eval: A unified evaluation framework for Media Mix Models (MMMs).
 
 This package provides a standardized interface for evaluating different MMM frameworks
-such as PyMC-marketing.
+such as PyMC-marketing and Google Meridian.
 """
 
-__author__ = "King Kang and the Jungle Boys"
+__author__ = "Mutinex Model Scale Team"
 __email__ = "joseph.kang@mutinex.co"
 
 # Core functionality
@@ -12,8 +12,14 @@ __email__ = "joseph.kang@mutinex.co"
 from .adapters import (
     get_adapter,
 )
+from .adapters.meridian import MeridianAdapter
 from .adapters.pymc import PyMCAdapter
-from .configs import PyMCConfig, PyMCConfigRehydrator, get_config
+from .adapters.schemas import (
+    MeridianInputDataBuilderSchema,
+    MeridianModelSpecSchema,
+    MeridianSamplePosteriorSchema,
+)
+from .configs import MeridianConfig, MeridianConfigRehydrator, PyMCConfig, PyMCConfigRehydrator, get_config
 from .core import run_evaluation
 from .core.base_validation_test import BaseValidationTest
 from .core.evaluator import Evaluator
@@ -47,8 +53,14 @@ setup_logging()
 __all__ = [
     # Configs
     "PyMCConfig",
+    "MeridianConfig",
     "PyMCConfigRehydrator",
+    "MeridianConfigRehydrator",
     "get_config",
+    # Schemas
+    "MeridianModelSpecSchema",
+    "MeridianInputDataBuilderSchema",
+    "MeridianSamplePosteriorSchema",
     # Core API
     "Evaluator",
     "ValidationTestResult",
@@ -64,6 +76,7 @@ __all__ = [
     # Adapters
     "get_adapter",
     "PyMCAdapter",
+    "MeridianAdapter",
     # Data utilities
     "DataLoader",
     "DataProcessor",

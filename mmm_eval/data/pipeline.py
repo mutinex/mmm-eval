@@ -16,6 +16,7 @@ class DataPipeline:
     def __init__(
         self,
         data: pd.DataFrame,
+        framework: str,
         control_columns: list[str] | None,
         channel_columns: list[str],
         date_column: str,
@@ -27,6 +28,7 @@ class DataPipeline:
 
         Args:
             data: DataFrame containing the data
+            framework: name of supported framework
             control_columns: List of control columns
             channel_columns: List of channel columns
             date_column: Name of the date column
@@ -45,6 +47,7 @@ class DataPipeline:
             channel_columns=channel_columns,
         )
         self.validator = DataValidator(
+            framework=framework,
             date_column=date_column,
             response_column=InputDataframeConstants.RESPONSE_COL,
             revenue_column=InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL,

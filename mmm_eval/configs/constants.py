@@ -30,3 +30,10 @@ class ConfigConstants:
         def all(cls):
             """Return list of all valid kwargs."""
             return [cls.PROGRESS_BAR, cls.RANDOM_SEED]
+
+    class MeridianConfigAttributes:
+        """Fields for the Meridian schema."""
+
+        INPUT_DATA_BUILDER_CONFIG = "input_data_builder_config"
+        MODEL_SPEC_CONFIG = "model_spec_config"
+        SAMPLE_POSTERIOR_CONFIG = "sample_posterior_config"

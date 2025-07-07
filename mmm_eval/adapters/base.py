@@ -33,11 +33,15 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data: pd.DataFrame) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions on new data.
 
         Args:
-            data: Input data for prediction
+            data: Input data for prediction. Behavior varies by adapter:
+                - Some adapters (e.g., PyMC) require this parameter and will raise
+                  an error if None is passed
+                - Other adapters (e.g., Meridian) ignore this parameter and use
+                  the fitted model state instead
 
         Returns:
             Predicted values
