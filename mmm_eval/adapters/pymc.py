@@ -78,18 +78,26 @@ class PyMCAdapter(BaseAdapter):
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
 
-    def predict(self, data: pd.DataFrame) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Predict the response variable for new data.
 
         Args:
-            data: Input data for prediction
+            data: Input data for prediction. This parameter is required for PyMC
+                predictions and cannot be None.
 
         Returns:
             Predicted values
 
+        Raises:
+            RuntimeError: If model is not fitted
+            ValueError: If data is None (PyMC requires data for prediction)
+
         """
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
+
+        if data is None:
+            raise ValueError("PyMC adapter requires data for prediction")
 
         if InputDataframeConstants.RESPONSE_COL in data.columns:
             data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])

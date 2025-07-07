@@ -1,7 +1,6 @@
 """Google Meridian adapter for MMM evaluation."""
 
 import logging
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -20,6 +19,7 @@ logger = logging.getLogger(__name__)
 # Meridian requires revenue to be specified in this form, but we accept raw revenue as
 # input for continuity between frameworks
 REVENUE_PER_KPI_COL = "revenue_per_kpi"
+
 
 # TODO: move to validation pipeline
 def _validate_media_channels(df: pd.DataFrame, config: MeridianConfig) -> None:
@@ -52,30 +52,30 @@ def _validate_media_channels(df: pd.DataFrame, config: MeridianConfig) -> None:
                 f"unreliable results. Consider removing this channel from the model or "
                 f"ensuring it has sufficient spend variation."
             )
-        
+
 
 def _add_media_to_data_builder(
-    df: pd.DataFrame, 
+    df: pd.DataFrame,
     builder: data_builder.DataFrameInputDataBuilder,
-    input_data_builder_schema: MeridianInputDataBuilderSchema, 
-    date_column: str
+    input_data_builder_schema: MeridianInputDataBuilderSchema,
+    date_column: str,
 ) -> data_builder.DataFrameInputDataBuilder:
     """Add paid media metrics to data frame input builder object.
-    
+
     This function configures media channels in the Meridian data builder based on the available
     media metrics. It supports three different media configurations:
-    
+
     1. **Reach/Frequency**: When `channel_reach_columns` and `channel_frequency_columns` are provided,
        uses the `with_reach()` method to configure reach and frequency metrics.
     2. **Impressions**: When `channel_impressions_columns` are provided (but no reach/frequency),
        uses the `with_media()` method with impressions as the media metric.
     3. **Spend-only**: When only `channel_spend_columns` are provided, uses the `with_media()` method
        with spend as both the media metric and spend metric.
-    
+
     The function automatically determines which configuration to use based on the schema:
     - If `channel_reach_columns` is provided, it uses reach/frequency configuration
     - Otherwise, it uses impressions if available, or falls back to spend-only
-    
+
     Args:
         df: Input DataFrame containing the media data with columns for spend, impressions,
             reach, and/or frequency as specified in the schema.
@@ -83,11 +83,11 @@ def _add_media_to_data_builder(
         input_data_builder_schema: Schema object containing media channel configuration including
             column names for spend, impressions, reach, frequency, and channel names.
         date_column: Name of the date column in the DataFrame.
-    
+
     Returns:
         The configured DataFrameInputDataBuilder instance with media channels added.
         This follows the fluent interface pattern, allowing method chaining.
-    
+
     Note:
         - When using reach/frequency, both `channel_reach_columns` and `channel_frequency_columns`
           must be provided together.
@@ -95,6 +95,7 @@ def _add_media_to_data_builder(
         - When using spend-only, `media_cols` will be set equal to `media_spend_cols`.
         - The `channel_spend_columns` are always required as they represent the actual
           media spend amounts regardless of the media metric type used.
+
     """
     if input_data_builder_schema.channel_reach_columns:
         builder = builder.with_reach(
@@ -117,7 +118,6 @@ def _add_media_to_data_builder(
             time_col=date_column,
         )
     return builder
-
 
 
 def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
@@ -304,7 +304,7 @@ class MeridianAdapter(BaseAdapter):
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
-    def predict(self, data: Optional[pd.DataFrame] = None) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions using the fitted model.
 
         This returns predictions for the entirety of the dataset passed to fit() unless
@@ -315,10 +315,13 @@ class MeridianAdapter(BaseAdapter):
         model state, so the `data` argument will be ignored if passed.
 
         Args:
-            data: not used, see above
+            data: Ignored - Meridian uses the fitted model state for predictions.
 
         Returns:
             Predicted values
+
+        Raises:
+            RuntimeError: If model is not fitted
 
         """
         if not self.is_fitted or self.analyzer is None:
