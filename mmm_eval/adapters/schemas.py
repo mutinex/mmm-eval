@@ -248,6 +248,9 @@ class MeridianInputDataBuilderSchema(BaseModel):
 
     date_column: str = Field(..., description="Column name of the date variable.")
     media_channels: list[str] = Field(min_length=1, description="Column names of the media channel variables.")
+    # TODO: align the naming better with PyMC, and move the zero spend validation to the validation
+    # pipeline
+    # instead of the adapter
     channel_spend_columns: list[str] = Field(
         min_length=1, description="Column names of the media channel metric variables."
     )

@@ -239,7 +239,6 @@ class MeridianAdapter(BaseAdapter):
         model_spec_kwargs = dict(self.config.model_spec_config)
 
         # if max train date is provided, construct a mask that is True for all dates before max_train_date
-        self.holdout_mask = None
         if self.max_train_date:
             self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time)
             # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
@@ -336,7 +335,7 @@ class MeridianAdapter(BaseAdapter):
         if end_date:
             roi_date_index = roi_date_index[roi_date_index < end_date]
 
-        selected_times = [bool(e) for e in training_date_index.isin(roi_date_index)]
+        selected_times = [bool(date) for date in training_date_index.isin(roi_date_index)]
 
         # analyzer.roi() returns a tensor of shape (n_chains, n_draws, n_channels)
         rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
