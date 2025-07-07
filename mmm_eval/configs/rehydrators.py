@@ -120,4 +120,10 @@ class MeridianConfigRehydrator(ConfigRehydrator):
             config: The config to rehydrate.
 
         """
-        raise NotImplementedError
+        super().__init__(config)
+        # Import Meridian modules for class registry
+        import meridian.model.prior_distribution as prior_distribution
+        import meridian.model.spec as model_spec
+        import numpy as np
+        
+        self.class_registry = self.build_class_registry(prior_distribution, model_spec, np)
