@@ -1,6 +1,7 @@
 """Google Meridian adapter for MMM evaluation."""
 
 import logging
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -156,7 +157,7 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
     return builder.build()
 
 
-def construct_holdout_mask(max_train_date: pd.Timestamp, time_index):
+def construct_holdout_mask(max_train_date: pd.Timestamp, time_index: np.ndarray) -> np.ndarray:
     """Construct a boolean mask for holdout period identification.
 
     This function creates a boolean mask that identifies which time periods fall into
@@ -258,18 +259,18 @@ class MeridianAdapter(BaseAdapter):
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
-    def predict(self) -> np.ndarray:  # type: ignore[reportIncompatibleMethodOverride]
+    def predict(self, data: Optional[pd.DataFrame] = None) -> np.ndarray:
         """Make predictions using the fitted model.
 
         This returns predictions for the entirety of the dataset passed to fit() unless
         `max_train_date` is specified when calling fit(); in that case it only returns
         predictions for the time periods indicated by the holdout mask.
 
-        Note: This intentionally overrides the base class signature because Meridian
-        doesn't require input data for prediction - it uses the fitted model state.
+        Note: Meridian doesn't require input data for prediction - it uses the fitted
+        model state, so the `data` argument will be ignored if passed.
 
         Args:
-            data: Input data for prediction
+            data: not used, see above
 
         Returns:
             Predicted values

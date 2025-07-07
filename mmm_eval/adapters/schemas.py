@@ -223,7 +223,8 @@ class MeridianSamplePosteriorSchema(BaseModel):
         "extra": "allow",
         "coerce_types_to_string": False,
     }
-
+    
+    # TODO: ensure that this belongs here and not in configs.py (make sure it matches PyMC)
     @property
     def fit_config_dict_without_non_provided_fields(self) -> dict[str, Any]:
         """Return only non-None values.

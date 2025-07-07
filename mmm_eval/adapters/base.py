@@ -1,7 +1,7 @@
 """Base adapter class for MMM frameworks."""
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data: pd.DataFrame) -> np.ndarray:
+    def predict(self, data: Optional[pd.DataFrame] = None) -> np.ndarray:
         """Make predictions on new data.
 
         Args:
