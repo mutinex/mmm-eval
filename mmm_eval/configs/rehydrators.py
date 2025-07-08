@@ -6,12 +6,12 @@ from typing import Any
 import numpy as np
 import pymc_marketing.mmm as mmm
 import pymc_marketing.prior as prior
+import tensorflow_probability as tfp
+from meridian.model.prior_distribution import PriorDistribution
 
 
 def deserialize_tfp_distribution(serialized_dist):
     """Deserialize a TFP distribution or bijector from the serialized format."""
-    import tensorflow_probability as tfp
-
     dist_type = serialized_dist["type"]
     parameters = serialized_dist["parameters"]
 
@@ -41,8 +41,6 @@ def deserialize_tfp_distribution(serialized_dist):
 
 def deserialize_prior_distribution(serialized_prior):
     """Deserialize a PriorDistribution from the serialized format."""
-    from meridian.model.prior_distribution import PriorDistribution
-    
     # Convert serialized TFP distributions back to objects
     deserialized_prior = {}
     for key, value in serialized_prior.items():
@@ -163,9 +161,6 @@ class MeridianConfigRehydrator(ConfigRehydrator):
         super().__init__(config)
         import meridian.model.prior_distribution as prior_distribution
         import meridian.model.spec as model_spec
-        import numpy as np
-        import tensorflow_probability as tfp
-        from meridian.model.prior_distribution import PriorDistribution
         self.class_registry = self.build_class_registry(
             prior_distribution, 
             model_spec, 

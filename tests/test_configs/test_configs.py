@@ -377,11 +377,7 @@ def test_meridian_config_rehydrator():
     # Test the rehydrator
     rehydrator = MeridianConfigRehydrator(test_config)
     hydrated_config = rehydrator.rehydrate_config()
-    
-    # Debug: print what we got
-    print(f"Prior type: {type(hydrated_config['prior'])}")
-    print(f"Prior value: {hydrated_config['prior']}")
-    
+
     # Verify that the prior was properly rehydrated
     assert "prior" in hydrated_config
     prior = hydrated_config["prior"]
@@ -418,9 +414,6 @@ def test_meridian_config_rehydrator_with_dict_prior():
     rehydrator = MeridianConfigRehydrator(test_config)
     hydrated_config = rehydrator.rehydrate_config()
     
-    # Debug: print what we got
-    print(f"Prior type: {type(hydrated_config['prior'])}")
-    print(f"Prior value: {hydrated_config['prior']}")
     
     # Verify that the prior was properly rehydrated
     assert "prior" in hydrated_config
@@ -454,7 +447,6 @@ def test_meridian_serialization_deserialization():
     
     # Test serialization
     serialized_prior = serialize_meridian_config_value(prior)
-    print(f"Serialized prior: {serialized_prior}")
     
     # Verify serialization format
     assert isinstance(serialized_prior, dict)
