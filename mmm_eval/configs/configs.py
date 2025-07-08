@@ -330,6 +330,7 @@ class MeridianConfig(BaseConfig):
         input_data_builder_config,
         revenue_column: str,
         sample_posterior_kwargs: dict[str, Any] | None = None,
+        response_column: str | None = None,
     ) -> "MeridianConfig":
         """Create a MeridianConfig from a model object and fit kwargs.
 
@@ -339,6 +340,7 @@ class MeridianConfig(BaseConfig):
             revenue_column: The column containing the revenue variable
             sample_posterior_kwargs: The arguments passed to `.fit()` (optional, will use
                 defaults if not provided)
+            response_column: The column containing the response variable (optional)
 
         Returns:
             A validated MeridianConfig instance
@@ -358,7 +360,9 @@ class MeridianConfig(BaseConfig):
             model_spec_config=model_spec_config,
             sample_posterior_config=sample_posterior_config,
             revenue_column=revenue_column,
-            response_column=input_data_builder_config.response_column,
+            response_column=(
+                response_column if response_column is not None else input_data_builder_config.response_column
+            ),
         )
 
     @staticmethod

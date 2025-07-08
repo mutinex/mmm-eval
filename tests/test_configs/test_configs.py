@@ -244,6 +244,7 @@ def test_meridian_config_from_model_object():
         input_data_builder_config=input_data_builder_config,
         revenue_column=revenue_column,
         sample_posterior_kwargs=fit_kwargs,
+        response_column=response_column,
     )
 
     # Verify the config was created successfully
