@@ -284,7 +284,7 @@ class PerturbationTest(BaseValidationTest):
         adapter.fit(data)
         original_rois = adapter.get_channel_roi()
 
-        # Get the primary regressor columns that should be perturbed
+        # TODO: support perturbation of reach and frequency regressors
         if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             logger.warning(
                 "Perturbation test skipped: Reach and frequency regressor type not supported for perturbation."
