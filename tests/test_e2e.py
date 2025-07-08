@@ -75,10 +75,6 @@ def test_cli_e2e_pymc_marketing(tmp_path):
         ],
     )
 
-    # Print debug info
-    print(f"Exit code: {result.exit_code}")
-    print(f"Output: {result.output}")
-    print(f"Exception: {result.exception}")
     # Check that the CLI command succeeded
     assert result.exit_code == 0, f"CLI command failed with exit code {result.exit_code}. Output: {result.output}"
 
