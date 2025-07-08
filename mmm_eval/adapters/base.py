@@ -132,8 +132,4 @@ class BaseAdapter(ABC):
             List of channel names that would be used as the index in get_channel_roi results
 
         """
-        # Default implementation - subclasses should override if they have a more specific way
-        # to get channel names without requiring the model to be fitted
-        if hasattr(self, "media_channels") and self.media_channels is not None:
-            return self.media_channels
-        return self.channel_spend_columns
+        pass

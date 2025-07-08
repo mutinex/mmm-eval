@@ -99,9 +99,6 @@ def _add_media_to_data_builder(
 
     """
     if input_data_builder_schema.channel_reach_columns:
-        # Ensure both reach and frequency columns are provided
-        if input_data_builder_schema.channel_frequency_columns is None:
-            raise ValueError("channel_frequency_columns must be provided when channel_reach_columns is provided")
         builder = builder.with_reach(
             df,
             reach_cols=input_data_builder_schema.channel_reach_columns,
@@ -124,7 +121,7 @@ def _add_media_to_data_builder(
     return builder
 
 
-def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> Any:
+def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
     """Construct a Meridian data object from a pandas DataFrame.
 
     This function transforms a standard DataFrame into the format required by the Meridian
