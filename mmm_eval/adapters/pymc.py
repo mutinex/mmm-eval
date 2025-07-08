@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from pymc_marketing.mmm import MMM
 
-from mmm_eval.adapters.base import BaseAdapter
+from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -39,6 +39,29 @@ class PyMCAdapter(BaseAdapter):
         # Store original values to reset on subsequent fit calls
         self._original_channel_spend_columns = config.channel_columns.copy()
         self._original_model_kwargs = config.pymc_model_config_dict.copy()
+
+    @property
+    def primary_regressor_type(self) -> PrimaryMediaRegressor:
+        """Return the type of primary media regressors used by this adapter.
+        
+        For PyMC, this is always SPEND since PyMC uses spend as the primary regressor.
+        
+        Returns:
+            PrimaryMediaRegressor.SPEND
+        """
+        return PrimaryMediaRegressor.SPEND
+
+    @property
+    def primary_regressor_columns(self) -> list[str]:
+        """Return the primary regressor columns that should be perturbed in tests.
+        
+        For PyMC, this is always the channel_spend_columns since PyMC uses spend
+        as the primary regressor in the model.
+        
+        Returns:
+            List of channel spend column names
+        """
+        return self.channel_spend_columns
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.

@@ -1,10 +1,19 @@
 """Base adapter class for MMM frameworks."""
 
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any
 
 import numpy as np
 import pandas as pd
+
+
+class PrimaryMediaRegressor(Enum):
+    """Enum for primary media regressor types used in MMM frameworks."""
+    
+    SPEND = "spend"
+    IMPRESSIONS = "impressions"
+    REACH_AND_FREQUENCY = "reach_and_frequency"
 
 
 class BaseAdapter(ABC):
@@ -21,6 +30,33 @@ class BaseAdapter(ABC):
         self.is_fitted = False
         self.channel_spend_columns: list[str] = []
         self.date_column: str
+
+    @property
+    @abstractmethod
+    def primary_regressor_type(self) -> PrimaryMediaRegressor:
+        """Return the type of primary media regressors used by this adapter.
+        
+        This property indicates what type of regressors are used as primary inputs
+        to the model, which determines what should be perturbed in tests.
+        
+        Returns:
+            PrimaryMediaRegressor enum value indicating the type of primary media regressors
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def primary_regressor_columns(self) -> list[str]:
+        """Return the primary regressor columns that should be perturbed in tests.
+        
+        This property returns the columns that are actually used as regressors in the model.
+        For most frameworks, this will be the spend columns, but for Meridian it could
+        be impressions or reach/frequency columns depending on the configuration.
+        
+        Returns:
+            List of column names that are used as primary regressors in the model
+        """
+        pass
 
     @abstractmethod
     def fit(self, data: pd.DataFrame) -> None:
