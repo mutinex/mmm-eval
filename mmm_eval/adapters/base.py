@@ -50,7 +50,7 @@ class BaseAdapter(ABC):
         """Return the primary media regressor columns that should be perturbed in tests.
         
         This property returns the columns that are actually used as regressors in the model.
-        For most frameworks, this will be the spend columns, but for Meridian it could
+        For most frameworks, this will be the spend columns, but for e.g. Meridian it could
         be impressions or reach/frequency columns depending on the configuration.
         
         Returns:
@@ -116,3 +116,18 @@ class BaseAdapter(ABC):
 
         """
         pass
+
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+        
+        This method provides a consistent way to get channel names across different adapters
+        without needing to call get_channel_roi (which requires the model to be fitted).
+        
+        Returns:
+            List of channel names that would be used as the index in get_channel_roi results
+        """
+        # Default implementation - subclasses should override if they have a more specific way
+        # to get channel names without requiring the model to be fitted
+        if hasattr(self, 'media_channels') and self.media_channels is not None:
+            return self.media_channels
+        return self.channel_spend_columns

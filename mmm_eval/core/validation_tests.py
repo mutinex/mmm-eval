@@ -3,6 +3,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.core.base_validation_test import BaseValidationTest
@@ -255,11 +256,11 @@ class PerturbationTest(BaseValidationTest):
         df: pd.DataFrame,
         regressor_cols: list[str],
     ) -> pd.DataFrame:
-        """Add Gaussian noise to primary regressor data for perturbation testing.
+        """Add Gaussian noise to primary media regressors for perturbation testing.
 
         Args:
             df: Input dataframe
-            regressor_cols: Column names for primary regressor data
+            regressor_cols: Column names of primary media regressors
 
         Returns:
             Dataframe with noise added to primary regressor columns
@@ -280,9 +281,10 @@ class PerturbationTest(BaseValidationTest):
         # Get the primary regressor columns that should be perturbed
         if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             logger.warning(f"Perturbation test skipped: Reach and frequency regressor type not supported for perturbation.")
-            # Return empty results indicating the test was not run
+            # Return NaN results for each channel indicating the test was not run
+            channel_names = adapter.get_channel_names()
             test_scores = PerturbationMetricResults(
-                percentage_change_for_each_channel=pd.Series(dtype=float),
+                percentage_change_for_each_channel=pd.Series(np.nan, index=channel_names),
             )
             return ValidationTestResult(
                 test_name=ValidationTestNames.PERTURBATION,

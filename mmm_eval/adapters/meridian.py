@@ -430,3 +430,14 @@ class MeridianAdapter(BaseAdapter):
         for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
             rois[channel] = float(roi)
         return pd.Series(rois)
+
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+        
+        For Meridian, this returns the media_channels which are the human-readable
+        channel names used in the ROI results.
+        
+        Returns:
+            List of channel names
+        """
+        return self.media_channels

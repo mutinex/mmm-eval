@@ -44,7 +44,8 @@ class PyMCAdapter(BaseAdapter):
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
         
-        For PyMC, this is always SPEND since PyMC uses spend as the primary regressor.
+        For PyMC, this is always SPEND since the PyMC adapter uses spend as the primary
+        regressor.
         
         Returns:
             PrimaryMediaRegressor.SPEND
@@ -55,11 +56,22 @@ class PyMCAdapter(BaseAdapter):
     def primary_media_regressor_columns(self) -> list[str]:
         """Return the primary media regressor columns that should be perturbed in tests.
         
-        For PyMC, this is always the channel_spend_columns since PyMC uses spend
-        as the primary regressor in the model.
+        For PyMC, this is always the channel_spend_columns since the PyMC adapter uses
+        spend as the primary regressor in the model.
         
         Returns:
             List of channel spend column names
+        """
+        return self.channel_spend_columns
+
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+        
+        For PyMC, this returns the channel_spend_columns which are used as the index
+        in the ROI results.
+        
+        Returns:
+            List of channel names
         """
         return self.channel_spend_columns
 
