@@ -358,3 +358,121 @@ def test_meridian_config_save_and_load_json():
         # Note: Loading will likely fail due to the complexity of rehydrating
         # Meridian objects, but we can test that the file was created
         assert os.path.getsize(file_path) > 0
+
+
+def test_meridian_config_rehydrator():
+    """Test that MeridianConfigRehydrator can properly rehydrate TFP distributions."""
+    from mmm_eval.configs.rehydrators import MeridianConfigRehydrator
+    import tensorflow_probability as tfp
+    from meridian.model.prior_distribution import PriorDistribution
+    
+    # Create a test config with TFP distributions
+    test_config = {
+        "prior": "PriorDistribution(roi_m=tfp.distributions.LogNormal(0.2, 0.9))",
+        "media_effects_dist": "log_normal",
+        "hill_before_adstock": "False",
+        "max_lag": "8",
+    }
+    
+    # Test the rehydrator
+    rehydrator = MeridianConfigRehydrator(test_config)
+    hydrated_config = rehydrator.rehydrate_config()
+    
+    # Debug: print what we got
+    print(f"Prior type: {type(hydrated_config['prior'])}")
+    print(f"Prior value: {hydrated_config['prior']}")
+    
+    # Verify that the prior was properly rehydrated
+    assert "prior" in hydrated_config
+    prior = hydrated_config["prior"]
+    assert isinstance(prior, PriorDistribution)
+    
+    # Verify that the prior contains the expected TFP distribution
+    assert hasattr(prior, 'roi_m')
+    assert isinstance(prior.roi_m, tfp.distributions.LogNormal)
+    
+    # Verify other fields were properly rehydrated
+    assert hydrated_config["media_effects_dist"] == "log_normal"
+    assert hydrated_config["hill_before_adstock"] is False
+    assert hydrated_config["max_lag"] == 8
+
+
+def test_meridian_config_rehydrator_with_dict_prior():
+    """Test that MeridianConfigRehydrator can handle prior as a dict (real scenario)."""
+    from mmm_eval.configs.rehydrators import MeridianConfigRehydrator
+    import tensorflow_probability as tfp
+    from meridian.model.prior_distribution import PriorDistribution
+    
+    # Create a test config where prior is a dict (like in real JSON loading)
+    test_config = {
+        "prior": {
+            "roi_m": "tfp.distributions.LogNormal(0.2, 0.9)",
+            "knot_values": "tfp.distributions.Normal(0.0, 1.0)",
+        },
+        "media_effects_dist": "log_normal",
+        "hill_before_adstock": "False",
+        "max_lag": "8",
+    }
+    
+    # Test the rehydrator
+    rehydrator = MeridianConfigRehydrator(test_config)
+    hydrated_config = rehydrator.rehydrate_config()
+    
+    # Debug: print what we got
+    print(f"Prior type: {type(hydrated_config['prior'])}")
+    print(f"Prior value: {hydrated_config['prior']}")
+    
+    # Verify that the prior was properly rehydrated
+    assert "prior" in hydrated_config
+    prior = hydrated_config["prior"]
+    assert isinstance(prior, PriorDistribution)
+    
+    # Verify that the prior contains the expected TFP distributions
+    assert hasattr(prior, 'roi_m')
+    assert isinstance(prior.roi_m, tfp.distributions.LogNormal)
+    assert hasattr(prior, 'knot_values')
+    assert isinstance(prior.knot_values, tfp.distributions.Normal)
+    
+    # Verify other fields were properly rehydrated
+    assert hydrated_config["media_effects_dist"] == "log_normal"
+    assert hydrated_config["hill_before_adstock"] is False
+    assert hydrated_config["max_lag"] == 8
+
+
+def test_meridian_serialization_deserialization():
+    """Test the new serialization/deserialization system for Meridian configs."""
+    from mmm_eval.configs.configs import serialize_meridian_config_value, MeridianConfig
+    from mmm_eval.configs.rehydrators import MeridianConfigRehydrator
+    import tensorflow_probability as tfp
+    from meridian.model.prior_distribution import PriorDistribution
+    
+    # Create a test PriorDistribution
+    prior = PriorDistribution(
+        roi_m=tfp.distributions.LogNormal(0.2, 0.9),
+        knot_values=tfp.distributions.Normal(0.0, 1.0)
+    )
+    
+    # Test serialization
+    serialized_prior = serialize_meridian_config_value(prior)
+    print(f"Serialized prior: {serialized_prior}")
+    
+    # Verify serialization format
+    assert isinstance(serialized_prior, dict)
+    assert "roi_m" in serialized_prior
+    assert "knot_values" in serialized_prior
+    assert serialized_prior["roi_m"]["type"] == "LogNormal"
+    assert serialized_prior["knot_values"]["type"] == "Normal"
+    
+    # Test deserialization
+    test_config = {"prior": serialized_prior}
+    rehydrator = MeridianConfigRehydrator(test_config)
+    hydrated_config = rehydrator.rehydrate_config()
+    
+    # Verify deserialization
+    assert "prior" in hydrated_config
+    deserialized_prior = hydrated_config["prior"]
+    assert isinstance(deserialized_prior, PriorDistribution)
+    assert hasattr(deserialized_prior, 'roi_m')
+    assert isinstance(deserialized_prior.roi_m, tfp.distributions.LogNormal)
+    assert hasattr(deserialized_prior, 'knot_values')
+    assert isinstance(deserialized_prior.knot_values, tfp.distributions.Normal)

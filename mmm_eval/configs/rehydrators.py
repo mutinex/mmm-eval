@@ -8,6 +8,54 @@ import pymc_marketing.mmm as mmm
 import pymc_marketing.prior as prior
 
 
+def deserialize_tfp_distribution(serialized_dist):
+    """Deserialize a TFP distribution or bijector from the serialized format."""
+    import tensorflow_probability as tfp
+
+    dist_type = serialized_dist["type"]
+    parameters = serialized_dist["parameters"]
+
+    # Recursively reconstruct parameters
+    def reconstruct_param(val):
+        if isinstance(val, dict) and "type" in val and "parameters" in val:
+            return deserialize_tfp_distribution(val)
+        elif isinstance(val, list):
+            return [reconstruct_param(v) for v in val]
+        elif isinstance(val, dict):
+            return {k: reconstruct_param(v) for k, v in val.items()}
+        else:
+            return val
+
+    reconstructed_params = {k: reconstruct_param(v) for k, v in parameters.items()}
+
+    # Try to get from distributions, then bijectors
+    if hasattr(tfp.distributions, dist_type):
+        dist_class = getattr(tfp.distributions, dist_type)
+    elif hasattr(tfp.bijectors, dist_type):
+        dist_class = getattr(tfp.bijectors, dist_type)
+    else:
+        raise AttributeError(f"Neither tfp.distributions nor tfp.bijectors has attribute '{dist_type}'")
+
+    return dist_class(**reconstructed_params)
+
+
+def deserialize_prior_distribution(serialized_prior):
+    """Deserialize a PriorDistribution from the serialized format."""
+    from meridian.model.prior_distribution import PriorDistribution
+    
+    # Convert serialized TFP distributions back to objects
+    deserialized_prior = {}
+    for key, value in serialized_prior.items():
+        if isinstance(value, dict) and "type" in value and "parameters" in value:
+            # It's a serialized TFP distribution
+            deserialized_prior[key] = deserialize_tfp_distribution(value)
+        else:
+            # It's a regular value
+            deserialized_prior[key] = value
+    
+    return PriorDistribution(**deserialized_prior)
+
+
 class ConfigRehydrator:
     """Rehydrate a string config dictionary."""
 
@@ -108,22 +156,73 @@ class PyMCConfigRehydrator(ConfigRehydrator):
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
 
-
-# TODO: implement
 class MeridianConfigRehydrator(ConfigRehydrator):
     """Rehydrate a config with Meridian objects."""
 
     def __init__(self, config):
-        """Initialize the MeridianConfigRehydrator.
-
-        Args:
-            config: The config to rehydrate.
-
-        """
         super().__init__(config)
-        # Import Meridian modules for class registry
         import meridian.model.prior_distribution as prior_distribution
         import meridian.model.spec as model_spec
         import numpy as np
-        
-        self.class_registry = self.build_class_registry(prior_distribution, model_spec, np)
+        import tensorflow_probability as tfp
+        from meridian.model.prior_distribution import PriorDistribution
+        self.class_registry = self.build_class_registry(
+            prior_distribution, 
+            model_spec, 
+            np, 
+            tfp.distributions
+        )
+        self.class_registry['PriorDistribution'] = PriorDistribution
+        self.class_registry['tfp'] = tfp
+        self.PriorDistribution = PriorDistribution
+
+    def rehydrate_config(self) -> dict[str, Any]:
+        def recursively_eval_dict(d):
+            hydrated = {}
+            for k, v in d.items():
+                if isinstance(v, str):
+                    evaluated = self.safe_eval(v)
+                    if isinstance(evaluated, dict):
+                        hydrated[k] = recursively_eval_dict(evaluated)
+                    else:
+                        hydrated[k] = evaluated
+                else:
+                    hydrated[k] = v
+            return hydrated
+
+        new_config = {}
+        for key, val in self.init_config.items():
+            if key == "prior":
+                if isinstance(val, self.PriorDistribution):
+                    new_config[key] = val
+                elif isinstance(val, dict):
+                    # Check if this is our new serialization format
+                    if any(isinstance(v, dict) and "type" in v and "parameters" in v for v in val.values()):
+                        new_config[key] = deserialize_prior_distribution(val)
+                    else:
+                        hydrated_prior_dict = recursively_eval_dict(val)
+                        new_config[key] = self.PriorDistribution(**hydrated_prior_dict)
+                elif isinstance(val, str):
+                    evaluated = self.safe_eval(val)
+                    if isinstance(evaluated, self.PriorDistribution):
+                        new_config[key] = evaluated
+                    elif isinstance(evaluated, dict):
+                        # Check if this is our new serialization format
+                        if any(isinstance(v, dict) and "type" in v and "parameters" in v for v in evaluated.values()):
+                            new_config[key] = deserialize_prior_distribution(evaluated)
+                        else:
+                            hydrated_prior_dict = recursively_eval_dict(evaluated)
+                            new_config[key] = self.PriorDistribution(**hydrated_prior_dict)
+                    else:
+                        new_config[key] = evaluated
+                else:
+                    new_config[key] = val
+            elif isinstance(val, str):
+                new_config[key] = self.safe_eval(val)
+            elif isinstance(val, dict):
+                nested_rehydrator = type(self)(val)
+                new_config[key] = nested_rehydrator.rehydrate_config()
+            else:
+                new_config[key] = val
+        self.hydrated_config = new_config
+        return self.hydrated_config

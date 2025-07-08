@@ -18,6 +18,76 @@ from mmm_eval.configs.constants import ConfigConstants
 from mmm_eval.configs.rehydrators import PyMCConfigRehydrator, MeridianConfigRehydrator
 
 
+def serialize_tfp_distribution(dist):
+    """Serialize a TFP distribution to a dict that can be reconstructed."""
+    import tensorflow_probability as tfp
+    
+    dist_type = type(dist).__name__
+    
+    # Get the parameters
+    if hasattr(dist, 'parameters'):
+        params = dist.parameters
+    else:
+        # Fallback for distributions without parameters attribute
+        params = {}
+        for param_name in ['loc', 'scale', 'concentration', 'rate', 'low', 'high']:
+            if hasattr(dist, param_name):
+                params[param_name] = getattr(dist, param_name)
+    
+    # Recursively serialize parameters
+    def serialize_param(value):
+        if hasattr(value, '__class__') and 'tensorflow_probability' in str(type(value)):
+            return serialize_tfp_distribution(value)
+        elif isinstance(value, (int, float, str, bool)) or value is None:
+            return value
+        elif isinstance(value, list):
+            return [serialize_param(v) for v in value]
+        elif isinstance(value, dict):
+            return {k: serialize_param(v) for k, v in value.items()}
+        else:
+            return repr(value)
+
+    serializable_params = {key: serialize_param(val) for key, val in params.items()}
+
+    return {
+        "type": dist_type,
+        "parameters": serializable_params
+    }
+
+
+def serialize_prior_distribution(prior):
+    """Serialize a PriorDistribution object to a dict that can be reconstructed."""
+    def serialize_value(val):
+        if hasattr(val, '__class__') and 'tensorflow_probability' in str(type(val)):
+            return serialize_tfp_distribution(val)
+        elif isinstance(val, (int, float, str, bool)) or val is None:
+            return val
+        elif isinstance(val, list):
+            return [serialize_value(v) for v in val]
+        elif isinstance(val, dict):
+            return {k: serialize_value(v) for k, v in val.items()}
+        else:
+            return repr(val)
+    serialized_prior = {}
+    for attr_name, attr_value in prior.__dict__.items():
+        serialized_prior[attr_name] = serialize_value(attr_value)
+    return serialized_prior
+
+
+def serialize_meridian_config_value(value):
+    """Serialize a Meridian config value, handling special cases for TFP objects."""
+    import tensorflow_probability as tfp
+    from meridian.model.prior_distribution import PriorDistribution
+    
+    if isinstance(value, PriorDistribution):
+        return serialize_prior_distribution(value)
+    elif hasattr(value, '__class__') and 'tensorflow_probability' in str(type(value)):
+        return serialize_tfp_distribution(value)
+    else:
+        # Use repr for other objects (like PyMC does)
+        return repr(value)
+
+
 class PyMCConfig(BaseConfig):
     """Evaluation config for the PyMC MMM framework."""
 
@@ -371,15 +441,29 @@ class MeridianConfig(BaseConfig):
     def save_model_object_to_json(self, save_path: str, file_name: str) -> "MeridianConfig":
         """Save the config to a JSON file."""
         config_dict = self.model_dump()
-        config_dict[ConfigConstants.MeridianConfigAttributes.INPUT_DATA_BUILDER_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.INPUT_DATA_BUILDER_CONFIG].items()
-        }
-        config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG].items()
-        }
-        config_dict[ConfigConstants.MeridianConfigAttributes.SAMPLE_POSTERIOR_CONFIG] = {
-            k: repr(v) for k, v in config_dict[ConfigConstants.MeridianConfigAttributes.SAMPLE_POSTERIOR_CONFIG].items()
-        }
+        
+        # Serialize input_data_builder_config values directly
+        input_data_dict = {}
+        for key, value in self.input_data_builder_config.model_dump().items():
+            input_data_dict[key] = serialize_meridian_config_value(value)
+        config_dict[ConfigConstants.MeridianConfigAttributes.INPUT_DATA_BUILDER_CONFIG] = input_data_dict
+        
+        # Serialize model_spec_config values directly
+        model_spec_dict = {}
+        for key, value in self.model_spec_config.model_dump().items():
+            if key == "prior":
+                # Handle prior field specially - serialize the actual PriorDistribution object
+                model_spec_dict[key] = serialize_meridian_config_value(self.model_spec_config.prior)
+            else:
+                model_spec_dict[key] = serialize_meridian_config_value(value)
+        config_dict[ConfigConstants.MeridianConfigAttributes.MODEL_SPEC_CONFIG] = model_spec_dict
+        
+        # Serialize sample_posterior_config values directly
+        sample_posterior_dict = {}
+        for key, value in self.sample_posterior_config.model_dump().items():
+            sample_posterior_dict[key] = serialize_meridian_config_value(value)
+        config_dict[ConfigConstants.MeridianConfigAttributes.SAMPLE_POSTERIOR_CONFIG] = sample_posterior_dict
+        
         BaseConfig._save_json_file(save_path, file_name, config_dict)
         return self
 
