@@ -12,23 +12,23 @@ from meridian.model.prior_distribution import PriorDistribution
 
 def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
     """Deserialize a TFP distribution or bijector from the serialized format.
-    
+
     This function reconstructs TensorFlow Probability distributions and bijectors
     from their serialized dictionary representation. It handles both distributions
     and bijectors, and recursively reconstructs any nested TFP objects in the
     parameters.
-    
+
     Args:
         serialized_dist: A dictionary containing "type" and "parameters" keys,
                         representing a serialized TFP distribution or bijector.
-                        
+
     Returns:
         A reconstructed TFP distribution or bijector object.
-        
+
     Raises:
         AttributeError: If the type is not found in either tfp.distributions
                        or tfp.bijectors.
-                       
+
     Example:
         >>> serialized = {
         ...     "type": "Normal",
@@ -36,6 +36,7 @@ def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
         ... }
         >>> dist = deserialize_tfp_distribution(serialized)
         >>> # Returns: <tfp.distributions.Normal object>
+
     """
     dist_type = serialized_dist["type"]
     parameters = serialized_dist["parameters"]
@@ -66,19 +67,19 @@ def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
 
 def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDistribution:
     """Deserialize a PriorDistribution from the serialized format.
-    
+
     This function reconstructs a PriorDistribution object from its serialized
     dictionary representation. It handles the conversion of serialized TFP
     distributions back to their original objects.
-    
+
     Args:
         serialized_prior: A dictionary containing the serialized PriorDistribution
                          attributes, where TFP distributions are represented as
                          dictionaries with "type" and "parameters" keys.
-                         
+
     Returns:
         A reconstructed PriorDistribution object.
-        
+
     Example:
         >>> serialized = {
         ...     "roi_m": {
@@ -88,6 +89,7 @@ def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDis
         ... }
         >>> prior = deserialize_prior_distribution(serialized)
         >>> # Returns: <PriorDistribution object with roi_m as LogNormal>
+
     """
     # Convert serialized TFP distributions back to objects
     deserialized_prior = {}
@@ -98,7 +100,7 @@ def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDis
         else:
             # It's a regular value
             deserialized_prior[key] = value
-    
+
     return PriorDistribution(**deserialized_prior)
 
 
@@ -202,24 +204,38 @@ class PyMCConfigRehydrator(ConfigRehydrator):
         super().__init__(config)
         self.class_registry = self.build_class_registry(mmm, prior, np)
 
+
 class MeridianConfigRehydrator(ConfigRehydrator):
     """Rehydrate a config with Meridian objects."""
 
     def __init__(self, config):
+        """Initialize the MeridianConfigRehydrator.
+
+        Args:
+            config: The config to rehydrate.
+
+        """
         super().__init__(config)
         import meridian.model.prior_distribution as prior_distribution
         import meridian.model.spec as model_spec
-        self.class_registry = self.build_class_registry(
-            prior_distribution, 
-            model_spec, 
-            np, 
-            tfp.distributions
-        )
-        self.class_registry['PriorDistribution'] = PriorDistribution
-        self.class_registry['tfp'] = tfp
+
+        self.class_registry = self.build_class_registry(prior_distribution, model_spec, np, tfp.distributions)
+        self.class_registry["PriorDistribution"] = PriorDistribution
+        self.class_registry["tfp"] = tfp
         self.PriorDistribution = PriorDistribution
 
     def rehydrate_config(self) -> dict[str, Any]:
+        """Recursively rehydrate stringified config values with special handling for prior field.
+
+        This method extends the base rehydration logic to handle the special case
+        of the 'prior' field, which can be a PriorDistribution object, a dict
+        in the new serialization format, or a string representation.
+
+        Returns
+            The rehydrated config.
+
+        """
+
         def recursively_eval_dict(d):
             hydrated = {}
             for k, v in d.items():
