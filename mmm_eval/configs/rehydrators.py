@@ -10,13 +10,38 @@ import tensorflow_probability as tfp
 from meridian.model.prior_distribution import PriorDistribution
 
 
-def deserialize_tfp_distribution(serialized_dist):
-    """Deserialize a TFP distribution or bijector from the serialized format."""
+def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
+    """Deserialize a TFP distribution or bijector from the serialized format.
+    
+    This function reconstructs TensorFlow Probability distributions and bijectors
+    from their serialized dictionary representation. It handles both distributions
+    and bijectors, and recursively reconstructs any nested TFP objects in the
+    parameters.
+    
+    Args:
+        serialized_dist: A dictionary containing "type" and "parameters" keys,
+                        representing a serialized TFP distribution or bijector.
+                        
+    Returns:
+        A reconstructed TFP distribution or bijector object.
+        
+    Raises:
+        AttributeError: If the type is not found in either tfp.distributions
+                       or tfp.bijectors.
+                       
+    Example:
+        >>> serialized = {
+        ...     "type": "Normal",
+        ...     "parameters": {"loc": 0.0, "scale": 1.0}
+        ... }
+        >>> dist = deserialize_tfp_distribution(serialized)
+        >>> # Returns: <tfp.distributions.Normal object>
+    """
     dist_type = serialized_dist["type"]
     parameters = serialized_dist["parameters"]
 
     # Recursively reconstruct parameters
-    def reconstruct_param(val):
+    def reconstruct_param(val: Any) -> Any:
         if isinstance(val, dict) and "type" in val and "parameters" in val:
             return deserialize_tfp_distribution(val)
         elif isinstance(val, list):
@@ -39,8 +64,31 @@ def deserialize_tfp_distribution(serialized_dist):
     return dist_class(**reconstructed_params)
 
 
-def deserialize_prior_distribution(serialized_prior):
-    """Deserialize a PriorDistribution from the serialized format."""
+def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDistribution:
+    """Deserialize a PriorDistribution from the serialized format.
+    
+    This function reconstructs a PriorDistribution object from its serialized
+    dictionary representation. It handles the conversion of serialized TFP
+    distributions back to their original objects.
+    
+    Args:
+        serialized_prior: A dictionary containing the serialized PriorDistribution
+                         attributes, where TFP distributions are represented as
+                         dictionaries with "type" and "parameters" keys.
+                         
+    Returns:
+        A reconstructed PriorDistribution object.
+        
+    Example:
+        >>> serialized = {
+        ...     "roi_m": {
+        ...         "type": "LogNormal",
+        ...         "parameters": {"loc": 0.2, "scale": 0.9}
+        ...     }
+        ... }
+        >>> prior = deserialize_prior_distribution(serialized)
+        >>> # Returns: <PriorDistribution object with roi_m as LogNormal>
+    """
     # Convert serialized TFP distributions back to objects
     deserialized_prior = {}
     for key, value in serialized_prior.items():

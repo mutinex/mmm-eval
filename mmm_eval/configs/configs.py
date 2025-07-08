@@ -18,8 +18,22 @@ from mmm_eval.configs.constants import ConfigConstants
 from mmm_eval.configs.rehydrators import PyMCConfigRehydrator, MeridianConfigRehydrator
 
 
-def serialize_tfp_distribution(dist):
-    """Serialize a TFP distribution to a dict that can be reconstructed."""
+def serialize_tfp_distribution(dist: Any) -> dict[str, Any]:
+    """Serialize a TFP distribution to a dict that can be reconstructed.
+    
+    Args:
+        dist: A TensorFlow Probability distribution object
+        
+    Returns:
+        A dictionary containing the distribution type and parameters that can be
+        used to reconstruct the distribution via deserialize_tfp_distribution.
+        
+    Example:
+        >>> import tensorflow_probability as tfp
+        >>> dist = tfp.distributions.Normal(0.0, 1.0)
+        >>> serialized = serialize_tfp_distribution(dist)
+        >>> # Returns: {"type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
+    """
     import tensorflow_probability as tfp
     
     dist_type = type(dist).__name__
@@ -35,7 +49,7 @@ def serialize_tfp_distribution(dist):
                 params[param_name] = getattr(dist, param_name)
     
     # Recursively serialize parameters
-    def serialize_param(value):
+    def serialize_param(value: Any) -> Any:
         if hasattr(value, '__class__') and 'tensorflow_probability' in str(type(value)):
             return serialize_tfp_distribution(value)
         elif isinstance(value, (int, float, str, bool)) or value is None:
@@ -55,9 +69,24 @@ def serialize_tfp_distribution(dist):
     }
 
 
-def serialize_prior_distribution(prior):
-    """Serialize a PriorDistribution object to a dict that can be reconstructed."""
-    def serialize_value(val):
+def serialize_prior_distribution(prior: Any) -> dict[str, Any]:
+    """Serialize a PriorDistribution object to a dict that can be reconstructed.
+    
+    Args:
+        prior: A PriorDistribution object from the Meridian framework
+        
+    Returns:
+        A dictionary containing all the instance attributes of the PriorDistribution,
+        with any TFP distributions recursively serialized.
+        
+    Example:
+        >>> from meridian.model.prior_distribution import PriorDistribution
+        >>> import tensorflow_probability as tfp
+        >>> prior = PriorDistribution(roi_m=tfp.distributions.LogNormal(0.2, 0.9))
+        >>> serialized = serialize_prior_distribution(prior)
+        >>> # Returns dict with roi_m serialized as {"type": "LogNormal", "parameters": {...}}
+    """
+    def serialize_value(val: Any) -> Any:
         if hasattr(val, '__class__') and 'tensorflow_probability' in str(type(val)):
             return serialize_tfp_distribution(val)
         elif isinstance(val, (int, float, str, bool)) or val is None:
@@ -74,8 +103,40 @@ def serialize_prior_distribution(prior):
     return serialized_prior
 
 
-def serialize_meridian_config_value(value):
-    """Serialize a Meridian config value, handling special cases for TFP objects."""
+def serialize_meridian_config_value(value: Any) -> Any:
+    """Serialize a Meridian config value, handling special cases for TFP objects.
+    
+    This function handles the serialization of various types of objects that might
+    appear in Meridian configurations, with special handling for TFP distributions
+    and PriorDistribution objects.
+    
+    Args:
+        value: The value to serialize. Can be a PriorDistribution, TFP distribution,
+               or any other object.
+               
+    Returns:
+        A serialized representation of the value. For PriorDistribution and TFP
+        objects, returns a structured dictionary. For other objects, returns
+        the result of repr().
+        
+    Example:
+        >>> import tensorflow_probability as tfp
+        >>> from meridian.model.prior_distribution import PriorDistribution
+        >>> 
+        >>> # TFP distribution
+        >>> dist = tfp.distributions.Normal(0.0, 1.0)
+        >>> serialize_meridian_config_value(dist)
+        >>> # Returns: {"type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
+        >>> 
+        >>> # PriorDistribution
+        >>> prior = PriorDistribution(roi_m=dist)
+        >>> serialize_meridian_config_value(prior)
+        >>> # Returns: {"roi_m": {"type": "Normal", "parameters": {...}}}
+        >>> 
+        >>> # Regular value
+        >>> serialize_meridian_config_value("some_string")
+        >>> # Returns: "'some_string'"
+    """
     import tensorflow_probability as tfp
     from meridian.model.prior_distribution import PriorDistribution
     
