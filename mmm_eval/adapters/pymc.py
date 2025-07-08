@@ -109,7 +109,7 @@ class PyMCAdapter(BaseAdapter):
             data = data.drop(columns=zero_spend_channels)
 
         X = data.drop(columns=[InputDataframeConstants.RESPONSE_COL, InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL])
-        y = np.array(data[InputDataframeConstants.RESPONSE_COL].values)  # Convert to numpy array
+        y = data[InputDataframeConstants.RESPONSE_COL]
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)

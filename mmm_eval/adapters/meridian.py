@@ -1,7 +1,6 @@
 """Google Meridian adapter for MMM evaluation."""
 
 import logging
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -432,8 +431,9 @@ class MeridianAdapter(BaseAdapter):
         rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
 
         rois = {}
-        for channel, roi in zip(self.media_channels or [], rois_per_channel, strict=False):
-            rois[channel] = float(roi)
+        if self.media_channels is not None:
+            for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
+                rois[channel] = float(roi)
         return pd.Series(rois)
 
     def get_channel_names(self) -> list[str]:
@@ -446,4 +446,6 @@ class MeridianAdapter(BaseAdapter):
             List of channel names
 
         """
-        return self.media_channels or []
+        if self.media_channels is None:
+            return []
+        return self.media_channels

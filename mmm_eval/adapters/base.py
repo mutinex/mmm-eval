@@ -122,7 +122,8 @@ class BaseAdapter(ABC):
 
     # TODO: cleaner would be to require PyMC users to pass a mapping of channel names to
     # spend columns, and made the `media_channels` attribute consistent across all frameworks
-    def get_channel_names(self) -> list[str]:
+    @abstractmethod
+    def get_channel_names(self) -> list[str]:  # pyright: ignore[reportReturnType]
         """Get the channel names that would be used as the index in channel ROI results.
 
         This method provides a consistent way to get channel names across different adapters
