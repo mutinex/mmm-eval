@@ -278,7 +278,7 @@ class PerturbationTest(BaseValidationTest):
         original_rois = adapter.get_channel_roi()
 
         # Get the primary regressor columns that should be perturbed
-        if adapter.primary_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+        if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             logger.warning(f"Perturbation test skipped: Reach and frequency regressor type not supported for perturbation.")
             # Return empty results indicating the test was not run
             test_scores = PerturbationMetricResults(
@@ -293,7 +293,7 @@ class PerturbationTest(BaseValidationTest):
         # Add noise to primary regressor data and retrain
         noisy_data = self._add_gaussian_noise_to_primary_regressors(
             df=data,
-            regressor_cols=adapter.primary_regressor_columns,
+            regressor_cols=adapter.primary_media_regressor_columns,
         )
         adapter.fit(noisy_data)
         noise_rois = adapter.get_channel_roi()

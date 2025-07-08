@@ -41,7 +41,7 @@ class PyMCAdapter(BaseAdapter):
         self._original_model_kwargs = config.pymc_model_config_dict.copy()
 
     @property
-    def primary_regressor_type(self) -> PrimaryMediaRegressor:
+    def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
         
         For PyMC, this is always SPEND since PyMC uses spend as the primary regressor.
@@ -52,8 +52,8 @@ class PyMCAdapter(BaseAdapter):
         return PrimaryMediaRegressor.SPEND
 
     @property
-    def primary_regressor_columns(self) -> list[str]:
-        """Return the primary regressor columns that should be perturbed in tests.
+    def primary_media_regressor_columns(self) -> list[str]:
+        """Return the primary media regressor columns that should be perturbed in tests.
         
         For PyMC, this is always the channel_spend_columns since PyMC uses spend
         as the primary regressor in the model.

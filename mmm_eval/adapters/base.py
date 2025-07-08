@@ -33,7 +33,7 @@ class BaseAdapter(ABC):
 
     @property
     @abstractmethod
-    def primary_regressor_type(self) -> PrimaryMediaRegressor:
+    def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
         
         This property indicates what type of regressors are used as primary inputs
@@ -46,15 +46,15 @@ class BaseAdapter(ABC):
 
     @property
     @abstractmethod
-    def primary_regressor_columns(self) -> list[str]:
-        """Return the primary regressor columns that should be perturbed in tests.
+    def primary_media_regressor_columns(self) -> list[str]:
+        """Return the primary media regressor columns that should be perturbed in tests.
         
         This property returns the columns that are actually used as regressors in the model.
         For most frameworks, this will be the spend columns, but for Meridian it could
         be impressions or reach/frequency columns depending on the configuration.
         
         Returns:
-            List of column names that are used as primary regressors in the model
+            List of column names that are used as primary media regressors in the model
         """
         pass
 

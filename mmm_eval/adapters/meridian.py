@@ -253,8 +253,8 @@ class MeridianAdapter(BaseAdapter):
         self._reset_state()
 
     @property
-    def primary_regressor_type(self) -> PrimaryMediaRegressor:
-        """Return the type of primary regressors used by the model.
+    def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
+        """Return the type of primary media regressors used by the model.
 
         For Meridian, this is determined by the configuration:
         - If channel_reach_columns is provided: returns PrimaryMediaRegressor.REACH_AND_FREQUENCY
@@ -272,8 +272,8 @@ class MeridianAdapter(BaseAdapter):
         return PrimaryMediaRegressor.SPEND
 
     @property
-    def primary_regressor_columns(self) -> list[str]:
-        """Return the primary regressor columns that should be perturbed in tests.
+    def primary_media_regressor_columns(self) -> list[str]:
+        """Return the primary media regressor columns that should be perturbed in tests.
         
         For Meridian, this depends on the configuration:
         - If channel_reach_columns is provided: returns empty list (not supported in perturbation tests)
@@ -281,7 +281,7 @@ class MeridianAdapter(BaseAdapter):
         - Otherwise: returns channel_spend_columns
         
         Returns:
-            List of column names that are used as primary regressors in the model
+            List of column names that are used as primary media regressors in the model
         """
         if self.input_data_builder_schema.channel_reach_columns:
             return []  # Not supported in perturbation tests
