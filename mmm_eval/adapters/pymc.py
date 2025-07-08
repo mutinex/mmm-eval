@@ -43,35 +43,39 @@ class PyMCAdapter(BaseAdapter):
     @property
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
-        
+
         For PyMC, this is always SPEND since the PyMC adapter uses spend as the primary
         regressor.
-        
-        Returns:
+
+        Returns
             PrimaryMediaRegressor.SPEND
+
         """
         return PrimaryMediaRegressor.SPEND
 
     @property
     def primary_media_regressor_columns(self) -> list[str]:
         """Return the primary media regressor columns that should be perturbed in tests.
-        
-        For PyMC, this is always the channel_spend_columns since the PyMC adapter uses
+
+        For PyMC, this is always the `channel_spend_columns` since the PyMC adapter uses
         spend as the primary regressor in the model.
-        
-        Returns:
+
+        Returns
             List of channel spend column names
+
         """
         return self.channel_spend_columns
 
+    # TODO: require users to pass a mapping of channel names to spend columns
     def get_channel_names(self) -> list[str]:
         """Get the channel names that would be used as the index in get_channel_roi results.
-        
-        For PyMC, this returns the channel_spend_columns which are used as the index
+
+        For PyMC, this returns the `channel_spend_columns` which are used as the index
         in the ROI results.
-        
-        Returns:
+
+        Returns
             List of channel names
+
         """
         return self.channel_spend_columns
 
@@ -105,7 +109,7 @@ class PyMCAdapter(BaseAdapter):
             data = data.drop(columns=zero_spend_channels)
 
         X = data.drop(columns=[InputDataframeConstants.RESPONSE_COL, InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL])
-        y = data[InputDataframeConstants.RESPONSE_COL]
+        y = np.array(data[InputDataframeConstants.RESPONSE_COL].values)  # Convert to numpy array
 
         self.model = MMM(**self.model_kwargs)
         self.trace = self.model.fit(X=X, y=y, **self.fit_kwargs)
@@ -173,7 +177,7 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self._channel_roi_df is None:
             raise RuntimeError("Model must be fit before computing ROI.")
 
-        _validate_start_end_dates(start_date, end_date, self._channel_roi_df.index)
+        _validate_start_end_dates(start_date, end_date, pd.DatetimeIndex(self._channel_roi_df.index))
 
         # Filter the contribution DataFrame by date range
         date_range_df = self._channel_roi_df.loc[start_date:end_date]
@@ -284,10 +288,10 @@ def _validate_start_end_dates(
     if start_date is not None and end_date is not None and start_date >= end_date:
         raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
 
-    if start_date is not None and start_date < date_range.min():
+    if start_date is not None and start_date < pd.Timestamp(str(date_range.min())):
         logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
 
-    if end_date is not None and end_date > date_range.max():
+    if end_date is not None and end_date > pd.Timestamp(str(date_range.max())):
         logger.info(f"End date is after the last date in the training data: {date_range.max()}")
 
 

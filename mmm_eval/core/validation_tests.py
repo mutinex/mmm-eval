@@ -2,8 +2,8 @@
 
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.core.base_validation_test import BaseValidationTest
@@ -54,8 +54,8 @@ class AccuracyTest(BaseValidationTest):
 
         # Calculate metrics
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
-            actual=actual,
-            predicted=predictions,
+            actual=pd.Series(actual),  # Ensure it's a Series
+            predicted=pd.Series(predictions, index=actual.index),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -110,8 +110,8 @@ class CrossValidationTest(BaseValidationTest):
             # Add in fold results
             fold_metrics.append(
                 AccuracyMetricResults.populate_object_with_metrics(
-                    actual=actual,
-                    predicted=predictions,
+                    actual=pd.Series(actual),  # Ensure it's a Series
+                    predicted=pd.Series(predictions, index=actual.index),
                 )
             )
 
@@ -160,6 +160,12 @@ class RefreshStabilityTest(BaseValidationTest):
             baseline_data[date_column].max(),
             comparison_data[date_column].max(),
         )
+
+        # Convert to Timestamps if they're Series
+        if isinstance(common_start_date, pd.Series):
+            common_start_date = common_start_date.iloc[0]
+        if isinstance(common_end_date, pd.Series):
+            common_end_date = common_end_date.iloc[0]
 
         return common_start_date, common_end_date
 
@@ -235,7 +241,7 @@ class PerturbationTest(BaseValidationTest):
         """Return the name of the test."""
         return ValidationTestNames.PERTURBATION
 
-    def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> np.ndarray:
         """Generate Gaussian noise for perturbation testing.
 
         Args:
@@ -280,7 +286,9 @@ class PerturbationTest(BaseValidationTest):
 
         # Get the primary regressor columns that should be perturbed
         if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
-            logger.warning(f"Perturbation test skipped: Reach and frequency regressor type not supported for perturbation.")
+            logger.warning(
+                "Perturbation test skipped: Reach and frequency regressor type not supported for perturbation."
+            )
             # Return NaN results for each channel indicating the test was not run
             channel_names = adapter.get_channel_names()
             test_scores = PerturbationMetricResults(

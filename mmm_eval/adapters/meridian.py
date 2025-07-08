@@ -1,6 +1,7 @@
 """Google Meridian adapter for MMM evaluation."""
 
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -98,6 +99,9 @@ def _add_media_to_data_builder(
 
     """
     if input_data_builder_schema.channel_reach_columns:
+        # Ensure both reach and frequency columns are provided
+        if input_data_builder_schema.channel_frequency_columns is None:
+            raise ValueError("channel_frequency_columns must be provided when channel_reach_columns is provided")
         builder = builder.with_reach(
             df,
             reach_cols=input_data_builder_schema.channel_reach_columns,
@@ -120,7 +124,7 @@ def _add_media_to_data_builder(
     return builder
 
 
-def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> pd.DataFrame:
+def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> Any:
     """Construct a Meridian data object from a pandas DataFrame.
 
     This function transforms a standard DataFrame into the format required by the Meridian
@@ -261,7 +265,7 @@ class MeridianAdapter(BaseAdapter):
         - If channel_impressions_columns is provided: returns PrimaryMediaRegressor.IMPRESSIONS
         - Otherwise: returns PrimaryMediaRegressor.SPEND
 
-        Returns:
+        Returns
             PrimaryMediaRegressor enum value
 
         """
@@ -274,14 +278,15 @@ class MeridianAdapter(BaseAdapter):
     @property
     def primary_media_regressor_columns(self) -> list[str]:
         """Return the primary media regressor columns that should be perturbed in tests.
-        
+
         For Meridian, this depends on the configuration:
         - If channel_reach_columns is provided: returns empty list (not supported in perturbation tests)
         - If channel_impressions_columns is provided: returns channel_impressions_columns
         - Otherwise: returns channel_spend_columns
-        
-        Returns:
+
+        Returns
             List of column names that are used as primary media regressors in the model
+
         """
         if self.input_data_builder_schema.channel_reach_columns:
             return []  # Not supported in perturbation tests
@@ -332,7 +337,7 @@ class MeridianAdapter(BaseAdapter):
         # Create and fit the Meridian model
         model_spec = ModelSpec(**model_spec_kwargs)
         self.model = Meridian(
-            input_data=self.training_data,
+            input_data=self.training_data,  # type: ignore
             model_spec=model_spec,
         )
         self.trace = self.model.sample_posterior(**dict(self.config.sample_posterior_config))
@@ -391,7 +396,10 @@ class MeridianAdapter(BaseAdapter):
 
         """
         train_and_test = pd.concat([train, test])
-        self.fit(train_and_test, max_train_date=train[self.date_column].max())
+        max_train_date = train[self.date_column].max()
+        if isinstance(max_train_date, pd.Series):
+            max_train_date = max_train_date.iloc[0]
+        self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
 
     def get_channel_roi(
@@ -427,17 +435,18 @@ class MeridianAdapter(BaseAdapter):
         rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
 
         rois = {}
-        for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
+        for channel, roi in zip(self.media_channels or [], rois_per_channel, strict=False):
             rois[channel] = float(roi)
         return pd.Series(rois)
 
     def get_channel_names(self) -> list[str]:
         """Get the channel names that would be used as the index in get_channel_roi results.
-        
+
         For Meridian, this returns the media_channels which are the human-readable
         channel names used in the ROI results.
-        
-        Returns:
+
+        Returns
             List of channel names
+
         """
-        return self.media_channels
+        return self.media_channels or []

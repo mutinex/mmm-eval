@@ -1,16 +1,16 @@
 """Base adapter class for MMM frameworks."""
 
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
 
-class PrimaryMediaRegressor(Enum):
+class PrimaryMediaRegressor(StrEnum):
     """Enum for primary media regressor types used in MMM frameworks."""
-    
+
     SPEND = "spend"
     IMPRESSIONS = "impressions"
     REACH_AND_FREQUENCY = "reach_and_frequency"
@@ -30,17 +30,19 @@ class BaseAdapter(ABC):
         self.is_fitted = False
         self.channel_spend_columns: list[str] = []
         self.date_column: str
+        self.media_channels: list[str] | None = None  # Optional attribute for adapters that use it
 
     @property
     @abstractmethod
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
-        
+
         This property indicates what type of regressors are used as primary inputs
         to the model, which determines what should be perturbed in tests.
-        
-        Returns:
+
+        Returns
             PrimaryMediaRegressor enum value indicating the type of primary media regressors
+
         """
         pass
 
@@ -48,13 +50,14 @@ class BaseAdapter(ABC):
     @abstractmethod
     def primary_media_regressor_columns(self) -> list[str]:
         """Return the primary media regressor columns that should be perturbed in tests.
-        
+
         This property returns the columns that are actually used as regressors in the model.
         For most frameworks, this will be the spend columns, but for e.g. Meridian it could
         be impressions or reach/frequency columns depending on the configuration.
-        
-        Returns:
+
+        Returns
             List of column names that are used as primary media regressors in the model
+
         """
         pass
 
@@ -117,17 +120,20 @@ class BaseAdapter(ABC):
         """
         pass
 
+    # TODO: cleaner would be to require PyMC users to pass a mapping of channel names to
+    # spend columns, and made the `media_channels` attribute consistent across all frameworks
     def get_channel_names(self) -> list[str]:
-        """Get the channel names that would be used as the index in get_channel_roi results.
-        
+        """Get the channel names that would be used as the index in channel ROI results.
+
         This method provides a consistent way to get channel names across different adapters
-        without needing to call get_channel_roi (which requires the model to be fitted).
-        
-        Returns:
+        without needing to call get_channel_roi() (which requires the model to be fitted).
+
+        Returns
             List of channel names that would be used as the index in get_channel_roi results
+
         """
         # Default implementation - subclasses should override if they have a more specific way
         # to get channel names without requiring the model to be fitted
-        if hasattr(self, 'media_channels') and self.media_channels is not None:
+        if hasattr(self, "media_channels") and self.media_channels is not None:
             return self.media_channels
         return self.channel_spend_columns
