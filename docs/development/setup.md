@@ -83,21 +83,6 @@ mmm-eval/
 
 The project uses several tools to maintain code quality:
 
-### Pre-commit Hooks
-
-Install pre-commit hooks to automatically format and lint your code:
-
-```bash
-# Install pre-commit
-poetry add --group dev pre-commit
-
-# Install the git hook scripts
-pre-commit install
-
-# Run against all files
-pre-commit run --all-files
-```
-
 ### Code Formatting
 
 The project uses Black for code formatting:
@@ -144,6 +129,21 @@ Pyright is used for static type checking:
 poetry run pyright
 ```
 
+### (Optional) Pre-commit Hooks 
+
+Install pre-commit hooks to automatically format and lint your code:
+
+```bash
+# Install pre-commit
+poetry add --group dev pre-commit
+
+# Install the git hook scripts
+pre-commit install
+
+# Run against all files
+pre-commit run --all-files
+```
+
 ## Running Tests
 
 ### Unit Tests
@@ -160,13 +160,6 @@ poetry run pytest -n auto
 
 # Run specific test file
 poetry run pytest tests/test_core.py
-```
-
-### Integration Tests
-
-```bash
-# Run integration tests
-poetry run pytest -m integration
 ```
 
 ### Test Coverage
@@ -200,7 +193,7 @@ The documentation will be available at `http://localhost:8000`.
 
 ### API Documentation
 
-API documentation is automatically generated from docstrings using mkdocstrings. To update the API docs:
+API documentation is automatically generated from docstrings using `mkdocstrings`. To update the API docs:
 
 1. Ensure your code has proper docstrings
 2. Build the documentation: `poetry run mkdocs build`

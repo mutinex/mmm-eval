@@ -36,42 +36,47 @@ The accuracy test evaluates how well the model predicts on unseen data.
 
 The cross-validation test assesses the *consistency* of model accuracy across multiple data splits.
 
+If there are `T` time periods in the data and the fold size is `f`, the split points are
+set equal to `[T-f, T-2f, ..., T-kf]` such that the train and test sets are contiguous.
+By default, `f` is set to 4.
+
 ### Methodology
 
-1. **K-Fold Split**: Divides data into k contiguous folds (to preserve time series structure)
-2. **Iterative Training**: Trains k models, each using k-1 folds
+1. **K-Fold Split**: Divides data into `k` contiguous folds (to preserve time series structure)
+2. **Iterative Training**: Trains `k` models, each using `k-1` folds
 3. **Performance Assessment**: Evaluates each model on the held-out fold
 4. **Stability Analysis**: Measures variation in accuracy metrics across folds
 
 ### Interpretation
 
 - **Stable model**: Low standard deviation across folds
-- **Unstable model**: High standard deviation across folds
+- **Unstable model**: High standard deviation across folds and poor values (high MAPE, low R²)
 - **Overfitting**: High variation suggests poor generalization
 
 ## Refresh Stability Test
 
 ### Purpose
 
-The refresh stability test evaluates how stable marketing attribution is when new data is added (refreshed).
+The refresh stability test evaluates how stable marketing attribution is when newly observed
+data is added (refreshed).
 
 ### Methodology
 
 1. **Progressive Training**: Trains models on increasing proportions of data
-2. **Performance Tracking**: Measures performance at each refresh point
-3. **Stability Assessment**: Analyzes variation in performance over time
+2. **Performance Tracking**: Measures marketing ROI at each refresh point
+3. **Stability Assessment**: Analyzes variation in ROI over time
 
 ### Interpretation
 
 - **Stable model**: Consistent attribution across refresh periods
 - **Unstable model**: Attribution varies significantly over time
-- **Improving model**: Attribution improves with more data
 
 ## Perturbation Test
 
 ### Purpose
 
-The perturbation test evaluates how sensitive the model is to small changes in the data.
+The perturbation test evaluates how sensitive the model is to small changes in marketing
+inputs.
 
 ### Methodology
 
@@ -123,7 +128,9 @@ Each test answers a distinct question:
 For each test, we compute multiple metrics to give as much insight into the test result as possible: 
 
 * **MAPE (Mean Absolute Percentage Error)**  
-  `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
+  `MAPE = (1 / n) * Σ |(y_i - ŷ_i) / y_i|`
+
+(note that this is expressed as a proportion, so a value of 1 indicates 100% error)
 
 * **R-squared (Coefficient of Determination)**  
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`

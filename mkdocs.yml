@@ -93,8 +93,6 @@ nav:
     - Metrics: api/metrics.md
   - Examples:
     - Basic Usage: examples/basic-usage.md
-    - Custom Configuration: examples/custom-configuration.md
-    - Advanced Scenarios: examples/advanced-scenarios.md
   - Development:
     - Contributing: development/contributing.md
     - Development Setup: development/setup.md

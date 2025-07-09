@@ -2,9 +2,7 @@
 
 This guide provides practical examples of how to use BenjaMMMin for different scenarios.
 
-## Basic Evaluation
-
-### Command Line Usage
+## Example 1: Basic Evaluation
 
 ```bash
 benjammmin \
@@ -124,40 +122,6 @@ benjammmin \
   --test-names accuracy cross_validation refresh_stability perturbation \
   --output-path ./advanced_results/ \
   --verbose
-```
-
-## Example 6: Minimal Configuration
-
-For quick testing, use a minimal configuration:
-
-```json
-{
-  "pymc_model_config": {
-    "date_column": "date",
-    "channel_columns": ["tv_spend", "digital_spend"],
-    "adstock": "GeometricAdstock(l_max=4)",
-    "saturation": "LogisticSaturation()"
-  },
-  "fit_config": {
-    "target_accept": 0.9,
-    "draws": 50,
-    "tune": 25,
-    "chains": 1,
-    "random_seed": 42
-  },
-  "revenue_column": "revenue"
-}
-```
-
-Run minimal evaluation:
-
-```bash
-benjammmin \
-  --input-data-path test_data.csv \
-  --framework pymc-marketing \
-  --config-path minimal_config.json \
-  --output-path ./test_results/ \
-  --test-names accuracy
 ```
 
 ## Data Format Examples

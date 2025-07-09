@@ -28,7 +28,7 @@ $$
 - Expressed as a proportion (0 to 1, instead of 0 to 100)
 - Sensitive to scale of target variable
 
-**Example**: MAPE of 15% means predictions are off by 15% on average
+**Example**: MAPE of 15% (0.15) means predictions are off by 15% on average
 
 ### R-squared (Coefficient of Determination)
 
@@ -40,7 +40,7 @@ $$
 
 **Interpretation**:
 
-- Range: 0 to 1 (or 0% to 100%)
+- Range: 0 to 1
 - Higher values indicate better fit
 - Represents proportion of variance explained by the model
 
@@ -87,10 +87,7 @@ Measures how sensitive the model is to small changes in the data.
 | Metric | Best For | Considerations |
 |--------|----------|----------------|
 | MAPE | Relative accuracy | Sensitive to scale, good for comparison |
-| RMSE | Overall accuracy | Penalizes large errors heavily |
 | R² | Model fit quality | May be misleading with non-linear relationships |
-| MAE | Robust accuracy | Less sensitive to outliers |
-| MSE | Mathematical optimization | Harder to interpret |
 
 ### Metric Ranges and Benchmarks
 
@@ -148,6 +145,6 @@ When comparing multiple models:
 
 ## Next Steps
 
-- Learn about [Tests](tests.md) to understand how metrics are calculated
-- Check [Examples](examples/basic-usage.md) for practical metric interpretation
-- Review [Configuration](getting-started/configuration.md) for customizing metric calculation 
+- Learn about [Tests](../user-guide/tests.md) to understand how metrics are calculated
+- Check [Examples](../examples/basic-usage.md) for practical metric interpretation
+- Review [Configuration](../getting-started/configuration.md) for customizing metric calculation 
