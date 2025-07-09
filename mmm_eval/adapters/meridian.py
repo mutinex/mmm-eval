@@ -1,9 +1,11 @@
 """Google Meridian adapter for MMM evaluation."""
 
+import gc
 import logging
 
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from meridian.analysis.analyzer import Analyzer
 from meridian.data import data_frame_input_data_builder as data_builder
 from meridian.model.model import Meridian
@@ -259,11 +261,22 @@ class MeridianAdapter(BaseAdapter):
         fit() is called, which is critical for the validation suite to work correctly.
         Only attributes that are set during fit() should be reset here.
         """
+        # Explicitly delete trace to free TensorFlow memory
+        if hasattr(self, 'trace') and self.trace is not None:
+            del self.trace
+            self.trace = None
+        
+        # Clear TensorFlow session and memory
+        tf.keras.backend.clear_session()
+        
+        # Force garbage collection
+        gc.collect()
+        
+        # Reset other attributes
         self.training_data = None
         self.max_train_date = None
         self.holdout_mask = None
         self.model = None
-        self.trace = None
         self.analyzer = None
         self.is_fitted = False
 
