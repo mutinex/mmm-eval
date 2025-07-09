@@ -19,7 +19,7 @@ def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
     parameters.
 
     Args:
-        serialized_dist: A dictionary containing "type" and "parameters" keys,
+        serialized_dist: A dictionary containing "dist_type" and "parameters" keys,
                         representing a serialized TFP distribution or bijector.
 
     Returns:
@@ -31,19 +31,19 @@ def deserialize_tfp_distribution(serialized_dist: dict[str, Any]) -> Any:
 
     Example:
         >>> serialized = {
-        ...     "type": "Normal",
+        ...     "dist_type": "Normal",
         ...     "parameters": {"loc": 0.0, "scale": 1.0}
         ... }
         >>> dist = deserialize_tfp_distribution(serialized)
         >>> # Returns: <tfp.distributions.Normal object>
 
     """
-    dist_type = serialized_dist["type"]
+    dist_type = serialized_dist["dist_type"]
     parameters = serialized_dist["parameters"]
 
     # Recursively reconstruct parameters
     def reconstruct_param(val: Any) -> Any:
-        if isinstance(val, dict) and "type" in val and "parameters" in val:
+        if isinstance(val, dict) and "dist_type" in val and "parameters" in val:
             return deserialize_tfp_distribution(val)
         elif isinstance(val, list):
             return [reconstruct_param(v) for v in val]
@@ -75,7 +75,7 @@ def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDis
     Args:
         serialized_prior: A dictionary containing the serialized PriorDistribution
                          attributes, where TFP distributions are represented as
-                         dictionaries with "type" and "parameters" keys.
+                         dictionaries with "dist_type" and "parameters" keys.
 
     Returns:
         A reconstructed PriorDistribution object.
@@ -83,7 +83,7 @@ def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDis
     Example:
         >>> serialized = {
         ...     "roi_m": {
-        ...         "type": "LogNormal",
+        ...         "dist_type": "LogNormal",
         ...         "parameters": {"loc": 0.2, "scale": 0.9}
         ...     }
         ... }
@@ -94,7 +94,7 @@ def deserialize_prior_distribution(serialized_prior: dict[str, Any]) -> PriorDis
     # Convert serialized TFP distributions back to objects
     deserialized_prior = {}
     for key, value in serialized_prior.items():
-        if isinstance(value, dict) and "type" in value and "parameters" in value:
+        if isinstance(value, dict) and "dist_type" in value and "parameters" in value:
             # It's a serialized TFP distribution
             deserialized_prior[key] = deserialize_tfp_distribution(value)
         else:
@@ -256,7 +256,7 @@ class MeridianConfigRehydrator(ConfigRehydrator):
                     new_config[key] = val
                 elif isinstance(val, dict):
                     # Check if this is our new serialization format
-                    if any(isinstance(v, dict) and "type" in v and "parameters" in v for v in val.values()):
+                    if any(isinstance(v, dict) and "dist_type" in v and "parameters" in v for v in val.values()):
                         new_config[key] = deserialize_prior_distribution(val)
                     else:
                         hydrated_prior_dict = recursively_eval_dict(val)
@@ -267,7 +267,7 @@ class MeridianConfigRehydrator(ConfigRehydrator):
                         new_config[key] = evaluated
                     elif isinstance(evaluated, dict):
                         # Check if this is our new serialization format
-                        if any(isinstance(v, dict) and "type" in v and "parameters" in v for v in evaluated.values()):
+                        if any(isinstance(v, dict) and "dist_type" in v and "parameters" in v for v in evaluated.values()):
                             new_config[key] = deserialize_prior_distribution(evaluated)
                         else:
                             hydrated_prior_dict = recursively_eval_dict(evaluated)

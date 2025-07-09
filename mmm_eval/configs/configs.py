@@ -32,20 +32,13 @@ def serialize_tfp_distribution(dist: Any) -> dict[str, Any]:
         >>> import tensorflow_probability as tfp
         >>> dist = tfp.distributions.Normal(0.0, 1.0)
         >>> serialized = serialize_tfp_distribution(dist)
-        >>> # Returns: {"type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
+        >>> # Returns: {"dist_type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
 
     """
     dist_type = type(dist).__name__
 
     # Get the parameters
-    if hasattr(dist, "parameters"):
-        params = dist.parameters
-    else:
-        # Fallback for distributions without parameters attribute
-        params = {}
-        for param_name in ["loc", "scale", "concentration", "rate", "low", "high"]:
-            if hasattr(dist, param_name):
-                params[param_name] = getattr(dist, param_name)
+    params = dist.parameters
 
     # Recursively serialize parameters
     def serialize_param(value: Any) -> Any:
@@ -62,7 +55,7 @@ def serialize_tfp_distribution(dist: Any) -> dict[str, Any]:
 
     serializable_params = {key: serialize_param(val) for key, val in params.items()}
 
-    return {"type": dist_type, "parameters": serializable_params}
+    return {"dist_type": dist_type, "parameters": serializable_params}
 
 
 def serialize_prior_distribution(prior: Any) -> dict[str, Any]:
@@ -80,7 +73,7 @@ def serialize_prior_distribution(prior: Any) -> dict[str, Any]:
         >>> import tensorflow_probability as tfp
         >>> prior = PriorDistribution(roi_m=tfp.distributions.LogNormal(0.2, 0.9))
         >>> serialized = serialize_prior_distribution(prior)
-        >>> # Returns dict with roi_m serialized as {"type": "LogNormal", "parameters": {...}}
+        >>> # Returns dict with roi_m serialized as {"dist_type": "LogNormal", "parameters": {...}}
 
     """
 
@@ -125,12 +118,12 @@ def serialize_meridian_config_value(value: Any) -> Any:
         >>> # TFP distribution
         >>> dist = tfp.distributions.Normal(0.0, 1.0)
         >>> serialize_meridian_config_value(dist)
-        >>> # Returns: {"type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
+        >>> # Returns: {"dist_type": "Normal", "parameters": {"loc": 0.0, "scale": 1.0}}
         >>>
         >>> # PriorDistribution
         >>> prior = PriorDistribution(roi_m=dist)
         >>> serialize_meridian_config_value(prior)
-        >>> # Returns: {"roi_m": {"type": "Normal", "parameters": {...}}}
+        >>> # Returns: {"roi_m": {"dist_type": "Normal", "parameters": {...}}}
         >>>
         >>> # Regular value
         >>> serialize_meridian_config_value("some_string")

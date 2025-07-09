@@ -469,8 +469,8 @@ def test_meridian_serialization_deserialization():
     assert isinstance(serialized_prior, dict)
     assert "roi_m" in serialized_prior
     assert "knot_values" in serialized_prior
-    assert serialized_prior["roi_m"]["type"] == "LogNormal"
-    assert serialized_prior["knot_values"]["type"] == "Normal"
+    assert serialized_prior["roi_m"]["dist_type"] == "LogNormal"
+    assert serialized_prior["knot_values"]["dist_type"] == "Normal"
 
     # Test deserialization
     test_config = {"prior": serialized_prior}
