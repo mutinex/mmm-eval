@@ -4,6 +4,42 @@ BenjaMMMin supports multiple Marketing Mix Modeling (MMM) frameworks. This guide
 
 ## Supported Frameworks
 
+### Google Meridian
+
+**Status**: ✅ Fully Supported
+
+[Google Meridian](https://developers.google.com/meridian) is Google's open-source MMM framework that provides fast Bayesian inference and production-ready implementation.
+
+#### Features
+
+- **Fast Bayesian inference**: Optimized MCMC sampling
+- **Production-ready**: Designed for large-scale deployments
+- **Built-in seasonality**: Automatic seasonal component handling
+- **Media effects**: Configurable adstock and saturation functions
+- **Control variables**: Support for external factors
+- **Uncertainty quantification**: Full Bayesian uncertainty estimates
+
+#### CLI Usage
+
+```bash
+benjammmin --input-data-path data.csv --config-path config.json --framework meridian --output-path results/
+```
+
+#### Advantages
+
+- **Speed**: Optimized for fast inference on large datasets
+- **Production-ready**: Built for enterprise-scale deployments
+- **Google-backed**: Supported by Google's MMM expertise
+- **Comprehensive**: Full Bayesian uncertainty quantification
+- **Scalable**: Handles large datasets efficiently
+
+#### Limitations
+
+- **Less flexible**: More constrained model structure compared to PyMC-Marketing
+- **Google-specific**: Optimized for Google's use cases
+- **Learning curve**: Different API compared to other frameworks
+
+
 ### PyMC-Marketing
 
 **Status**: ✅ Fully Supported
@@ -17,7 +53,6 @@ BenjaMMMin supports multiple Marketing Mix Modeling (MMM) frameworks. This guide
 - **Seasonality handling**: Built-in seasonal components
 - **Media effects**: Configurable adstock and saturation functions
 - **Control variables**: Support for external factors
-
 
 #### CLI Usage
 
@@ -40,7 +75,7 @@ benjammmin --input-data-path data.csv --config-path config.json --framework pymc
 
 ## Framework Comparison
 
-| Feature         | PyMC-Marketing     | Google Meridian*     | Robyn*              |
+| Feature         | PyMC-Marketing     | Google Meridian     | Robyn*              |
 |-----------------|--------------------|-----------------------|---------------------|
 | **Type**        | Bayesian           | Bayesian              | Frequentist         |
 | **Inference**   | MCMC               | MCMC                  | Ridge Regression + Bootstrapping |
@@ -48,9 +83,8 @@ benjammmin --input-data-path data.csv --config-path config.json --framework pymc
 | **Saturation**  | ✅ Configurable    | ✅ Configurable       | ✅ Configurable     |
 | **Controls**    | ✅ Supported       | ✅ Supported          | ✅ Supported        |
 | **Uncertainty** | ✅ Full            | ✅ Full               | ⚠️ Approximate via bootstrapping |
-| **Speed**       | Medium             | Fast                  | Medium              |
-| **Complexity**  | High               | Medium                | Medium              |
-
+| **Speed**       | Fast               | Medium                | Medium              |
+| **Complexity**  | Low                | Medium                | Medium              |
 
 *Planned for future releases
 
@@ -67,20 +101,10 @@ For framework-specific issues:
 
 ### Planned Support
 
-**Google Meridian**:
-
-- Google's open-source MMM framework
-
-- Fast Bayesian inference
-
-- Production-ready implementation
-
 **Robyn**:
 
 - Meta's MMM framework
-
 - Automated model selection
-
 - Built-in validation
 
 ### Framework Requests
@@ -95,7 +119,5 @@ To request support for additional frameworks:
 ## Next Steps
 
 - Learn about [Configuration](getting-started/configuration.md) for framework setup
-
 - Check [Examples](examples/basic-usage.md) for framework usage
-
 - Review [Tests](tests.md) for validation approaches 

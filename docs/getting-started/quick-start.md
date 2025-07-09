@@ -8,7 +8,7 @@ Before you begin, make sure you have:
 
 1. **BenjaMMMin installed** - See [Installation](installation.md) if you haven't installed it yet
 2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
-3. **A supported framework** - Currently PyMC-Marketing is supported
+3. **A supported framework** - Currently Meridian and PyMC-Marketing are supported
 
 ## Basic Usage
 
@@ -33,7 +33,7 @@ date_week,quantity,revenue,TV,radio,price,event_1,event_2
 2023-01-29,1400,9500,6500,2600,12.99,0,0
 ```
 
-### Evaluating your PyMC MMM (follow along in `benjammmin/examples/pymc_eval.ipynb`)
+### Evaluating your PyMC MMM (follow along in `examples/pymc_eval.ipynb`)
 First, load your data
 ```jupyter
 data = pd.read_csv("data/example_data.csv")
@@ -91,7 +91,7 @@ Details on the implementation of the tests can be found in [Tests](../user-guide
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
 
-If we look at the evaluation output ```display(results)```, we see the following table:
+If we look at the evaluation output ```display(results)```, we'll see something like the following:
 
 |     test_name     |                  metric_name                  | metric_value | metric_pass |
 |-------------------|-----------------------------------------------|--------------|-------------|
@@ -119,9 +119,8 @@ Default metric thresholds in `mmm_eval/metrics/threshold_constants.py` can be ov
 ### Common Issues
 
 1. **Data Format**: Ensure your data has the required columns and proper format
-2. **Missing Dependencies**: Make sure PyMC-Marketing is installed
-3. **Configuration Errors**: Check that your config file is valid JSON
-4. **Memory Issues**: For large datasets, try reducing the number of chains or draws
+2. **Configuration Errors**: Check that your config file is valid JSON
+3. **Memory Issues**: For large datasets, try reducing the number of chains or draws
 
 ### Getting Help
 
@@ -138,4 +137,4 @@ Now that you've run your first evaluation:
 1. **Explore the [User Guide](../user-guide/cli.md)** for detailed CLI options
 2. **Check out [Examples](../examples/basic-usage.md)** for more complex scenarios
 3. **Learn about [Data](../user-guide/data.md)** for different data structures
-4. **Review [Configuration](../user-guide/configuration.md)** for advanced settings
+4. **Review [Configuration](../getting-started/configuration.md)** for advanced settings

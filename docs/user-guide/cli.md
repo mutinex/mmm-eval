@@ -32,7 +32,7 @@ Directory to save evaluation results.
 
 #### --test-names
 
-Specify which validation tests to run. Can specify multiple tests by repeating the flag.
+Specify which validation tests to run. You can specify multiple tests after the `--test-names` flag if desired.
 
 ```bash
 # Run all tests (default)

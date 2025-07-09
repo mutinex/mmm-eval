@@ -57,7 +57,7 @@ For development work, install with all development dependencies:
 ```bash
 git clone https://github.com/Mutiny-Group/mmm-eval.git
 cd mmm-eval
-poetry install
+poetry install --with dev
 ```
 
 ## Dependencies

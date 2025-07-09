@@ -35,51 +35,14 @@ pip install -e .
 ### Basic Usage
 
 ```bash
-benjammmin --input-data-path data.csv --framework pymc-marketing
+benjammmin --input-data-path data.csv --config-path config.json --output-path ./output --framework pymc-marketing
 ```
-
-> **Note**: BenjaMMMin is currently in development. For production use, we recommend installing from the latest release tag:
-> 
-> ```bash
-> poetry add git+https://github.com/Mutiny-Group/mmm-eval.git@v0.4.2
-> ```
-
-## Documentation
-
-### Getting Started
-- **[Installation](getting-started/installation.md)** - How to install BenjaMMMin
-- **[Quick Start](getting-started/quick-start.md)** - Get up and running quickly
-- **[Configuration](getting-started/configuration.md)** - Configure your evaluation
-
-### User Guide
-- **[Command Line Interface](user-guide/cli.md)** - Using the CLI
-- **[Frameworks](user-guide/frameworks.md)** - Supported MMM frameworks
-- **[Tests](user-guide/tests.md)** - Available validation tests
-- **[Metrics](user-guide/metrics.md)** - Understanding evaluation metrics
-- **[Data](user-guide/data.md)** - Data format requirements
-
-### API Reference
-- **[Adapters](api/adapters.md)** - Framework adapters
-- **[Core](api/core.md)** - Core evaluation functionality
-- **[CLI](api/cli.md)** - Command line interface
-- **[Data](api/data.md)** - Data processing utilities
-- **[Metrics](api/metrics.md)** - Evaluation metrics
-
-### Examples
-- **[Basic Usage](examples/basic-usage.md)** - Simple evaluation examples
-- **[Custom Configuration](examples/custom-configuration.md)** - Advanced configuration
-- **[Advanced Scenarios](examples/advanced-scenarios.md)** - Complex use cases
-
-### Development
-- **[Contributing](development/contributing.md)** - How to contribute to BenjaMMMin
-- **[Development Setup](development/setup.md)** - Setting up development environment
-- **[Testing](development/testing.md)** - Testing guidelines
 
 ## Features
 
 - **Multi-framework support** - Evaluate PyMC-Marketing, Google Meridian, and other MMM frameworks
 - **Comprehensive validation tests** - Accuracy, cross-validation, refresh stability, and perturbation tests
-- **Standardized metrics** - MAPE, RMSE, R-squared, and other industry-standard metrics
+- **Standardized metrics** - MAPE, R-squared, and other industry-standard metrics
 - **Flexible data handling** - Support for custom column names and data formats
 - **CLI interface** - Easy-to-use command-line tool for evaluation
 
@@ -94,8 +57,9 @@ benjammmin --input-data-path data.csv --framework pymc-marketing
 
 Currently supported MMM frameworks:
 
-- **PyMC-Marketing**: Bayesian MMM framework using PyMC
-- *More frameworks coming soon...*
+- **[Google Meridian](https://developers.google.com/meridian)**
+- **[PyMC-Marketing](https://www.pymc-marketing.io/en/latest/)**
+- *...and more coming soon*
 
 ## 🤝 Contributing
 
