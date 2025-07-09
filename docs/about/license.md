@@ -1,8 +1,8 @@
 # License
 
-This project is licensed under the MIT License.
+This project is licensed under the Apache License, Version 2.0.
 
-## MIT License
+## Apache License 2.0
 
 Copyright 2024 BenjaMMMin Contributors
 

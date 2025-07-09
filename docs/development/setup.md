@@ -66,7 +66,7 @@ pip install -r requirements-dev.txt  # If available
 ## Project Structure
 
 ```
-benjammmin/
+mmm-eval/
 ├── mmm_eval/              # Main package
 │   ├── adapters/          # Framework adapters
 │   ├── cli/               # Command-line interface
