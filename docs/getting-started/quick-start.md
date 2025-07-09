@@ -8,7 +8,7 @@ Before you begin, make sure you have:
 
 1. **BenjaMMMin installed** - See [Installation](installation.md) if you haven't installed it yet
 2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
-3. **A supported framework** - Currently Meridian and PyMC-Marketing are supported
+3. **A supported framework** - Currently, Meridian and PyMC-Marketing are supported
 
 ## Basic Usage
 
@@ -19,8 +19,13 @@ Your data should contain the following columns (see [Data Requirements](../user-
 * Date/time period
 * Revenue variable (for calculating ROI)
 * Marketing spend $ by channel (e.g., TV, digital, print)
-* `OPTIONAL` Response variable (e.g., sales, conversions, units)
+* `OPTIONAL` Response variable (e.g., sales, conversions, units). If not provided, revenue will be used as the target.
 * `OPTIONAL` Control variables (e.g., price, seasonality)
+
+!!! info "Meridian Data Inputs"
+    Meridian supports multiple types of controls and media treatments. For details, see the
+    Meridian notebook in the `examples/` directory for a full walkthrough and their
+    documentation [here](https://developers.google.com/meridian/docs/user-guide/supported-data-types-formats?hl=en).
 
 Example data structure:
 
@@ -33,7 +38,7 @@ date_week,quantity,revenue,TV,radio,price,event_1,event_2
 2023-01-29,1400,9500,6500,2600,12.99,0,0
 ```
 
-### Evaluating your PyMC MMM (follow along in `examples/pymc_eval.ipynb`)
+### Evaluating a PyMC MMM (follow along in `examples/pymc_eval.ipynb`)
 First, load your data
 ```jupyter
 data = pd.read_csv("data/example_data.csv")
@@ -70,6 +75,71 @@ config.save_model_object_to_json(save_path="data/", file_name="saved_config")
 And we can run the evaluation suite, which returns a dataframe.
 ```jupyter
 result = run_evaluation(framework="pymc-marketing", config=config, data=data)
+```
+
+### Evaluating a Meridian MMM (follow along in `examples/meridian_eval.ipynb`)
+
+#### Load data and convert to Meridian data object
+
+```jupyter
+df = pd.read_excel(
+    'https://github.com/google/meridian/raw/main/meridian/data/simulated_data/xlsx/geo_media.xlsx',
+    engine='openpyxl',
+)builder = (
+    data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
+        .with_kpi(df, kpi_col="conversions")
+        .with_revenue_per_kpi(df, revenue_per_kpi_col="revenue_per_conversion")
+        .with_population(df)
+        .with_controls(df, control_cols=["GQV", "Discount", "Competitor_Sales"])
+)
+channels = ["Channel0", "Channel1", "Channel2", "Channel3", "Channel4", "Channel5"]
+builder = builder.with_media(
+    df,
+    media_cols=[f"{channel}_impression" for channel in channels],
+    media_spend_cols=[f"{channel}_spend" for channel in channels],
+    media_channels=channels,
+)
+
+data = builder.build()
+```
+
+#### Define a Meridian MMM
+```jupyter
+roi_mu = 0.2     # Mu for ROI prior for each media channel.
+roi_sigma = 0.9  # Sigma for ROI prior for each media channel.
+prior = prior_distribution.PriorDistribution(
+    roi_m=tfp.distributions.LogNormal(roi_mu, roi_sigma, name=constants.ROI_M)
+)
+model_spec = spec.ModelSpec(prior=prior)
+# sampling from the posterior is not required prior to evaluation
+mmm = model.Meridian(input_data=data, model_spec=model_spec)
+```
+
+#### Set up Meridian input data builder config
+```jupyter
+data_preproc = df.copy()
+data_preproc["revenue"] = data_preproc["revenue_per_conversion"]*data_preproc["conversions"]
+
+channels = ["Channel0", "Channel1", "Channel2", "Channel3", "Channel4", "Channel5"]
+input_data_builder_config = MeridianInputDataBuilderSchema(
+    date_column="time",
+    media_channels=channels,
+    channel_spend_columns=[f"{col}_spend" for col in channels],
+    channel_impressions_columns=[f"{col}_impression" for col in channels],
+    response_column="conversions",
+    control_columns=["GQV", "Competitor_Sales", "Discount"],
+)
+```
+
+#### Create a config and evaluate
+
+```
+# specify a larger number of samples if you want quality results
+sample_posterior_kwargs = dict(n_chains=1, n_adapt=10, n_burnin=10, n_keep=10)
+config = MeridianConfig.from_model_object(mmm, input_data_builder_config=input_data_builder_config,
+                                          revenue_column="revenue", sample_posterior_kwargs=sample_posterior_kwargs)
+# Run the evaluation suite!
+result = run_evaluation(framework="meridian", config=config, data=data_preproc)
 ```
 #### ✨ Done ✨
 
