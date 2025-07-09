@@ -134,7 +134,6 @@ class BaseAdapter(ABC):
         """
         pass
 
-
     @abstractmethod
     def get_channel_names(self) -> list[str]:  # pyright: ignore[reportReturnType]
         """Get the channel names that would be used as the index in channel ROI results.
