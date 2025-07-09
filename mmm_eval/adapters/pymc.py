@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from pymc_marketing.mmm import MMM
 
-from mmm_eval.adapters.base import BaseAdapter
+from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -39,6 +39,58 @@ class PyMCAdapter(BaseAdapter):
         # Store original values to reset on subsequent fit calls
         self._original_channel_spend_columns = config.channel_columns.copy()
         self._original_model_kwargs = config.pymc_model_config_dict.copy()
+
+    @property
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter.
+
+        For PyMC, this returns the channel_spend_columns which are used as the channel names
+        in ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.channel_spend_columns
+
+    @property
+    def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
+        """Return the type of primary media regressors used by this adapter.
+
+        For PyMC, this is always SPEND since the PyMC adapter uses spend as the primary
+        regressor.
+
+        Returns
+            PrimaryMediaRegressor.SPEND
+
+        """
+        return PrimaryMediaRegressor.SPEND
+
+    @property
+    def primary_media_regressor_columns(self) -> list[str]:
+        """Return the primary media regressor columns that should be perturbed in tests.
+
+        For PyMC, this is always the `channel_spend_columns` since the PyMC adapter uses
+        spend as the primary regressor in the model.
+
+        Returns
+            List of channel spend column names
+
+        """
+        return self.channel_spend_columns
+
+    # TODO: require users to pass a mapping of channel names to spend columns
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+
+        For PyMC, this returns the `channel_spend_columns` which are used as the index
+        in the ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.channel_spend_columns
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
@@ -138,7 +190,7 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self._channel_roi_df is None:
             raise RuntimeError("Model must be fit before computing ROI.")
 
-        _validate_start_end_dates(start_date, end_date, self._channel_roi_df.index)
+        _validate_start_end_dates(start_date, end_date, pd.DatetimeIndex(self._channel_roi_df.index))
 
         # Filter the contribution DataFrame by date range
         date_range_df = self._channel_roi_df.loc[start_date:end_date]
@@ -249,10 +301,10 @@ def _validate_start_end_dates(
     if start_date is not None and end_date is not None and start_date >= end_date:
         raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
 
-    if start_date is not None and start_date < date_range.min():
+    if start_date is not None and not pd.isna(date_range.min()) and start_date < date_range.min():
         logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
 
-    if end_date is not None and end_date > date_range.max():
+    if end_date is not None and not pd.isna(date_range.max()) and end_date > date_range.max():
         logger.info(f"End date is after the last date in the training data: {date_range.max()}")
 
 

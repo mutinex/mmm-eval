@@ -718,7 +718,6 @@ class TestMeridianAdapter:
         # Simulate roi returns (chains, draws, channels)
         roi_tensor = np.ones((2, 2, 1)) * 5.0
         mock_analyzer_instance.roi.return_value = roi_tensor
-        adapter.media_channels = ["tv"]
         # Simulate training_data.kpi.time
         adapter.training_data = Mock()
         adapter.training_data.kpi.time = pd.date_range("2023-01-01", periods=5)

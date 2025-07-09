@@ -2,9 +2,10 @@
 
 import logging
 
+import numpy as np
 import pandas as pd
 
-from mmm_eval.adapters.base import BaseAdapter
+from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.core.base_validation_test import BaseValidationTest
 from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.validation_test_results import ValidationTestResult
@@ -53,8 +54,8 @@ class AccuracyTest(BaseValidationTest):
 
         # Calculate metrics
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
-            actual=actual,
-            predicted=predictions,
+            actual=pd.Series(actual),  # Ensure it's a Series
+            predicted=pd.Series(predictions, index=actual.index),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -109,8 +110,8 @@ class CrossValidationTest(BaseValidationTest):
             # Add in fold results
             fold_metrics.append(
                 AccuracyMetricResults.populate_object_with_metrics(
-                    actual=actual,
-                    predicted=predictions,
+                    actual=pd.Series(actual),  # Ensure it's a Series
+                    predicted=pd.Series(predictions, index=actual.index),
                 )
             )
 
@@ -159,6 +160,12 @@ class RefreshStabilityTest(BaseValidationTest):
             baseline_data[date_column].max(),
             comparison_data[date_column].max(),
         )
+
+        # Convert to Timestamps if they're Series
+        if isinstance(common_start_date, pd.Series):
+            common_start_date = common_start_date.iloc[0]
+        if isinstance(common_end_date, pd.Series):
+            common_end_date = common_end_date.iloc[0]
 
         return common_start_date, common_end_date
 
@@ -234,7 +241,7 @@ class PerturbationTest(BaseValidationTest):
         """Return the name of the test."""
         return ValidationTestNames.PERTURBATION
 
-    def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _get_percent_gaussian_noise(self, df: pd.DataFrame) -> np.ndarray:
         """Generate Gaussian noise for perturbation testing.
 
         Args:
@@ -250,25 +257,25 @@ class PerturbationTest(BaseValidationTest):
             size=len(df),
         )
 
-    def _add_gaussian_noise_to_spend(
+    def _add_gaussian_noise_to_primary_regressors(
         self,
         df: pd.DataFrame,
-        spend_cols: list[str],
+        regressor_cols: list[str],
     ) -> pd.DataFrame:
-        """Add Gaussian noise to spend data for perturbation testing.
+        """Add Gaussian noise to primary media regressors for perturbation testing.
 
         Args:
             df: Input dataframe
-            spend_cols: Column names for spend data
+            regressor_cols: Column names of primary media regressors
 
         Returns:
-            Dataframe with noise added to spend column
+            Dataframe with noise added to primary regressor columns
 
         """
         df_copy = df.copy()
         noise = self._get_percent_gaussian_noise(df)
-        for spend_col in spend_cols:
-            df_copy[spend_col] = df[spend_col] * (1 + noise)
+        for regressor_col in regressor_cols:
+            df_copy[regressor_col] = df[regressor_col] * (1 + noise)
         return df_copy
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
@@ -277,13 +284,26 @@ class PerturbationTest(BaseValidationTest):
         adapter.fit(data)
         original_rois = adapter.get_channel_roi()
 
-        # TODO: support case for Meridian where impressions or reach + frequency are
-        # provided, need to perturb those since those are the features that will go into
-        # the actual regression
-        # Add noise to spend data and retrain
-        noisy_data = self._add_gaussian_noise_to_spend(
+        # TODO: support perturbation of reach and frequency regressors
+        if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            logger.warning(
+                "Perturbation test skipped: Reach and frequency regressor type not supported for perturbation."
+            )
+            # Return NaN results for each channel indicating the test was not run
+            channel_names = adapter.get_channel_names()
+            test_scores = PerturbationMetricResults(
+                percentage_change_for_each_channel=pd.Series(np.nan, index=channel_names),
+            )
+            return ValidationTestResult(
+                test_name=ValidationTestNames.PERTURBATION,
+                metric_names=PerturbationMetricNames.to_list(),
+                test_scores=test_scores,
+            )
+
+        # Add noise to primary regressor data and retrain
+        noisy_data = self._add_gaussian_noise_to_primary_regressors(
             df=data,
-            spend_cols=adapter.channel_spend_columns,
+            regressor_cols=adapter.primary_media_regressor_columns,
         )
         adapter.fit(noisy_data)
         noise_rois = adapter.get_channel_roi()

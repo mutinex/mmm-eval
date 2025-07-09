@@ -11,7 +11,7 @@ from meridian.data import data_frame_input_data_builder as data_builder
 from meridian.model.model import Meridian
 from meridian.model.spec import ModelSpec
 
-from mmm_eval.adapters.base import BaseAdapter
+from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.adapters.schemas import MeridianInputDataBuilderSchema
 from mmm_eval.configs import MeridianConfig
 from mmm_eval.data.constants import InputDataframeConstants
@@ -249,10 +249,59 @@ class MeridianAdapter(BaseAdapter):
 
         self.date_column = config.date_column
         self.channel_spend_columns = self.input_data_builder_schema.channel_spend_columns
-        self.media_channels = self.input_data_builder_schema.media_channels
 
         # Initialize stateful attributes to None/False
         self._reset_state()
+
+    @property
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter.
+
+        For Meridian, this returns the human-readable channel names from the config.
+
+        Returns
+            List of channel names
+
+        """
+        return self.input_data_builder_schema.media_channels
+
+    @property
+    def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
+        """Return the type of primary media regressors used by the model.
+
+        For Meridian, this is determined by the configuration:
+        - If channel_reach_columns is provided: returns PrimaryMediaRegressor.REACH_AND_FREQUENCY
+        - If channel_impressions_columns is provided: returns PrimaryMediaRegressor.IMPRESSIONS
+        - Otherwise: returns PrimaryMediaRegressor.SPEND
+
+        Returns
+            PrimaryMediaRegressor enum value
+
+        """
+        if self.input_data_builder_schema.channel_reach_columns:
+            return PrimaryMediaRegressor.REACH_AND_FREQUENCY
+        if self.input_data_builder_schema.channel_impressions_columns:
+            return PrimaryMediaRegressor.IMPRESSIONS
+        return PrimaryMediaRegressor.SPEND
+
+    @property
+    def primary_media_regressor_columns(self) -> list[str]:
+        """Return the primary media regressor columns that should be perturbed in tests.
+
+        For Meridian, this depends on the configuration:
+        - If channel_reach_columns is provided: returns empty list (not supported in perturbation tests)
+        - If channel_impressions_columns is provided: returns channel_impressions_columns
+        - Otherwise: returns channel_spend_columns
+
+        Returns
+            List of column names that are used as primary media regressors in the model
+
+        """
+        if self.input_data_builder_schema.channel_reach_columns:
+            return []  # Not supported in perturbation tests
+        if self.input_data_builder_schema.channel_impressions_columns:
+            return self.input_data_builder_schema.channel_impressions_columns
+        return self.channel_spend_columns
 
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.
@@ -308,7 +357,7 @@ class MeridianAdapter(BaseAdapter):
         # Create and fit the Meridian model
         model_spec = ModelSpec(**model_spec_kwargs)
         self.model = Meridian(
-            input_data=self.training_data,
+            input_data=self.training_data,  # type: ignore
             model_spec=model_spec,
         )
         self.trace = self.model.sample_posterior(**dict(self.config.sample_posterior_config))
@@ -367,7 +416,8 @@ class MeridianAdapter(BaseAdapter):
 
         """
         train_and_test = pd.concat([train, test])
-        self.fit(train_and_test, max_train_date=train[self.date_column].max())
+        max_train_date = train[self.date_column].squeeze().max()
+        self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
 
     def get_channel_roi(
@@ -406,3 +456,15 @@ class MeridianAdapter(BaseAdapter):
         for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
             rois[channel] = float(roi)
         return pd.Series(rois)
+
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+
+        For Meridian, this returns the media_channels which are the human-readable
+        channel names used in the ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.media_channels
