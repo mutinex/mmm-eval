@@ -131,7 +131,7 @@ To add a new evaluation metric:
 The project follows a standard Poetry layout:
 
 ```
-benjammmin/
+mmm-eval/
 ├── src/mmm_eval/          # Source code
 ├── tests/                 # Test suite
 ├── examples/              # Usage examples

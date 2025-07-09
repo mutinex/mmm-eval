@@ -1,6 +1,6 @@
 # Frameworks
 
-mmm-eval supports multiple Marketing Mix Modeling (MMM) frameworks. This guide explains each supported framework and their features.
+BenjaMMMin supports multiple Marketing Mix Modeling (MMM) frameworks. This guide explains each supported framework and their features.
 
 ## Supported Frameworks
 
@@ -22,7 +22,7 @@ mmm-eval supports multiple Marketing Mix Modeling (MMM) frameworks. This guide e
 #### CLI Usage
 
 ```bash
-mmm-eval --input-data-path data.csv --config-path config.json --framework pymc-marketing --output-path results/
+benjammmin --input-data-path data.csv --config-path config.json --framework pymc-marketing --output-path results/
 ```
 
 #### Advantages

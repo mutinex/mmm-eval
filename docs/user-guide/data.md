@@ -169,7 +169,7 @@ BenjaMMMin supports various date formats:
 
 ### Supported Formats
 
-mmm-eval supports various date formats:
+BenjaMMMin supports various date formats:
 
 - `YYYY-MM-DD` (ISO format) - Recommended
 - `MM/DD/YYYY`

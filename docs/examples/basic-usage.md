@@ -45,7 +45,7 @@ Create a configuration file `config.json`:
 Run the evaluation:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -57,7 +57,7 @@ mmm-eval \
 Run only certain validation tests:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -76,7 +76,7 @@ Available tests:
 Get detailed information during execution:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -117,7 +117,7 @@ For more complex models, use an advanced configuration:
 Run with verbose output:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path advanced_config.json \
@@ -152,7 +152,7 @@ For quick testing, use a minimal configuration:
 Run minimal evaluation:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path test_data.csv \
   --framework pymc-marketing \
   --config-path minimal_config.json \
@@ -221,7 +221,7 @@ perturbation,percentage_change_for_each_channel:channel_2,0.01,True
 For development and testing:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path small_test_data.csv \
   --framework pymc-marketing \
   --config-path test_config.json \
@@ -245,7 +245,7 @@ Use minimal sampling parameters in your config:
 For production use:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path production_data.csv \
   --framework pymc-marketing \
   --config-path production_config.json \
@@ -294,7 +294,7 @@ cat > config.json << 'EOF'
 EOF
 
 # Run evaluation
-mmm-eval \
+benjammmin \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \

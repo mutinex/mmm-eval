@@ -39,13 +39,13 @@ If you're on macOS 15+ (Sequoia), you'll need to install the latest Xcode Comman
 ### Using pip
 
 ```bash
-pip install benjammmin
+pip install git+https://github.com/Mutiny-Group/mmm-eval.git
 ```
 
 ### Using Poetry
 
 ```bash
-poetry add benjammmin
+poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
 ```
 
 ## Quick Start
