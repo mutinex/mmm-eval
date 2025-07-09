@@ -1,4 +1,4 @@
-"""mmm-eval: A unified evaluation framework for Media Mix Models (MMMs).
+"""BenjaMMMin: A unified evaluation framework for Media Mix Models (MMMs).
 
 This package provides a standardized interface for evaluating different MMM frameworks
 such as PyMC-marketing and Google Meridian.
@@ -6,6 +6,9 @@ such as PyMC-marketing and Google Meridian.
 
 __author__ = "Mutinex Model Scale Team"
 __email__ = "joseph.kang@mutinex.co"
+
+# Import version information
+from ._version import __version__
 
 # Core functionality
 # Adapters
@@ -51,6 +54,8 @@ from .utils.logging import setup_logging
 setup_logging()
 
 __all__ = [
+    # Version
+    "__version__",
     # Configs
     "PyMCConfig",
     "MeridianConfig",

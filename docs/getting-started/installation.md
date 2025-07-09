@@ -81,7 +81,7 @@ After installation, verify that BenjaMMMin is working correctly:
 
 ```bash
 # Check if BenjaMMMin is installed
-python -c "import mmm_eval; print(mmm_eval.__version__)"
+python -c "import mmm_eval; print(f'BenjaMMMin version: {mmm_eval.__version__}')"
 
 # Check CLI availability
 benjammmin --help
