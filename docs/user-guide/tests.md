@@ -1,10 +1,10 @@
-# Tests
+# Validation Tests
 
-mmm-eval provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
+BenjaMMMin provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
 
 ## Overview
 
-mmm-eval includes four main types of validation tests:
+BenjaMMMin includes four main types of validation tests:
 
 1. **Accuracy Test** - Predictive accuracy on unseen data
 2. **Cross-Validation Test** - Predictive accuracy on k-folds of unseen data
@@ -103,7 +103,7 @@ All tests are run by default, which is the recommendation. However, users can sp
 
 CLI
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 ```
 
 Python

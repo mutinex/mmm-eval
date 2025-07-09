@@ -1,6 +1,6 @@
-site_name: mmm-eval
+site_name: BenjaMMMin
 site_description: Open-source evaluation of marketing mix model (MMM) performance
-site_author: mmm-eval Contributors
+site_author: BenjaMMMin Contributors
 site_url: https://mutinex.github.io/mmm-eval/
 
 # Repository
@@ -9,7 +9,7 @@ repo_url: https://github.com/Mutiny-Group/mmm-eval
 edit_uri: edit/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2024 mmm-eval Contributors
+copyright: Copyright &copy; 2024 BenjaMMMin Contributors
 
 # Theme
 theme:

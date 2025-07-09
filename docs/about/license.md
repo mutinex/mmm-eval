@@ -1,10 +1,10 @@
 # License
 
-This project is licensed under the Apache License, Version 2.0.
+This project is licensed under the MIT License.
 
-## Apache License 2.0
+## MIT License
 
-Copyright 2024 mmm-eval Contributors
+Copyright 2024 BenjaMMMin Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

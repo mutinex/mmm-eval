@@ -1,6 +1,6 @@
-# Contributing to mmm-eval
+# Contributing to BenjaMMMin
 
-We welcome contributions from the community! This guide will help you get started with contributing to mmm-eval.
+We welcome contributions from the community! This guide will help you get started with contributing to BenjaMMMin.
 
 ## Getting Started
 
@@ -243,7 +243,7 @@ Use the provided pull request template and fill in all sections:
 
 1. **Search existing issues** to avoid duplicates
 2. **Check documentation** for solutions
-3. **Try the latest version** of mmm-eval
+3. **Try the latest version** of BenjaMMMin
 
 ### Issue Template
 
@@ -253,7 +253,7 @@ Use the provided issue template and include:
 - **Steps to reproduce** - Detailed steps
 - **Expected behavior** - What should happen
 - **Actual behavior** - What actually happens
-- **Environment** - OS, Python version, mmm-eval version
+- **Environment** - OS, Python version, BenjaMMMin version
 - **Additional context** - Any other relevant information
 
 ## Community Guidelines
@@ -290,4 +290,4 @@ Contributors will be recognized in:
 - **CHANGELOG.md** - For all contributions
 - **GitHub contributors** page
 
-Thank you for contributing to mmm-eval! 🎉 
+Thank you for contributing to BenjaMMMin! 🎉 

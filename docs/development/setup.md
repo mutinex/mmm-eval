@@ -1,6 +1,6 @@
 # Development Setup
 
-This guide will help you set up a development environment for contributing to mmm-eval.
+This guide will help you set up a development environment for contributing to BenjaMMMin.
 
 ## Prerequisites
 
@@ -25,7 +25,7 @@ Before setting up the development environment, ensure you have the following ins
 
 3. **Verify the installation**:
    ```bash
-   poetry run mmm-eval --help
+   poetry run benjammmin --help
    ```
 
 ## Development Environment
@@ -66,7 +66,7 @@ pip install -r requirements-dev.txt  # If available
 ## Project Structure
 
 ```
-mmm-eval/
+benjammmin/
 ├── mmm_eval/              # Main package
 │   ├── adapters/          # Framework adapters
 │   ├── cli/               # Command-line interface

@@ -1,13 +1,13 @@
 # Command Line Interface
 
-mmm-eval provides a command-line interface (CLI) for running MMM evaluations. This guide covers all available options and usage patterns.
+BenjaMMMin provides a command-line interface (CLI) for running MMM evaluations. This guide covers all available options and usage patterns.
 
 ## Basic Usage
 
 The basic command structure is:
 
 ```bash
-mmm-eval [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
+benjammmin [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
 ```
 
 ## Required Arguments
@@ -36,10 +36,10 @@ Specify which validation tests to run. Can specify multiple tests by repeating t
 
 ```bash
 # Run all tests (default)
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run two tests
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 
 # Available tests: accuracy, cross_validation, refresh_stability, perturbation
 ```
@@ -53,7 +53,7 @@ Enable verbose logging for detailed output and error info.
 Here's a complete example with all options:
 
 ```bash
-mmm-eval \
+benjammmin \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path evaluation_config.json \
@@ -113,7 +113,7 @@ perturbation,percentage_change_for_each_channel:channel_2,0.01,True
 Display all available options and their descriptions:
 
 ```bash
-mmm-eval --help
+benjammmin --help
 ```
 
 ### Getting Help

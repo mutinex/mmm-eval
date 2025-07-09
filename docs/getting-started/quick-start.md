@@ -1,39 +1,16 @@
 # Quick Start
 
-This guide will help you get started with mmm-eval quickly by walking through an example notebook. You'll learn the evaluation workflow and how to interpret the results. To see how to run mmm-eval from the command line, check out [CLI](../user-guide/cli.md).
+This guide will help you get started with BenjaMMMin quickly by walking through an example notebook. You'll learn the evaluation workflow and how to interpret the results. To see how to run BenjaMMMin from the command line, check out [CLI](../user-guide/cli.md).
 
 ## Prerequisites
 
-Before you begin, make sure you have:
+1. **BenjaMMMin installed** - See [Installation](installation.md) if you haven't installed it yet
+2. **Jupyter Notebook** - For interactive examples
+3. **Sample data** - We'll use synthetic data for this example
 
-1. **mmm-eval installed** - See [Installation](installation.md) if you haven't installed it yet
-2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
-3. **A supported framework** - Currently PyMC-Marketing is supported
+## Quick Evaluation
 
-## Basic Usage
-
-### Prepare Your Data
-
-Your data should contain the following columns (see [Data Requirements](../user-guide/data.md#data-requirements) for more)
-
-* Date/time period
-* Revenue variable (for calculating ROI)
-* Marketing spend $ by channel (e.g., TV, digital, print)
-* `OPTIONAL` Response variable (e.g., sales, conversions, units)
-* `OPTIONAL` Control variables (e.g., price, seasonality)
-
-Example data structure:
-
-```csv
-date_week,quantity,revenue,TV,radio,price,event_1,event_2
-2023-01-01,1000,7000,5000,2000,10.99,0,0
-2023-01-08,1200,8000,5500,2200,10.99,0,0
-2023-01-15,1100,7500,5200,2100,11.99,1,0
-2023-01-22,1300,9000,6000,2400,11.99,0,1
-2023-01-29,1400,9500,6500,2600,12.99,0,0
-```
-
-### Evaluating your PyMC MMM (follow along in `mmm-eval/examples/pymc_eval.ipynb`)
+### Evaluating your PyMC MMM (follow along in `benjammmin/examples/pymc_eval.ipynb`)
 First, load your data
 ```jupyter
 data = pd.read_csv("data/example_data.csv")
@@ -125,8 +102,8 @@ Now that you've run your first evaluation:
 
 ## Getting Help
 
-If you encounter issues:
+If you need help:
 
-* Check the [CLI Reference](../user-guide/cli.md) for all available options
-* Look at [Examples](../examples/basic-usage.md) for similar use cases
+* Check the [User Guide](../user-guide/cli.md) for detailed CLI usage
+* Review the [API Reference](../api/core.md) for programmatic usage
 * Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support

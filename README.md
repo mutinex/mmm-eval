@@ -1,10 +1,10 @@
-# mmm-eval
+# BenjaMMMin
 
 An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks.
 
 ## Overview
 
-mmm-eval provides a standardized way to evaluate and compare different MMM frameworks using a comprehensive suite of validation tests including accuracy, cross-validation, refresh stability, and perturbation tests.
+BenjaMMMin provides a standardized way to evaluate and compare different MMM frameworks using a comprehensive suite of validation tests including accuracy, cross-validation, refresh stability, and perturbation tests.
 
 ## Features
 
@@ -39,13 +39,13 @@ If you're on macOS 15+ (Sequoia), you'll need to install the latest Xcode Comman
 ### Using pip
 
 ```bash
-pip install mmm-eval
+pip install benjammmin
 ```
 
 ### Using Poetry
 
 ```bash
-poetry add mmm-eval
+poetry add benjammmin
 ```
 
 ## Quick Start
@@ -54,13 +54,13 @@ poetry add mmm-eval
 
 ```bash
 # Basic evaluation
-mmm-eval --input-data-path data.csv --framework pymc-marketing
+benjammmin --input-data-path data.csv --framework pymc-marketing
 
 # With custom configuration
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run specific tests only
-mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
+benjammmin --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
 ```
 
 ## Development Setup

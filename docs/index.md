@@ -1,67 +1,94 @@
-# Welcome to mmm-eval
+# Welcome to BenjaMMMin
 
-An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks with a comprehensive suite of tests.
+An open-source evaluation framework for Marketing Mix Models (MMMs).
 
-## 🚀 Quick Start
+## Quick Start
 
-Get started with mmm-eval in just a few steps:
+Get started with BenjaMMMin in just a few steps:
 
-### Using Poetry (Recommended)
+### Installation
 
-**Prerequisite**: Poetry 2.x.x or later is required.
-
+**Using Poetry (Recommended):**
 ```bash
-# Install from GitHub
 poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
+```
 
-# Or clone and install locally
+**From Source:**
+```bash
 git clone https://github.com/Mutiny-Group/mmm-eval.git
 cd mmm-eval
 poetry install
 ```
 
-### Using pip
+**Using pip:**
 ```bash
-# Install from GitHub
 pip install git+https://github.com/Mutiny-Group/mmm-eval.git
+```
 
-# Or clone and install locally
+**From Source:**
+```bash
 git clone https://github.com/Mutiny-Group/mmm-eval.git
 cd mmm-eval
 pip install -e .
 ```
 
-### Run a basic evaluation
+### Basic Usage
+
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing
+benjammmin --input-data-path data.csv --framework pymc-marketing
 ```
 
-> **Note**: mmm-eval is currently in development. For production use, we recommend installing from the latest release tag:
+> **Note**: BenjaMMMin is currently in development. For production use, we recommend installing from the latest release tag:
+> 
 > ```bash
 > poetry add git+https://github.com/Mutiny-Group/mmm-eval.git@v0.4.2
 > ```
 
-## ✨ Features
+## Documentation
 
-- **Multi-framework support**: Evaluate PyMC-Marketing and other MMM frameworks
-- **Comprehensive test suite**: Accuracy, cross-validation, refresh stability, and perturbation tests
-- **Standardized metrics**: MAPE, RMSE, R-squared, and other industry-standard metrics
-- **Flexible data handling**: Support for custom column names and data formats
-- **CLI interface**: Easy-to-use command-line tool for evaluation
-
-## 📚 Documentation
-
-- **[Installation](getting-started/installation.md)** - How to install mmm-eval
+### Getting Started
+- **[Installation](getting-started/installation.md)** - How to install BenjaMMMin
 - **[Quick Start](getting-started/quick-start.md)** - Get up and running quickly
-- **[User Guide](user-guide/cli.md)** - Detailed usage instructions
-- **[API Reference](api/core.md)** - Complete API documentation
-- **[Examples](examples/basic-usage.md)** - Practical examples and use cases
+- **[Configuration](getting-started/configuration.md)** - Configure your evaluation
 
-## 🛠️ Development
+### User Guide
+- **[Command Line Interface](user-guide/cli.md)** - Using the CLI
+- **[Frameworks](user-guide/frameworks.md)** - Supported MMM frameworks
+- **[Tests](user-guide/tests.md)** - Available validation tests
+- **[Metrics](user-guide/metrics.md)** - Understanding evaluation metrics
+- **[Data](user-guide/data.md)** - Data format requirements
 
-- **[Contributing](development/contributing.md)** - How to contribute to mmm-eval
-- **[Development Setup](development/setup.md)** - Setting up a development environment
-- **[Testing](development/testing.md)** - Running tests and quality checks
+### API Reference
+- **[Adapters](api/adapters.md)** - Framework adapters
+- **[Core](api/core.md)** - Core evaluation functionality
+- **[CLI](api/cli.md)** - Command line interface
+- **[Data](api/data.md)** - Data processing utilities
+- **[Metrics](api/metrics.md)** - Evaluation metrics
+
+### Examples
+- **[Basic Usage](examples/basic-usage.md)** - Simple evaluation examples
+- **[Custom Configuration](examples/custom-configuration.md)** - Advanced configuration
+- **[Advanced Scenarios](examples/advanced-scenarios.md)** - Complex use cases
+
+### Development
+- **[Contributing](development/contributing.md)** - How to contribute to BenjaMMMin
+- **[Development Setup](development/setup.md)** - Setting up development environment
+- **[Testing](development/testing.md)** - Testing guidelines
+
+## Features
+
+- **Multi-framework support** - Evaluate PyMC-Marketing, Google Meridian, and other MMM frameworks
+- **Comprehensive validation tests** - Accuracy, cross-validation, refresh stability, and perturbation tests
+- **Standardized metrics** - MAPE, RMSE, R-squared, and other industry-standard metrics
+- **Flexible data handling** - Support for custom column names and data formats
+- **CLI interface** - Easy-to-use command-line tool for evaluation
+
+## Quick Navigation
+
+- **[Getting Started](getting-started/installation.md)** - Get up and running with BenjaMMMin in minutes.
+- **[User Guide](user-guide/cli.md)** - Learn how to use BenjaMMMin effectively.
+- **[API Reference](api/core.md)** - Detailed API documentation.
+- **[Examples](examples/basic-usage.md)** - Practical examples and use cases.
 
 ## 📊 Supported Frameworks
 
@@ -84,11 +111,11 @@ This project is licensed under the Apache 2.0 License - see the [License](about/
 
 -   :fontawesome-solid-rocket: __[Quick Start](getting-started/quick-start.md)__
 
-    Get up and running with mmm-eval in minutes.
+    Get up and running with BenjaMMMin in minutes.
 
 -   :fontawesome-solid-book: __[User Guide](user-guide/cli.md)__
 
-    Learn how to use mmm-eval effectively.
+    Learn how to use BenjaMMMin effectively.
 
 -   :fontawesome-solid-code: __[API Reference](api/core.md)__
 

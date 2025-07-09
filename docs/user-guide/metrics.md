@@ -2,11 +2,11 @@
 
 > **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
 
-mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+BenjaMMMin provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
 
 ## Overview
 
-mmm-eval calculates several key metrics across different validation tests:
+BenjaMMMin calculates several key metrics across different validation tests:
 
 - **Accuracy Metrics**: How well the model predicts on unseen data
 - **Stability Metrics**: How consistent the model is over time

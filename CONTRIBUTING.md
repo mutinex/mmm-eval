@@ -1,6 +1,6 @@
-# Contributing to mmm-eval
+# Contributing to BenjaMMMin
 
-We welcome contributions to mmm-eval! This document provides guidelines for contributing to the project.
+We welcome contributions to BenjaMMMin! This document provides guidelines for contributing to the project.
 
 ## Development Setup
 
@@ -131,7 +131,7 @@ To add a new evaluation metric:
 The project follows a standard Poetry layout:
 
 ```
-mmm-eval/
+benjammmin/
 ├── src/mmm_eval/          # Source code
 ├── tests/                 # Test suite
 ├── examples/              # Usage examples
@@ -144,4 +144,4 @@ mmm-eval/
 
 If you have questions about contributing, please open an issue or start a discussion on GitHub.
 
-Thank you for contributing to mmm-eval! 
+Thank you for contributing to BenjaMMMin! 

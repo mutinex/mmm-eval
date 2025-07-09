@@ -1,6 +1,6 @@
 # Configuration
 
-mmm-eval uses framework-specific configurations to control model parameters, fitting settings, and data mappings. This guide explains how to create and use configurations for the PyMC-Marketing framework.
+BenjaMMMin uses framework-specific configurations to control model parameters, fitting settings, and data mappings. This guide explains how to create and use configurations for the PyMC-Marketing framework.
 
 ## Creating Configurations
 
@@ -49,7 +49,7 @@ config.save_model_object_to_json("./", "my_config")
 }
 ```
 
-If you want to run mmm-eval from the CLI, you will need to save the config saved to a JSON file. We recommend Option 1 above to avoid any errors related to improper stringifiation of the model object in the manual approach.
+If you want to run BenjaMMMin from the CLI, you will need to save the config saved to a JSON file. We recommend Option 1 above to avoid any errors related to improper stringifiation of the model object in the manual approach.
 
 
 ## Using a Configuration
@@ -59,7 +59,7 @@ If you have the config created from the model object, you can pass that directly
 Alternately, if you have the config saved to a JSON, you can pass the filepath via the CLI.
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
 If you have a saved config and you're in a notebook, you can load the config from the path, then run the evaluation.
@@ -337,7 +337,7 @@ config.save_model_object_to_json("./", "my_config")
 
 ## Configuration Validation
 
-mmm-eval validates your configuration file and will raise errors for:
+BenjaMMMin validates your configuration file and will raise errors for:
 
 * Missing required fields
 * Invalid field types

@@ -1,6 +1,6 @@
 # Data
 
-mmm-eval expects your data to be in a specific format. This guide explains the required structure and provides examples for preparing your marketing mix modeling data.
+BenjaMMMin expects your data to be in a specific format. This guide explains the required structure and provides examples for preparing your marketing mix modeling data.
 
 ## Data Requirements
 
@@ -28,9 +28,9 @@ mmm-eval expects your data to be in a specific format. This guide explains the r
 - No obvious outliers or errors
 - Logical relationships between variables
 
-## Required Data Format
+## Data Format
 
-mmm-eval accepts CSV and Parquet files with the following structure:
+BenjaMMMin accepts CSV and Parquet files with the following structure:
 
 ### Required Columns
 
@@ -115,9 +115,9 @@ date,sales,revenue,tv_spend,digital_spend,social_spend,search_spend,email_spend,
 2023-01-05,1520,10640,19000,10000,4000,6300,2500,14.99,0,0
 ```
 
-## Configuration File
+## Configuration
 
-mmm-eval uses a configuration file to specify data column mappings and settings:
+BenjaMMMin uses a configuration file to specify data column mappings and settings:
 
 ### Basic Configuration
 
@@ -165,6 +165,8 @@ mmm-eval uses a configuration file to specify data column mappings and settings:
 
 ## Date Formats
 
+BenjaMMMin supports various date formats:
+
 ### Supported Formats
 
 mmm-eval supports various date formats:
@@ -186,9 +188,9 @@ If your dates aren't in ISO format, specify the format in your configuration:
 }
 ```
 
-## Data Validation
+## Validation
 
-mmm-eval performs several validation checks:
+BenjaMMMin performs several validation checks:
 
 ### Automatic Validation
 
@@ -220,7 +222,7 @@ You can configure additional validation in your config file:
 
 ## Data Preparation Tips
 
-### Before Running mmm-eval
+### Before Running BenjaMMMin
 
 1. **Clean your data**:
    - Remove any test or dummy data

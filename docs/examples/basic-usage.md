@@ -1,17 +1,17 @@
 # Basic Usage Examples
 
-This guide provides practical examples of how to use mmm-eval for different scenarios.
+This guide provides practical examples of how to use BenjaMMMin for different scenarios.
 
-## Example 1: Basic Evaluation
+## Basic Evaluation
 
-The simplest way to run an evaluation:
+### Command Line Usage
 
 ```bash
-mmm-eval \
-  --input-data-path data.csv \
+benjammmin \
+  --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path config.json \
-  --output-path ./results/
+  --output-path results/
 ```
 
 This assumes your data has standard column names and a valid configuration file.
