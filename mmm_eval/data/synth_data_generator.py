@@ -4,12 +4,14 @@ Based on:
 https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_example.html
 """
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from pymc_marketing.mmm.transformers import geometric_adstock, logistic_saturation
 
 
-def generate_data():
+def generate_pymc_data():
     """Generate synthetic MMM data for testing purposes.
 
     Returns
@@ -112,3 +114,40 @@ def generate_data():
 
     df = df[columns_to_keep]
     return df
+
+
+def generate_meridian_data():
+    """Load and process a Meridian-compatible dataset for E2E testing.
+
+    The Excel file should be placed at: mmm_eval/data/sample_data/geo_media.xlsx
+
+    Returns
+        DataFrame containing Meridian-compatible data with media channels, controls, and
+        response variables
+
+    """
+    # Path to the local Excel file
+    excel_path = Path(__file__).parent / "sample_data" / "geo_media.xlsx"
+
+    if not excel_path.exists():
+        raise FileNotFoundError(
+            f"Meridian sample data file not found at {excel_path}. "
+            "Please download the file from "
+            "https://github.com/google/meridian/raw/main/meridian/data/simulated_data/xlsx/geo_media.xlsx"
+            f"and save it to {excel_path}."
+        )
+
+    df = pd.read_excel(excel_path, engine="openpyxl")
+    df_mod = df.copy()
+    df_mod["revenue"] = df_mod["revenue_per_conversion"] * df_mod["conversions"]
+
+    df_mod = df.iloc[:, 1:]
+    # restrict to only two geos
+    df_mod = df_mod[df_mod["geo"].isin(["Geo0", "Geo1"])]
+    df_mod["revenue"] = df_mod["revenue_per_conversion"] * df_mod["conversions"]
+    df_mod = df_mod.drop(columns="revenue_per_conversion")
+
+    # restrict to only post-2023
+    df_mod = df_mod[pd.to_datetime(df_mod["time"]) > pd.Timestamp("2023-01-01")]
+    df_mod = df_mod.rename(columns={"time": "date"})
+    return df_mod
