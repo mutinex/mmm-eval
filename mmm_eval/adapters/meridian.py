@@ -311,16 +311,16 @@ class MeridianAdapter(BaseAdapter):
         Only attributes that are set during fit() should be reset here.
         """
         # Explicitly delete trace to free TensorFlow memory
-        if hasattr(self, 'trace') and self.trace is not None:
+        if hasattr(self, "trace") and self.trace is not None:
             del self.trace
             self.trace = None
-        
+
         # Clear TensorFlow session and memory
         tf.keras.backend.clear_session()
-        
+
         # Force garbage collection
         gc.collect()
-        
+
         # Reset other attributes
         self.training_data = None
         self.max_train_date = None

@@ -38,7 +38,15 @@ BenjaMMMin accepts CSV and Parquet files with the following structure:
 - **Target column**: The variable you want to predict (e.g., sales, conversions)
 - **Revenue column**: Revenue data for calculating ROI and efficiency metrics
 - **Media columns**: Marketing channel spend or activity data
-- **Control columns** (optional): Additional variables that may affect the target
+
+### Optional columns
+
+- **Control columns**: Additional variables that may affect the target
+
+!!! info "Meridian Data Inputs"
+    In addition to the above, Meridian supports multiple types of controls and media treatments, as well as a geography field.
+    For details, see the Meridian notebook in the `examples/` directory for a full walkthrough, as well as
+    their documentation [here](https://developers.google.com/meridian/docs/user-guide/supported-data-types-formats?hl=en).
 
 ### Column Types
 
@@ -115,78 +123,9 @@ date,sales,revenue,tv_spend,digital_spend,social_spend,search_spend,email_spend,
 2023-01-05,1520,10640,19000,10000,4000,6300,2500,14.99,0,0
 ```
 
-## Configuration
-
-BenjaMMMin uses a configuration file to specify data column mappings and settings:
-
-### Basic Configuration
-
-```json
-{
-  "data": {
-    "date_column": "date",
-    "target_column": "sales",
-    "revenue_column": "revenue",
-    "media_columns": ["tv_spend", "digital_spend", "print_spend"],
-    "control_columns": ["price", "seasonality", "holiday"]
-  }
-}
-```
-
-### Advanced Configuration
-
-```json
-{
-  "data": {
-    "date_column": "date",
-    "date_format": "%Y-%m-%d",
-    "target_column": "sales",
-    "revenue_column": "revenue",
-    "media_columns": ["tv_spend", "digital_spend", "social_spend", "search_spend", "email_spend"],
-    "control_columns": ["price", "holiday_flag", "competitor_promo"],
-    "validation": {
-      "check_missing_values": true,
-      "check_negative_values": true,
-      "check_date_range": true,
-      "min_date": "2020-01-01",
-      "max_date": "2023-12-31"
-    }
-  },
-  "tests": {
-    "accuracy": {
-      "train_test_split": 0.8
-    },
-    "cross_validation": {
-      "folds": 5
-    }
-  }
-}
-```
-
 ## Date Formats
 
-BenjaMMMin supports various date formats:
-
-### Supported Formats
-
-BenjaMMMin supports various date formats:
-
-- `YYYY-MM-DD` (ISO format) - Recommended
-- `MM/DD/YYYY`
-- `DD-MM-YYYY`
-- `YYYY/MM/DD`
-
-### Date Format Specification
-
-If your dates aren't in ISO format, specify the format in your configuration:
-
-```json
-{
-  "data": {
-    "date_format": "%m/%d/%Y"
-  }
-}
-```
+Please provide your dates in ISO format, e.g. `YYYY-MM-DD`.
 
 ## Validation
 
@@ -200,44 +139,27 @@ BenjaMMMin performs several validation checks:
 4. **Value ranges**: Checks for negative values in spend columns
 5. **Revenue consistency**: Ensures revenue data is available and positive
 
-### Custom Validation
-
-You can configure additional validation in your config file:
-
-```json
-{
-  "data": {
-    "validation": {
-      "check_missing_values": true,
-      "check_negative_values": true,
-      "check_date_range": true,
-      "min_date": "2020-01-01",
-      "max_date": "2023-12-31",
-      "min_observations": 100,
-      "required_columns": ["date", "sales", "revenue", "tv_spend"]
-    }
-  }
-}
-```
-
 ## Data Preparation Tips
 
 ### Before Running BenjaMMMin
 
-1. **Clean your data**:
-   - Remove any test or dummy data
-   - Handle missing values appropriately
-   - Check for and remove outliers if necessary
+#### Clean your data
 
-2. **Standardize formats**:
-   - Ensure consistent date format
-   - Use consistent units (e.g., thousands of dollars)
-   - Standardize column names
+- Remove any test or dummy data
+- Handle missing values appropriately
+- Check for and remove outliers if necessary
 
-3. **Validate relationships**:
-   - Check that spend and sales have logical relationships
-   - Verify that revenue data is consistent with sales
-   - Ensure control variables make sense
+#### Standardize formats
+
+- Ensure consistent date format
+- Use consistent units (e.g., thousands of dollars)
+- Standardize column names
+
+#### Validate relationships
+
+- Check that spend and sales have logical relationships
+- Verify that revenue data is consistent with sales
+- Ensure control variables make sense
 
 ### Common Issues and Solutions
 
@@ -288,13 +210,6 @@ date,sales,revenue,tv_spend,digital_spend
 - **Complete coverage**: Ensure all channels are captured
 - **Quality control**: Implement data validation at source
 - **Documentation**: Keep records of any data changes or anomalies
-
-### Data Storage
-
-- **Backup regularly**: Keep multiple copies of your data
-- **Version control**: Track changes to your datasets
-- **Metadata**: Document data sources, definitions, and assumptions
-- **Security**: Protect sensitive business data
 
 ### Data Analysis
 

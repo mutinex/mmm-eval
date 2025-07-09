@@ -73,6 +73,12 @@ data is added (refreshed).
 
 ## Perturbation Test
 
+!!! info "Meridian reach and frequency"
+    The Meridian model supports modelling using reach and frequency as inputs, in addition
+    to media spend. Due to the complexity of perturbing two related inputs, the perturbation
+    test will be skipped if the Meridian framework is used and reach and frequency data
+    is provided.
+
 ### Purpose
 
 The perturbation test evaluates how sensitive the model is to small changes in marketing

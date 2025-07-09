@@ -2,6 +2,10 @@
 
 This guide provides practical examples of how to use BenjaMMMin for different scenarios.
 
+For the sake of simplicity, all examples below exhibit use of PyMC-marketing, but the
+takeaways still apply when using other frameworks. For examples of how to configure
+a Meridian model, see the example notebook in the `examples/` directory.
+
 ## Example 1: Basic Evaluation
 
 ```bash

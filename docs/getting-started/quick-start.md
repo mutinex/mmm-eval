@@ -23,8 +23,8 @@ Your data should contain the following columns (see [Data Requirements](../user-
 * `OPTIONAL` Control variables (e.g., price, seasonality)
 
 !!! info "Meridian Data Inputs"
-    Meridian supports multiple types of controls and media treatments. For details, see the
-    Meridian notebook in the `examples/` directory for a full walkthrough and their
+    Meridian supports multiple types of controls and media treatments, as well as a geography field. For details, see
+    the Meridian notebook in the `examples/` directory for a full walkthrough and their
     documentation [here](https://developers.google.com/meridian/docs/user-guide/supported-data-types-formats?hl=en).
 
 Example data structure:

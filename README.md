@@ -2,6 +2,8 @@
 
 An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks.
 
+The hosted documentation pages can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
+
 ## Overview
 
 BenjaMMMin provides a standardized way to evaluate and compare different MMM frameworks using a comprehensive suite of validation tests including accuracy, cross-validation, refresh stability, and perturbation tests.
