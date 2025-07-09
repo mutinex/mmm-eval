@@ -1,5 +1,6 @@
 from typing import Any
 
+from meridian.model.prior_distribution import PriorDistribution
 from pydantic import (
     Field,
     computed_field,
@@ -130,8 +131,6 @@ def serialize_meridian_config_value(value: Any) -> Any:
         >>> # Returns: "'some_string'"
 
     """
-    from meridian.model.prior_distribution import PriorDistribution
-
     if isinstance(value, PriorDistribution):
         return serialize_prior_distribution(value)
     elif hasattr(value, "__class__") and "tensorflow_probability" in str(type(value)):
@@ -320,7 +319,7 @@ class MeridianConfig(BaseConfig):
     def from_model_object(
         cls,
         model_object: Any,  # Meridian model object
-        input_data_builder_config,
+        input_data_builder_config: MeridianInputDataBuilderSchema,
         revenue_column: str,
         sample_posterior_kwargs: dict[str, Any] | None = None,
         response_column: str | None = None,
@@ -390,13 +389,13 @@ class MeridianConfig(BaseConfig):
 
         # Serialize input_data_builder_config values directly
         input_data_dict = {}
-        for key, value in self.input_data_builder_config.model_dump().items():
+        for key, value in self.input_data_builder_config_dict.items():
             input_data_dict[key] = serialize_meridian_config_value(value)
         config_dict[ConfigConstants.MeridianConfigAttributes.INPUT_DATA_BUILDER_CONFIG] = input_data_dict
 
         # Serialize model_spec_config values directly
         model_spec_dict = {}
-        for key, value in self.model_spec_config.model_dump().items():
+        for key, value in self.model_spec_config_dict.items():
             if key == "prior":
                 # Handle prior field specially - serialize the actual PriorDistribution object
                 model_spec_dict[key] = serialize_meridian_config_value(self.model_spec_config.prior)
@@ -406,7 +405,7 @@ class MeridianConfig(BaseConfig):
 
         # Serialize sample_posterior_config values directly
         sample_posterior_dict = {}
-        for key, value in self.sample_posterior_config.model_dump().items():
+        for key, value in self.sample_posterior_config_dict.items():
             sample_posterior_dict[key] = serialize_meridian_config_value(value)
         config_dict[ConfigConstants.MeridianConfigAttributes.SAMPLE_POSTERIOR_CONFIG] = sample_posterior_dict
 

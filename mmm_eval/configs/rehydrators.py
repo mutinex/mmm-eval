@@ -3,6 +3,8 @@ import inspect
 import re
 from typing import Any
 
+import meridian.model.prior_distribution as prior_distribution
+import meridian.model.spec as model_spec
 import numpy as np
 import pymc_marketing.mmm as mmm
 import pymc_marketing.prior as prior
@@ -216,9 +218,6 @@ class MeridianConfigRehydrator(ConfigRehydrator):
 
         """
         super().__init__(config)
-        import meridian.model.prior_distribution as prior_distribution
-        import meridian.model.spec as model_spec
-
         self.class_registry = self.build_class_registry(prior_distribution, model_spec, np, tfp.distributions)
         self.class_registry["PriorDistribution"] = PriorDistribution
         self.class_registry["tfp"] = tfp
@@ -237,16 +236,17 @@ class MeridianConfigRehydrator(ConfigRehydrator):
         """
 
         def recursively_eval_dict(d):
+            """Recursively evaluate dictionary values that are strings."""
             hydrated = {}
-            for k, v in d.items():
-                if isinstance(v, str):
-                    evaluated = self.safe_eval(v)
+            for key, value in d.items():
+                if isinstance(value, str):
+                    evaluated = self.safe_eval(value)
                     if isinstance(evaluated, dict):
-                        hydrated[k] = recursively_eval_dict(evaluated)
+                        hydrated[key] = recursively_eval_dict(evaluated)
                     else:
-                        hydrated[k] = evaluated
+                        hydrated[key] = evaluated
                 else:
-                    hydrated[k] = v
+                    hydrated[key] = value
             return hydrated
 
         new_config = {}
@@ -267,7 +267,9 @@ class MeridianConfigRehydrator(ConfigRehydrator):
                         new_config[key] = evaluated
                     elif isinstance(evaluated, dict):
                         # Check if this is our new serialization format
-                        if any(isinstance(v, dict) and "dist_type" in v and "parameters" in v for v in evaluated.values()):
+                        if any(
+                            isinstance(v, dict) and "dist_type" in v and "parameters" in v for v in evaluated.values()
+                        ):
                             new_config[key] = deserialize_prior_distribution(evaluated)
                         else:
                             hydrated_prior_dict = recursively_eval_dict(evaluated)
