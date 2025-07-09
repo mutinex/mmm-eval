@@ -403,9 +403,7 @@ class MeridianAdapter(BaseAdapter):
 
         """
         train_and_test = pd.concat([train, test])
-        max_train_date = train[self.date_column].max()
-        if isinstance(max_train_date, pd.Series):
-            max_train_date = max_train_date.iloc[0]
+        max_train_date = train[self.date_column].squeeze().max()
         self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
 

@@ -301,10 +301,10 @@ def _validate_start_end_dates(
     if start_date is not None and end_date is not None and start_date >= end_date:
         raise ValueError(f"Start date must be before end date, but got start_date={start_date} and end_date={end_date}")
 
-    if start_date is not None and start_date < pd.Timestamp(str(date_range.min())):
+    if start_date is not None and not pd.isna(date_range.min()) and start_date < date_range.min():
         logger.info(f"Start date is before the first date in the training data: {date_range.min()}")
 
-    if end_date is not None and end_date > pd.Timestamp(str(date_range.max())):
+    if end_date is not None and not pd.isna(date_range.max()) and end_date > date_range.max():
         logger.info(f"End date is after the last date in the training data: {date_range.max()}")
 
 
