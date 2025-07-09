@@ -6,7 +6,7 @@ from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
 
 from mmm_eval.cli.evaluate import main
 from mmm_eval.configs import PyMCConfig
-from mmm_eval.data.synth_data_generator import generate_data
+from mmm_eval.data.synth_data_generator import generate_pymc_data
 
 DUMMY_MODEL = MMM(
     date_column="date_week",
@@ -76,7 +76,7 @@ def test_cli_scenarios(tmp_path, cli_args, expected_exit_code, test_name):
     # Create test data and save to CSV (only if data_path is needed)
     if "{data_path}" in cli_args:
         # test_data = _create_test_data()
-        test_data = generate_data()
+        test_data = generate_pymc_data()
         test_data.to_csv(data_path, index=False)
 
     config = PyMCConfig.from_model_object(
