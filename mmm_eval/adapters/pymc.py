@@ -41,6 +41,19 @@ class PyMCAdapter(BaseAdapter):
         self._original_model_kwargs = config.pymc_model_config_dict.copy()
 
     @property
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter.
+
+        For PyMC, this returns the channel_spend_columns which are used as the channel names
+        in ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.channel_spend_columns
+
+    @property
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
         """Return the type of primary media regressors used by this adapter.
 

@@ -30,10 +30,17 @@ class MockAdapter(BaseAdapter):
         self._primary_media_regressor_type = primary_media_regressor_type
         self._primary_media_regressor_columns = primary_media_regressor_columns
         self.channel_spend_columns = channel_spend_columns or []
-        self.media_channels = media_channels  # can be None
+        self._media_channels = media_channels  # can be None
         self.date_column = "date"
         self.is_fitted = False
         self._force_not_fitted_error = False
+
+    @property
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter."""
+        if self._media_channels is not None:
+            return self._media_channels
+        return self.channel_spend_columns
 
     @property
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
@@ -61,16 +68,14 @@ class MockAdapter(BaseAdapter):
         """Mock get_channel_roi method."""
         if not self.is_fitted or self._force_not_fitted_error:
             raise RuntimeError("Model must be fit before computing ROI")
-        channel_names = self.media_channels if self.media_channels is not None else self.channel_spend_columns
+        channel_names = self.media_channels
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             return pd.Series({ch: np.nan for ch in channel_names})
         return pd.Series({ch: 1.0 for ch in channel_names})
 
     def get_channel_names(self) -> list[str]:
         """Get the channel names that would be used as the index in get_channel_roi results."""
-        if self.media_channels is not None:
-            return self.media_channels
-        return self.channel_spend_columns
+        return self.media_channels
 
 
 @pytest.fixture

@@ -247,10 +247,21 @@ class MeridianAdapter(BaseAdapter):
 
         self.date_column = config.date_column
         self.channel_spend_columns = self.input_data_builder_schema.channel_spend_columns
-        self.media_channels = self.input_data_builder_schema.media_channels
 
         # Initialize stateful attributes to None/False
         self._reset_state()
+
+    @property
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter.
+
+        For Meridian, this returns the human-readable channel names from the config.
+
+        Returns
+            List of channel names
+
+        """
+        return self.input_data_builder_schema.media_channels
 
     @property
     def primary_media_regressor_type(self) -> PrimaryMediaRegressor:
@@ -431,9 +442,8 @@ class MeridianAdapter(BaseAdapter):
         rois_per_channel = np.mean(self.analyzer.roi(selected_times=selected_times), axis=(0, 1))
 
         rois = {}
-        if self.media_channels is not None:
-            for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
-                rois[channel] = float(roi)
+        for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
+            rois[channel] = float(roi)
         return pd.Series(rois)
 
     def get_channel_names(self) -> list[str]:
@@ -446,6 +456,4 @@ class MeridianAdapter(BaseAdapter):
             List of channel names
 
         """
-        if self.media_channels is None:
-            return []
         return self.media_channels

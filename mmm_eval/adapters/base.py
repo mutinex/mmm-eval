@@ -30,7 +30,21 @@ class BaseAdapter(ABC):
         self.is_fitted = False
         self.channel_spend_columns: list[str] = []
         self.date_column: str
-        self.media_channels: list[str] | None = None  # Optional attribute for adapters that use it
+
+    @property
+    @abstractmethod
+    def media_channels(self) -> list[str]:
+        """Return the channel names used by this adapter.
+
+        This property provides a consistent way to get channel names across different adapters.
+        For most frameworks, this will be human-readable channel names, but for PyMC it may
+        be the column names themselves.
+
+        Returns
+            List of channel names used by this adapter
+
+        """
+        pass
 
     @property
     @abstractmethod
@@ -120,8 +134,7 @@ class BaseAdapter(ABC):
         """
         pass
 
-    # TODO: cleaner would be to require PyMC users to pass a mapping of channel names to
-    # spend columns, and made the `media_channels` attribute consistent across all frameworks
+
     @abstractmethod
     def get_channel_names(self) -> list[str]:  # pyright: ignore[reportReturnType]
         """Get the channel names that would be used as the index in channel ROI results.
