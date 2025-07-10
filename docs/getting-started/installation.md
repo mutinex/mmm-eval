@@ -36,9 +36,6 @@ cd mmm-eval
 
 # Install using Poetry
 poetry install
-
-# Or install using pip
-pip install -e .
 ```
 
 ## Dependencies

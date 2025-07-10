@@ -19,7 +19,7 @@ mmm-eval provides a standardized way to evaluate and compare different MMM frame
 ### Installation
 
 ```bash
-pip install mmm-eval
+pip install git+https://github.com/mutinex/mmm-eval.git
 ```
 
 ### Basic Usage
