@@ -134,7 +134,10 @@ MAE = (1/n) * Σ |y_i - ŷ_i|
 
 ## Customizing Metrics
 
+### Modifying Thresholds
 
+If you'd like to modify the test pass/fail thresholds, you can fork the branch and
+modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 ### Adding Custom Metrics
 
