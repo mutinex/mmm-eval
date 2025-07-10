@@ -42,8 +42,7 @@ MAPE = (1/n) * Σ |(y_i - ŷ_i) / y_i|
 
 **Interpretation**:
 - **Lower is better**: 0% = perfect predictions
-- **Industry benchmark**: < 20% is generally good
-- **Scale**: Expressed as percentage (0-100%)
+- **Scale**: Expressed as a proportion, e.g. 0.15 rather than 15%
 
 ### RMSE (Root Mean Square Error)
 
@@ -111,7 +110,7 @@ MAE = (1/n) * Σ |y_i - ŷ_i|
 
 ### Good Performance Indicators
 
-- **MAPE < 20%**: Good prediction accuracy
+- **MAPE < 15%**: Good prediction accuracy
 - **R-squared > 0.8**: Strong model fit
 - **Low parameter changes**: Stable model
 - **Reasonable training time**: Efficient computation
@@ -125,44 +124,17 @@ MAE = (1/n) * Σ |y_i - ŷ_i|
 
 ## Thresholds and Benchmarks
 
-### Default Thresholds
-
-```python
-# Accuracy thresholds
-MAPE_THRESHOLD = 0.20  # 20%
-R_SQUARED_THRESHOLD = 0.80  # 80%
-
-# Stability thresholds
-PARAMETER_CHANGE_THRESHOLD = 0.10  # 10%
-
-# Performance thresholds
-TRAINING_TIME_THRESHOLD = 300  # seconds
-MEMORY_USAGE_THRESHOLD = 8  # GB
-```
-
 ### Industry Benchmarks
 
 | Metric | Excellent | Good | Acceptable | Poor |
 |--------|-----------|------|------------|------|
-| MAPE | < 10% | 10-20% | 20-30% | > 30% |
+| MAPE | < 5% | 5-10% | 10-15% | > 15% |
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
 
 ## Customizing Metrics
 
-### Modifying Thresholds
 
-You can customize metric thresholds in your configuration:
-
-```json
-{
-  "metrics": {
-    "mape_threshold": 0.15,
-    "r_squared_threshold": 0.85,
-    "parameter_change_threshold": 0.08
-  }
-}
-```
 
 ### Adding Custom Metrics
 
