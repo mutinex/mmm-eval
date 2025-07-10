@@ -39,15 +39,10 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accu
 
 The official hosted documentation can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
 
-- **[Getting Started](docs/getting-started/installation.md)** - Installation and setup guide
-- **[User Guide](docs/user-guide/cli.md)** - Complete usage documentation
-- **[Examples](docs/examples/basic-usage.md)** - Practical examples and use cases
-- **[Configuration](docs/getting-started/configuration.md)** - Framework-specific configuration guides
-
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.

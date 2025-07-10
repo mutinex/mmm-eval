@@ -1,6 +1,6 @@
 # Testing
 
-This guide covers testing practices and procedures for the BenjaMMMin project.
+This guide covers testing practices and procedures for the mmm-eval project.
 
 ## Testing Philosophy
 
