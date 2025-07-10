@@ -1,0 +1,53 @@
+# mmm-eval
+
+A comprehensive evaluation framework for Marketing Mix Modeling (MMM) frameworks.
+
+## Overview
+
+mmm-eval provides a standardized way to evaluate and compare different MMM frameworks using a comprehensive suite of validation tests including accuracy, cross-validation, refresh stability, and performance metrics.
+
+## Features
+
+- **Multi-framework support**: Evaluate PyMC-Marketing and Google Meridian models
+- **Comprehensive testing**: Accuracy, cross-validation, refresh stability, and performance tests
+- **Standardized metrics**: Consistent evaluation across different frameworks
+- **Easy to use**: Simple CLI interface and Python API
+- **Extensible**: Add new frameworks and tests easily
+
+## Quick Start
+
+### Installation
+
+```bash
+pip install mmm-eval
+```
+
+### Basic Usage
+
+```bash
+# Run with default settings
+mmm-eval --input-data-path data.csv --framework pymc-marketing
+
+# Run with custom configuration
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+
+# Run specific tests
+mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
+```
+
+## Documentation
+
+The official hosted documentation can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
+
+- **[Getting Started](docs/getting-started/installation.md)** - Installation and setup guide
+- **[User Guide](docs/user-guide/cli.md)** - Complete usage documentation
+- **[Examples](docs/examples/basic-usage.md)** - Practical examples and use cases
+- **[Configuration](docs/getting-started/configuration.md)** - Framework-specific configuration guides
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
