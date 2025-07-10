@@ -1,6 +1,6 @@
 # Testing
 
-This guide covers testing practices and procedures for the BenjaMMMin project.
+This guide covers testing practices and procedures for the mmm-eval project.
 
 ## Testing Philosophy
 
@@ -208,74 +208,6 @@ poetry run pytest --cov=mmm_eval --cov-report=xml
 poetry run pytest --cov=mmm_eval --cov-report=term-missing
 ```
 
-### Coverage Configuration
-
-Configure coverage in `pyproject.toml`:
-
-```toml
-[tool.coverage.run]
-source = ["mmm_eval"]
-omit = [
-    "*/tests/*",
-    "*/test_*",
-    "*/__pycache__/*"
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod"
-]
-```
-
-## Performance Testing
-
-### Benchmark Tests
-
-For performance-critical code, use benchmark tests:
-
-```python
-def test_mape_calculation_performance(benchmark):
-    """Benchmark MAPE calculation performance."""
-    actual = np.random.normal(1000, 100, 10000)
-    predicted = np.random.normal(1000, 100, 10000)
-    
-    result = benchmark(lambda: calculate_mape(actual, predicted))
-    
-    assert result > 0
-```
-
-### Memory Usage Tests
-
-Monitor memory usage in tests:
-
-```python
-import psutil
-import os
-
-def test_memory_usage():
-    """Test that operations don't use excessive memory."""
-    process = psutil.Process(os.getpid())
-    initial_memory = process.memory_info().rss
-    
-    # Run memory-intensive operation
-    result = process_large_dataset()
-    
-    final_memory = process.memory_info().rss
-    memory_increase = final_memory - initial_memory
-    
-    # Memory increase should be reasonable (< 100MB)
-    assert memory_increase < 100 * 1024 * 1024
-```
-
 ## Continuous Integration
 
 ### GitHub Actions
@@ -285,31 +217,6 @@ Tests run automatically on:
 - Every pull request
 - Every push to main branch
 - Scheduled runs (nightly)
-
-### CI Configuration
-
-The CI pipeline includes:
-
-1. **Linting**: Code style and quality checks
-2. **Type checking**: Static type analysis
-3. **Unit tests**: Fast feedback on basic functionality
-4. **Integration tests**: Verify component interactions
-5. **Coverage reporting**: Track test coverage trends
-
-### Pre-commit Hooks
-
-Install pre-commit hooks to catch issues early:
-
-```bash
-# Install pre-commit
-poetry add --group dev pre-commit
-
-# Install hooks
-pre-commit install
-
-# Run all hooks
-pre-commit run --all-files
-```
 
 ## Debugging Tests
 

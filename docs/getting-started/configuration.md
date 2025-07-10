@@ -67,7 +67,7 @@ If you have the config created from the model object, you can pass that directly
 Alternately, if you have the config saved to a JSON, you can pass the filepath via the CLI.
 
 ```bash
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
 If you have a saved config and you're in a notebook, you can load the config from the path, then run the evaluation.
