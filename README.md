@@ -37,7 +37,7 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accu
 
 ## Documentation
 
-The official hosted documentation can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
+The official hosted documentation can be found [here](https://mutinex.github.io/mmm-eval/).
 
 ## Contributing
 
