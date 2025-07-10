@@ -19,7 +19,7 @@ Google's Meridian framework provides advanced MMM capabilities with support for 
 #### Usage
 
 ```bash
-benjammmin --input-data-path data.csv --config-path config.json --framework meridian --output-path results/
+mmm-eval --input-data-path data.csv --config-path config.json --framework meridian --output-path results/
 ```
 
 #### Configuration
@@ -29,7 +29,7 @@ Meridian requires specific configuration for:
 - Model specification parameters
 - Sample posterior configuration
 
-See [Configuration](getting-started/configuration.md) for detailed setup.
+See [Configuration](../getting-started/configuration.md) for detailed setup.
 
 ### PyMC-Marketing
 
@@ -46,7 +46,7 @@ PyMC-Marketing is a Bayesian MMM framework built on PyMC.
 #### Usage
 
 ```bash
-benjammmin --input-data-path data.csv --config-path config.json --framework pymc-marketing --output-path results/
+mmm-eval --input-data-path data.csv --config-path config.json --framework pymc-marketing --output-path results/
 ```
 
 #### Configuration
@@ -56,7 +56,7 @@ PyMC-Marketing requires configuration for:
 - Fit parameters (chains, draws, etc.)
 - Data mapping
 
-See [Configuration](getting-started/configuration.md) for detailed setup.
+See [Configuration](../getting-started/configuration.md) for detailed setup.
 
 ## Framework Comparison
 
@@ -165,6 +165,6 @@ PyMC-Marketing has simpler configuration:
 
 ### Getting Help
 
-- Check [Configuration](getting-started/configuration.md) for setup
-- Review [Examples](examples/basic-usage.md) for use cases
+- Check [Configuration](../getting-started/configuration.md) for setup
+- Review [Examples](../examples/basic-usage.md) for use cases
 - Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 
