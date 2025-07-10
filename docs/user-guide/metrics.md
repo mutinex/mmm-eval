@@ -181,4 +181,4 @@ class CustomMetric(BaseMetric):
 
 - Review [Tests](../user-guide/tests.md) for metric context
 - Check [Configuration](../getting-started/configuration.md) for settings
-- Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 
+- Join [Discussions](https://github.com/mutinex/mmm-eval/discussions) for support 

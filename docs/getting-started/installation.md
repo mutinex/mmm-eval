@@ -10,34 +10,32 @@ mmm-eval requires Python 3.11 or higher. Make sure you have Python installed on 
 
 ### Using Poetry (Recommended)
 
-The recommended way to install mmm-eval is using Poetry:
+The recommended way to install mmm-eval is using Poetry. Ensure you're using Poetry
+`2.x.x`.
 
 ```bash
 # Install Poetry if you haven't already
 curl -sSL https://install.python-poetry.org | python3 -
 
 # Add mmm-eval to your project
-poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
+poetry add git+https://github.com/mutinex/mmm-eval.git
 ```
 
 ### Using pip
 
 ```bash
-pip install git+https://github.com/Mutiny-Group/mmm-eval.git
+pip install git+https://github.com/mutinex/mmm-eval.git
 ```
 
 ### From Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mutiny-Group/mmm-eval.git
+git clone https://github.com/mutinex/mmm-eval.git
 cd mmm-eval
 
 # Install using Poetry
 poetry install
-
-# Or install using pip
-pip install -e .
 ```
 
 ## Dependencies
@@ -75,7 +73,7 @@ If you want to contribute to mmm-eval, set up a development environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mutiny-Group/mmm-eval.git
+git clone https://github.com/mutinex/mmm-eval.git
 cd mmm-eval
 
 # Install dependencies
@@ -114,8 +112,8 @@ mmm-eval --help
 
 If you encounter installation issues:
 
-- Check the [GitHub Issues](https://github.com/Mutiny-Group/mmm-eval/issues)
-- Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions)
+- Check the [GitHub Issues](https://github.com/mutinex/mmm-eval/issues)
+- Join our [Discussions](https://github.com/mutinex/mmm-eval/discussions)
 
 ## Next Steps
 

@@ -167,4 +167,4 @@ PyMC-Marketing has simpler configuration:
 
 - Check [Configuration](../getting-started/configuration.md) for setup
 - Review [Examples](../examples/basic-usage.md) for use cases
-- Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 
+- Join [Discussions](https://github.com/mutinex/mmm-eval/discussions) for support 

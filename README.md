@@ -19,7 +19,7 @@ mmm-eval provides a standardized way to evaluate and compare different MMM frame
 ### Installation
 
 ```bash
-pip install mmm-eval
+pip install git+https://github.com/mutinex/mmm-eval.git
 ```
 
 ### Basic Usage
@@ -37,7 +37,7 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accu
 
 ## Documentation
 
-The official hosted documentation can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
+The official hosted documentation can be found [here](https://mutinex.github.io/mmm-eval/).
 
 ## Contributing
 

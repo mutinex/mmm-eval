@@ -164,4 +164,4 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 - Check [Configuration](../getting-started/configuration.md) for test settings
 - Review [Examples](../examples/basic-usage.md) for similar cases
-- Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 
+- Join [Discussions](https://github.com/mutinex/mmm-eval/discussions) for support 

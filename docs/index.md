@@ -9,7 +9,7 @@ Get started with mmm-eval in just a few steps:
 ### 1. Install mmm-eval
 
 ```bash
-pip install mmm-eval
+pip install git+https://github.com/mutinex/mmm-eval.git
 ```
 
 ### 2. Prepare your data
