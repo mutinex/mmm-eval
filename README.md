@@ -44,8 +44,6 @@ The official hosted documentation can be found [here](https://miniature-succotas
 - **[Examples](docs/examples/basic-usage.md)** - Practical examples and use cases
 - **[Configuration](docs/getting-started/configuration.md)** - Framework-specific configuration guides
 
-For the full deve
-
 ## Contributing
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
