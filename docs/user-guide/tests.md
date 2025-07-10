@@ -26,20 +26,6 @@ Accuracy tests evaluate how well the model fits the training data.
 
 - **Lower MAPE/RMSE/MAE**: Better model performance
 - **Higher R-squared**: Better model fit (0-1 scale)
-- **Industry benchmarks**: MAPE < 20% is generally good
-
-### Example Results
-
-```json
-{
-  "accuracy": {
-    "mape": 0.15,
-    "rmse": 125.5,
-    "r_squared": 0.85,
-    "mae": 98.2
-  }
-}
-```
 
 ## Cross-Validation Tests
 
@@ -130,46 +116,14 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path con
 
 ## Test Configuration
 
-### Accuracy Test Settings
-
-```json
-{
-  "accuracy": {
-    "train_test_split": 0.8,
-    "random_seed": 42
-  }
-}
-```
-
-### Cross-Validation Settings
-
-```json
-{
-  "cross_validation": {
-    "n_splits": 5,
-    "test_size": 0.2,
-    "gap": 0
-  }
-}
-```
-
-### Refresh Stability Settings
-
-```json
-{
-  "refresh_stability": {
-    "baseline_periods": 52,
-    "update_frequency": 4,
-    "max_updates": 12
-  }
-}
-```
+If you'd like to modify the test pass/fail thresholds, you can fork the branch and
+modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 ## Interpreting Results
 
 ### Good Model Indicators
 
-- **Accuracy**: MAPE < 20%, R-squared > 0.8
+- **Accuracy**: MAPE < 15%, R-squared > 0.8
 - **Cross-Validation**: Out-of-sample MAPE similar to in-sample
 - **Stability**: Parameter changes < 10%
 - **Performance**: Reasonable training times

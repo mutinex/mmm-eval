@@ -64,7 +64,7 @@ After installation, verify that mmm-eval is working correctly:
 python -c "import mmm_eval; print(f'mmm-eval version: {mmm_eval.__version__}')"
 
 # Test the CLI
-benjammmin --help
+mmm-eval --help
 ```
 
 ## Development Setup
@@ -85,7 +85,7 @@ poetry install
 poetry shell
 
 # Test the installation
-poetry run benjammmin --help
+poetry run mmm-eval --help
 ```
 
 ### Using Virtual Environment
@@ -99,7 +99,7 @@ source mmm-eval-env/bin/activate  # On Windows: mmm-eval-env\Scripts\activate
 pip install -e .
 
 # Test the installation
-benjammmin --help
+mmm-eval --help
 ```
 
 ## Troubleshooting
