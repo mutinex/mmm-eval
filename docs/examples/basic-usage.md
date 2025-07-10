@@ -1,6 +1,6 @@
 # Basic Usage Examples
 
-This guide provides practical examples of how to use BenjaMMMin for different scenarios.
+This guide provides practical examples of how to use mmm-eval for different scenarios.
 
 For the sake of simplicity, all examples below exhibit use of PyMC-marketing, but the
 takeaways still apply when using other frameworks. For examples of how to configure
@@ -9,7 +9,7 @@ a Meridian model, see the example notebook in the `examples/` directory.
 ## Example 1: Basic Evaluation
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -47,7 +47,7 @@ Create a configuration file `config.json`:
 Run the evaluation:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -59,7 +59,7 @@ benjammmin \
 Run only certain validation tests:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -78,7 +78,7 @@ Available tests:
 Get detailed information during execution:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -119,7 +119,7 @@ For more complex models, use an advanced configuration:
 Run with verbose output:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path advanced_config.json \
@@ -189,7 +189,7 @@ perturbation,percentage_change_for_each_channel:channel_2,0.01,True
 For development and testing:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path small_test_data.csv \
   --framework pymc-marketing \
   --config-path test_config.json \
@@ -213,7 +213,7 @@ Use minimal sampling parameters in your config:
 For production use:
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path production_data.csv \
   --framework pymc-marketing \
   --config-path production_config.json \
@@ -262,7 +262,7 @@ cat > config.json << 'EOF'
 EOF
 
 # Run evaluation
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \

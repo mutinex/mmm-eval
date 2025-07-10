@@ -1,170 +1,213 @@
-# Validation Tests
+# Tests
 
-BenjaMMMin provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
+mmm-eval provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
 
 ## Overview
 
-BenjaMMMin includes four main types of validation tests:
+mmm-eval includes four main types of validation tests:
 
-1. **Accuracy Test** - Predictive accuracy on unseen data
-2. **Cross-Validation Test** - Predictive accuracy on k-folds of unseen data
-3. **Refresh Stability Test** - Stability of marketing attribution when additional data is added
-4. **Perturbation Test** - Stability of marketing attribution when noise is added to input data
+1. **Accuracy Tests**: Measure how well the model fits the data
+2. **Cross-Validation Tests**: Assess model generalization
+3. **Refresh Stability Tests**: Evaluate model stability over time
+4. **Performance Tests**: Measure computational efficiency
 
-## Accuracy Test
+## Accuracy Tests
 
-### Purpose
+Accuracy tests evaluate how well the model fits the training data.
 
-The accuracy test evaluates how well the model predicts on unseen data.
+### Metrics
 
-### Methodology
-
-1. **Data Split**: Divides data into training and test sets
-2. **Model Training**: Trains the model on the training set
-3. **Prediction**: Makes predictions on the test set
-4. **Evaluation**: Calculates accuracy metrics
+- **MAPE (Mean Absolute Percentage Error)**: Average percentage error
+- **RMSE (Root Mean Square Error)**: Standard deviation of prediction errors
+- **R-squared**: Proportion of variance explained by the model
+- **MAE (Mean Absolute Error)**: Average absolute prediction error
 
 ### Interpretation
 
-- **Good accuracy**: Low MAPE, high R²
-- **Poor accuracy**: High MAPE, low R²
-- **Overfitting**: Good training performance, poor test performance
+- **Lower MAPE/RMSE/MAE**: Better model performance
+- **Higher R-squared**: Better model fit (0-1 scale)
+- **Industry benchmarks**: MAPE < 20% is generally good
 
-## Cross-Validation Test
+### Example Results
 
-### Purpose
+```json
+{
+  "accuracy": {
+    "mape": 0.15,
+    "rmse": 125.5,
+    "r_squared": 0.85,
+    "mae": 98.2
+  }
+}
+```
 
-The cross-validation test assesses the *consistency* of model accuracy across multiple data splits.
+## Cross-Validation Tests
 
-If there are `T` time periods in the data and the fold size is `f`, the split points are
-set equal to `[T-f, T-2f, ..., T-kf]` such that the train and test sets are contiguous.
-By default, `f` is set to 4.
+Cross-validation tests assess how well the model generalizes to unseen data.
 
-### Methodology
+### Process
 
-1. **K-Fold Split**: Divides data into `k` contiguous folds (to preserve time series structure)
-2. **Iterative Training**: Trains `k` models, each using `k-1` folds
-3. **Performance Assessment**: Evaluates each model on the held-out fold
-4. **Stability Analysis**: Measures variation in accuracy metrics across folds
+1. **Time Series Split**: Data is split chronologically
+2. **Rolling Window**: Model is trained on expanding windows
+3. **Out-of-Sample Prediction**: Predictions made on held-out data
+4. **Performance Metrics**: Calculated on out-of-sample predictions
 
-### Interpretation
+### Metrics
 
-- **Stable model**: Low standard deviation across folds
-- **Unstable model**: High standard deviation across folds and poor values (high MAPE, low R²)
-- **Overfitting**: High variation suggests poor generalization
-
-## Refresh Stability Test
-
-### Purpose
-
-The refresh stability test evaluates how stable marketing attribution is when newly observed
-data is added (refreshed).
-
-### Methodology
-
-1. **Progressive Training**: Trains models on increasing proportions of data
-2. **Performance Tracking**: Measures marketing ROI at each refresh point
-3. **Stability Assessment**: Analyzes variation in ROI over time
+- **MAPE**: Out-of-sample prediction accuracy
+- **RMSE**: Out-of-sample error magnitude
+- **R-squared**: Out-of-sample explanatory power
+- **MAE**: Out-of-sample absolute error
 
 ### Interpretation
 
-- **Stable model**: Consistent attribution across refresh periods
-- **Unstable model**: Attribution varies significantly over time
+- **Consistent performance**: Similar in-sample and out-of-sample metrics
+- **Overfitting**: Much better in-sample than out-of-sample performance
+- **Underfitting**: Poor performance on both in-sample and out-of-sample data
 
-## Perturbation Test
+## Refresh Stability Tests
 
-!!! info "Meridian reach and frequency"
-    The Meridian model supports modelling using reach and frequency as inputs, in addition
-    to media spend. Due to the complexity of perturbing two related inputs, the perturbation
-    test will be skipped if the Meridian framework is used and reach and frequency data
-    is provided.
+Refresh stability tests evaluate how model parameters change when new data is added.
 
-### Purpose
+### Process
 
-The perturbation test evaluates how sensitive the model is to small changes in marketing
-inputs.
+1. **Baseline Model**: Train on initial dataset
+2. **Incremental Updates**: Add new data periods
+3. **Parameter Comparison**: Compare parameter estimates
+4. **Stability Metrics**: Calculate change percentages
 
-### Methodology
+### Metrics
 
-1. **Train a Model**: Train a model on the original data.
-2. **Data Perturbation**: Adds small random noise to marketing input data
-3. **Model Retraining**: Retrains model on perturbed data
-4. **Performance Comparison**: Compares marketing attribution between perturbed and non-perturbed models
-
+- **Mean Percentage Change**: Average change in parameter estimates
+- **Channel Stability**: Stability of media channel parameters
+- **Intercept Stability**: Stability of baseline parameters
+- **Seasonality Stability**: Stability of seasonal components
 
 ### Interpretation
 
-- **Robust model**: Performance changes little with perturbations
-- **Sensitive model**: Performance degrades significantly with perturbations
-- **Overfitting**: High sensitivity suggests poor generalization
+- **Low percentage changes**: Stable model parameters
+- **High percentage changes**: Unstable model (may need more data)
+- **Channel-specific stability**: Some channels more stable than others
 
-## Test Selection
+## Performance Tests
 
-### When to Use Each Test
+Performance tests measure computational efficiency and resource usage.
 
-| Test | Best For | When to Use |
-|------|----------|-------------|
-| Accuracy | Basic evaluation | Initial model assessment |
-| Cross-Validation | Stability assessment | Model comparison |
-| Refresh Stability | Temporal analysis | Long-term planning |
-| Perturbation | Robustness evaluation | Production readiness |
+### Metrics
 
-### Recommended Test Combinations
-All tests are run by default, which is the recommendation. However, users can specify a subset of tests to run
+- **Training Time**: Time to fit the model
+- **Memory Usage**: Peak memory consumption
+- **Prediction Time**: Time to generate predictions
+- **Convergence**: Number of iterations to convergence
 
-CLI
+### Interpretation
+
+- **Faster training**: More efficient model
+- **Lower memory**: Better resource utilization
+- **Faster predictions**: Better for real-time applications
+- **Fewer iterations**: Better convergence properties
+
+## Running Tests
+
+### All Tests (Default)
+
+```bash
+benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+```
+
+### Specific Tests
+
 ```bash
 benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 ```
 
-Python
-```python
-results = run_evaluation(config=config, data=data, framework="pymc-marketing", test_names = ("accuracy","cross_validation"))
+### Available Test Names
+
+- `accuracy`: Accuracy tests only
+- `cross_validation`: Cross-validation tests only
+- `refresh_stability`: Refresh stability tests only
+- `performance`: Performance tests only
+
+## Test Configuration
+
+### Accuracy Test Settings
+
+```json
+{
+  "accuracy": {
+    "train_test_split": 0.8,
+    "random_seed": 42
+  }
+}
 ```
 
-## Interpreting Test Results
+### Cross-Validation Settings
 
-Each test answers a distinct question:
+```json
+{
+  "cross_validation": {
+    "n_splits": 5,
+    "test_size": 0.2,
+    "gap": 0
+  }
+}
+```
 
-* **Accuracy Test**: "How well does my model predict on unseen data?"
-* **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
-* **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
-* **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"
+### Refresh Stability Settings
 
-For each test, we compute multiple metrics to give as much insight into the test result as possible: 
+```json
+{
+  "refresh_stability": {
+    "baseline_periods": 52,
+    "update_frequency": 4,
+    "max_updates": 12
+  }
+}
+```
 
-* **MAPE (Mean Absolute Percentage Error)**  
-  `MAPE = (1 / n) * Σ |(y_i - ŷ_i) / y_i|`
+## Interpreting Results
 
-(note that this is expressed as a proportion, so a value of 1 indicates 100% error)
+### Good Model Indicators
 
-* **R-squared (Coefficient of Determination)**  
-  `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
+- **Accuracy**: MAPE < 20%, R-squared > 0.8
+- **Cross-Validation**: Out-of-sample MAPE similar to in-sample
+- **Stability**: Parameter changes < 10%
+- **Performance**: Reasonable training times
 
-### Example Results
+### Warning Signs
 
-|     test_name     |                  metric_name                  | metric_value | metric_pass |
-|-------------------|-----------------------------------------------|--------------|-------------|
-| accuracy          | mape                                          | 0.121        | False       |
-| accuracy          | r_squared                                     | -0.547       | False       |
-| cross_validation  | mean_mape                                     | 0.084        | False       |
-| cross_validation  | std_mape                                      | 0.058        | False       |
-| cross_validation  | mean_r_squared                                | -7.141       | False       |
-| cross_validation  | std_r_squared                                 | 9.686        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:radio | 0.369        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:TV     | 0.021        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:radio  | 0.397        | False       |
-| perturbation      | percentage_change_for_each_channel:TV         | 0.005        | False       |
-| perturbation      | percentage_change_for_each_channel:radio      | 0.112        | False       |
+- **Overfitting**: Much better in-sample than out-of-sample performance
+- **Instability**: Large parameter changes with new data
+- **Poor Performance**: High MAPE or low R-squared
+- **Slow Training**: Excessive computation time
 
+## Best Practices
 
-## Changing the Thresholds
-Default metric thresholds in `mmm_eval/metrics/threshold_constants.py` can be overwritten in-place to change the pass/fail cutoff for each metric.
+### Test Selection
 
+- **Start with accuracy**: Always run accuracy tests first
+- **Add cross-validation**: For generalization assessment
+- **Include stability**: For production models
+- **Monitor performance**: For computational constraints
 
-## Next Steps
+### Result Analysis
 
-- Learn about [Metrics](metrics.md) to understand test outputs
-- Check [Examples](examples/basic-usage.md) for practical test usage
-- Review [Configuration](getting-started/configuration.md) for test customization 
+- **Compare frameworks**: Run same tests on different frameworks
+- **Track over time**: Monitor performance as data grows
+- **Set thresholds**: Define acceptable performance levels
+- **Document decisions**: Record test choices and rationale
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Slow tests**: Reduce data size or simplify model
+2. **Memory errors**: Use smaller datasets or more efficient settings
+3. **Convergence issues**: Check model configuration
+4. **Inconsistent results**: Verify random seed settings
+
+### Getting Help
+
+- Check [Configuration](getting-started/configuration.md) for test settings
+- Review [Examples](examples/basic-usage.md) for similar cases
+- Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 

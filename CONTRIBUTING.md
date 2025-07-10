@@ -1,6 +1,6 @@
-# Contributing to BenjaMMMin
+# Contributing to mmm-eval
 
-We welcome contributions to BenjaMMMin! This document provides guidelines for contributing to the project.
+We welcome contributions to mmm-eval! This document provides guidelines for contributing to the project.
 
 ## Development Setup
 
@@ -144,4 +144,4 @@ mmm-eval/
 
 If you have questions about contributing, please open an issue or start a discussion on GitHub.
 
-Thank you for contributing to BenjaMMMin! 
+Thank you for contributing to mmm-eval!

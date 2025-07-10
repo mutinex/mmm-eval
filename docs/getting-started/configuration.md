@@ -1,6 +1,6 @@
 # Configuration
 
-BenjaMMMin uses framework-specific configurations to control model parameters, fitting settings, and data mappings. This guide explains how to create and use configurations for the PyMC-Marketing framework.
+mmm-eval uses framework-specific configurations to control model parameters, fitting settings, and data mappings. This guide explains how to create and use configurations for the PyMC-Marketing framework.
 
 ## Creating Configurations
 
@@ -57,7 +57,7 @@ config.save_model_object_to_json("./", "my_config")
 }
 ```
 
-If you want to run BenjaMMMin from the CLI, you will need to save the config saved to a JSON file. We recommend Option 1 above to avoid any errors related to improper stringifiation of the model object in the manual approach.
+If you want to run mmm-eval from the CLI, you will need to save the config saved to a JSON file. We recommend Option 1 above to avoid any errors related to improper stringifiation of the model object in the manual approach.
 
 
 ## Using a Configuration
@@ -76,7 +76,7 @@ new_config = PyMCConfig.load_model_config_from_json("path/to/config.json")
 results = run_evaluation(new_config, ...)
 ```
 
-# PyMC-Marketing Configuration Structure
+## PyMC-Marketing Configuration Structure
 
 A PyMC-Marketing configuration file has the following structure:
 
@@ -251,7 +251,7 @@ The column name containing the target variable (optional, defaults to revenue if
 }
 ```
 
-# Meridian Configuration Structure
+## Meridian Configuration Structure
 
 A Meridian configuration file has the following structure:
 
@@ -639,7 +639,7 @@ Other optional arguments match the API of the [Meridian.sample_posterior functio
 
 ## Configuration Validation
 
-BenjaMMMin validates your configuration file and will raise errors for:
+mmm-eval validates your configuration file and will raise errors for:
 
 * Missing required fields
 * Invalid field types

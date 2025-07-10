@@ -1,4 +1,4 @@
-"""BenjaMMMin: A unified evaluation framework for Media Mix Models (MMMs).
+"""mmm-eval: A unified evaluation framework for Media Mix Models (MMMs).
 
 This package provides a standardized interface for evaluating different MMM frameworks
 such as PyMC-marketing and Google Meridian.

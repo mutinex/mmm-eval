@@ -1,6 +1,6 @@
 # Data
 
-BenjaMMMin expects your data to be in a specific format. This guide explains the required structure and provides examples for preparing your marketing mix modeling data.
+mmm-eval expects your data to be in a specific format. This guide explains the required structure and provides examples for preparing your marketing mix modeling data.
 
 ## Data Requirements
 
@@ -30,7 +30,7 @@ BenjaMMMin expects your data to be in a specific format. This guide explains the
 
 ## Data Format
 
-BenjaMMMin accepts CSV and Parquet files with the following structure:
+mmm-eval accepts CSV and Parquet files with the following structure:
 
 ### Required Columns
 
@@ -129,7 +129,7 @@ Please provide your dates in ISO format, e.g. `YYYY-MM-DD`.
 
 ## Validation
 
-BenjaMMMin performs several validation checks:
+mmm-eval performs several validation checks:
 
 ### Automatic Validation
 
@@ -141,7 +141,7 @@ BenjaMMMin performs several validation checks:
 
 ## Data Preparation Tips
 
-### Before Running BenjaMMMin
+### Before Running mmm-eval
 
 #### Clean your data
 

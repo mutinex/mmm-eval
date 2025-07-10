@@ -1,12 +1,12 @@
 # Quick Start
 
-This guide will help you get started with BenjaMMMin quickly by walking through an example notebook. You'll learn the evaluation workflow and how to interpret the results. To see how to run BenjaMMMin from the command line, check out [CLI](../user-guide/cli.md).
+This guide will help you get started with mmm-eval quickly by walking through an example notebook. You'll learn the evaluation workflow and how to interpret the results. To see how to run mmm-eval from the command line, check out [CLI](../user-guide/cli.md).
 
 ## Prerequisites
 
 Before you begin, make sure you have:
 
-1. **BenjaMMMin installed** - See [Installation](installation.md) if you haven't installed it yet
+1. **mmm-eval installed** - See [Installation](installation.md) if you haven't installed it yet
 2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
 3. **A supported framework** - Currently, Meridian and PyMC-Marketing are supported
 

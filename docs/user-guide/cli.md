@@ -1,133 +1,141 @@
-# Command Line Interface
+# CLI Reference
 
-BenjaMMMin provides a command-line interface (CLI) for running MMM evaluations. This guide covers all available options and usage patterns.
+mmm-eval provides a command-line interface (CLI) for running MMM evaluations. This guide covers all available options and usage patterns.
 
 ## Basic Usage
 
-The basic command structure is:
+### Command Structure
 
 ```bash
 benjammmin [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
 ```
 
-## Required Arguments
+### Required Arguments
 
-### --input-data-path
+- `--input-data-path`: Path to your input data file (CSV or Parquet)
+- `--framework`: MMM framework to use (`pymc-marketing` or `meridian`)
+- `--config-path`: Path to your configuration file (JSON)
+- `--output-path`: Directory where results will be saved
 
-Path to your input data file (CSV or Parquet format).
-
-### --framework
-
-The MMM framework to use for evaluation.
-
-### --config-path
-
-Path to a framework-specific JSON configuration file.
-
-### --output-path
-
-Directory to save evaluation results.
-
-## Optional Arguments
-
-#### --test-names
-
-Specify which validation tests to run. You can specify multiple tests after the `--test-names` flag if desired.
+### Example Commands
 
 ```bash
-# Run all tests (default)
+# Basic evaluation
 benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
-# Run two tests
+# Run specific tests only
 benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
-
-# Available tests: accuracy, cross_validation, refresh_stability, perturbation
 ```
 
-#### --verbose
+## Command Options
 
-Enable verbose logging for detailed output and error info.
+### Input Options
 
-## Complete Example
+- `--input-data-path`: Path to input data file (required)
+- `--config-path`: Path to configuration file (required)
+- `--framework`: MMM framework to use (required)
+  - Options: `pymc-marketing`, `meridian`
 
-Here's a complete example with all options:
+### Output Options
+
+- `--output-path`: Directory for output files (required)
+- `--test-names`: Specific tests to run (optional)
+  - Options: `accuracy`, `cross_validation`, `refresh_stability`, `performance`
+  - Default: All tests
+
+### Advanced Options
+
+- `--random-seed`: Random seed for reproducibility (optional)
+- `--verbose`: Enable verbose output (optional)
+- `--help`: Show help message
+
+## Examples
+
+### Basic Evaluation
 
 ```bash
 benjammmin \
-  --input-data-path marketing_data.csv \
+  --input-data-path data.csv \
   --framework pymc-marketing \
-  --config-path evaluation_config.json \
-  --test-names accuracy cross_validation refresh_stability perturbation \
-  --output-path ./evaluation_results/ \
+  --config-path config.json \
+  --output-path results/
+```
+
+### Run Specific Tests
+
+```bash
+benjammmin \
+  --input-data-path data.csv \
+  --framework pymc-marketing \
+  --config-path config.json \
+  --output-path results/ \
+  --test-names accuracy cross_validation
+```
+
+### With Custom Random Seed
+
+```bash
+benjammmin \
+  --input-data-path data.csv \
+  --framework pymc-marketing \
+  --config-path config.json \
+  --output-path results/ \
+  --random-seed 42
+```
+
+### Verbose Output
+
+```bash
+benjammmin \
+  --input-data-path data.csv \
+  --framework pymc-marketing \
+  --config-path config.json \
+  --output-path results/ \
   --verbose
 ```
 
-## Available Tests
-See [Tests](./tests.md)
+## Output Structure
 
-## Framework Support
-See [Frameworks](./frameworks.md)
+The CLI creates the following output structure:
 
-## Output Files
-
-After running an evaluation, you'll find the following files in your output directory:
-
-- `mmm_eval_{framework}_{timestamp}.csv` - Detailed test results in CSV format
-
-### Results File Structure
-
-The results CSV file contains the following columns:
-
-- `test_name` - Name of the validation test
-- `metric_name` - Name of the metric calculated
-- `metric_value` - Value of the metric
-- `metric_pass` - Whether the metric passed its threshold (if applicable)
-
-### Example Results
-
-```csv
-test_name,metric_name,metric_value,metric_pass
-accuracy,mape,0.15,True
-accuracy,r_squared,0.85,True
-cross_validation,mape,0.18,True
-cross_validation,r_squared,0.82,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_1,0.05,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_2,0.03,True
-perturbation,percentage_change_for_each_channel:channel_1,0.02,True
-perturbation,percentage_change_for_each_channel:channel_2,0.01,True
+```
+results/
+├── accuracy/
+│   ├── metrics.json
+│   └── plots/
+├── cross_validation/
+│   ├── metrics.json
+│   └── plots/
+├── refresh_stability/
+│   ├── metrics.json
+│   └── plots/
+├── performance/
+│   ├── metrics.json
+│   └── plots/
+└── summary.json
 ```
 
 ## Error Handling
 
 ### Common Errors
 
-1. **File not found**: Ensure the input data file and config file exist and paths are correct
-2. **Invalid configuration**: Check that your JSON config file follows the required format
-3. **Missing columns**: Ensure your data contains all columns specified in the configuration
-4. **Framework errors**: Check that all required dependencies are installed
-
-## Help and Information
-
-### --help
-
-Display all available options and their descriptions:
-
-```bash
-benjammmin --help
-```
+1. **File not found**: Ensure all file paths are correct
+2. **Invalid configuration**: Check your config file format
+3. **Framework not supported**: Verify framework name
+4. **Data format issues**: Check data requirements
 
 ### Getting Help
 
-If you encounter issues:
+```bash
+# Show help
+benjammmin --help
 
-- Look at at [Troubleshooting](./troubleshooting.md) for common problems and their solutions
-- Check the [Configuration Guide](../getting-started/configuration.md) for config file format
-- Review the [Data Guide](data.md) for data requirements
-- See [Examples](../examples/basic-usage.md) for similar use cases
-- Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support
+# Show version
+benjammmin --version
+```
 
 ## Next Steps
 
-- Learn about [Data](data.md) for different data structures
-- Explore [Examples](../examples/basic-usage.md) for practical use cases
-- Check the [Configuration Guide](../getting-started/configuration.md) for advanced settings 
+- Learn about [Data Requirements](data.md) for input format
+- Check [Configuration](getting-started/configuration.md) for setup
+- Explore [Examples](examples/basic-usage.md) for use cases 

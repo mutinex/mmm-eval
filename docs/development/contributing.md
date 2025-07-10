@@ -1,6 +1,6 @@
-# Contributing to BenjaMMMin
+# Contributing to mmm-eval
 
-We welcome contributions from the community! This guide will help you get started with contributing to BenjaMMMin.
+We welcome contributions from the community! This guide will help you get started with contributing to mmm-eval
 
 ## Getting Started
 

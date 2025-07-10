@@ -3,7 +3,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "benjammmin"
+name = "mmm-eval"
 version = "0.6.0"
 description = "Open-source evaluation of marketing mix model (MMM) performance"
 authors = ["Joseph Kang <joseph.kang@mutinex.co>",
@@ -27,7 +27,7 @@ click = "^8.1.7"
 pyarrow = "^20.0.0"
 
 [tool.poetry.scripts]
-benjammmin = "mmm_eval.cli.evaluate:main"
+mmm-eval = "mmm_eval.cli.evaluate:main"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

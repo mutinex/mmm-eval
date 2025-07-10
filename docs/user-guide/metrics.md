@@ -2,149 +2,208 @@
 
 > **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
 
-BenjaMMMin provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
 
 ## Overview
 
-BenjaMMMin calculates several key metrics across different validation tests:
+mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
 
-- **Accuracy Metrics**: How well the model predicts on unseen data
-- **Stability Metrics**: How consistent the model is over time
-- **Robustness Metrics**: How sensitive the model is to data changes
+## Available Metrics
 
-## Accuracy Metrics
+mmm-eval calculates several key metrics across different validation tests:
+
+### Accuracy Metrics
+
+- **MAPE (Mean Absolute Percentage Error)**: Average percentage error between predictions and actual values
+- **RMSE (Root Mean Square Error)**: Standard deviation of prediction errors
+- **R-squared**: Proportion of variance explained by the model
+- **MAE (Mean Absolute Error)**: Average absolute prediction error
+
+### Stability Metrics
+
+- **Parameter Change**: Percentage change in model parameters
+- **Channel Stability**: Stability of media channel coefficients
+- **Intercept Stability**: Stability of baseline parameters
+
+### Performance Metrics
+
+- **Training Time**: Time required to fit the model
+- **Memory Usage**: Peak memory consumption during training
+- **Prediction Time**: Time to generate predictions
+- **Convergence**: Number of iterations to reach convergence
+
+## Metric Definitions
 
 ### MAPE (Mean Absolute Percentage Error)
 
-**Formula:**
-
-$$
-\text{MAPE} = \frac{1}{n} \sum_{i=1}^{n} \left|\frac{y_i - \hat{y}_i}{y_i}\right|
-$$
+```python
+MAPE = (1/n) * Σ |(y_i - ŷ_i) / y_i|
+```
 
 **Interpretation**:
+- **Lower is better**: 0% = perfect predictions
+- **Industry benchmark**: < 20% is generally good
+- **Scale**: Expressed as percentage (0-100%)
 
-- Lower values indicate better accuracy
-- Expressed as a proportion (0 to 1, instead of 0 to 100)
-- Sensitive to scale of target variable
+### RMSE (Root Mean Square Error)
 
-**Example**: MAPE of 15% (0.15) means predictions are off by 15% on average
+```python
+RMSE = √(Σ(y_i - ŷ_i)² / n)
+```
+
+**Interpretation**:
+- **Lower is better**: 0 = perfect predictions
+- **Units**: Same as target variable
+- **Sensitivity**: More sensitive to large errors than MAPE
 
 ### R-squared (Coefficient of Determination)
 
-**Formula:**
-
-$$
-R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}
-$$
+```python
+R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
+```
 
 **Interpretation**:
+- **Range**: 0 to 1 (higher is better)
+- **Scale**: 1 = perfect fit, 0 = no predictive power
+- **Benchmark**: > 0.8 is generally good
 
-- Range: 0 to 1
-- Higher values indicate better fit
-- Represents proportion of variance explained by the model
+### MAE (Mean Absolute Error)
 
-**Example**: R² of 0.85 means the model explains 85% of the variance
-
-## Stability Metrics
-
-### Refresh Stability
-
-Measures *consistency* of channel attribution when the model is trained on different time periods.
-
-**Calculation**:
-
-1. Train model on different proportions of data (e.g., 50%, 75%, 90%)
-2. Calculate metrics for each refresh period
-3. Measure average and standard deviation in metrics across periods
+```python
+MAE = (1/n) * Σ |y_i - ŷ_i|
+```
 
 **Interpretation**:
+- **Lower is better**: 0 = perfect predictions
+- **Units**: Same as target variable
+- **Robustness**: Less sensitive to outliers than RMSE
 
-- Lower variation indicates more stable model
-- High variation suggests model is sensitive to training data
+## Test-Specific Metrics
 
-## Robustness Metrics
+### Accuracy Test Metrics
 
-### Perturbation Sensitivity
+- **MAPE**: Overall prediction accuracy
+- **RMSE**: Error magnitude
+- **R-squared**: Model fit quality
+- **MAE**: Absolute error magnitude
 
-Measures how sensitive the model is to small changes in the data.
+### Cross-Validation Metrics
 
-**Calculation**:
+- **Mean MAPE**: Average out-of-sample accuracy
+- **Std MAPE**: Consistency of accuracy across folds
+- **Mean R-squared**: Average out-of-sample fit
+- **Std R-squared**: Consistency of fit across folds
 
-1. Add small random perturbations to input data
-2. Retrain model and calculate metrics
-3. Measure change in performance
+### Refresh Stability Metrics
 
-**Interpretation**:
+- **Mean Percentage Change**: Average parameter change
+- **Std Percentage Change**: Consistency of parameter changes
+- **Channel-specific Stability**: Stability per media channel
 
-- Lower sensitivity indicates more robust model
-- High sensitivity suggests model may not generalize well
+### Performance Metrics
 
-## Metric Comparison
-
-### When to Use Each Metric
-
-| Metric | Best For | Considerations |
-|--------|----------|----------------|
-| MAPE | Relative accuracy | Sensitive to scale, good for comparison |
-| R² | Model fit quality | May be misleading with non-linear relationships |
-
-### Metric Ranges and Benchmarks
-
-#### MAPE Benchmarks
-- **Excellent**: < 10%
-- **Good**: 10% - 20%
-- **Fair**: 20% - 30%
-- **Poor**: > 30%
-
-#### R² Benchmarks
-- **Excellent**: > 0.9
-- **Good**: 0.8 - 0.9
-- **Fair**: 0.6 - 0.8
-- **Poor**: < 0.6
-
-*Note: These benchmarks are general guidelines. Industry-specific benchmarks may vary.*
+- **Training Time**: Model fitting efficiency
+- **Memory Usage**: Resource utilization
+- **Prediction Time**: Inference speed
+- **Convergence Iterations**: Optimization efficiency
 
 ## Interpreting Results
 
-### Single Model Evaluation
+### Good Performance Indicators
 
-When evaluating a single model:
+- **MAPE < 20%**: Good prediction accuracy
+- **R-squared > 0.8**: Strong model fit
+- **Low parameter changes**: Stable model
+- **Reasonable training time**: Efficient computation
 
-1. **Check accuracy metrics**: Are predictions reasonably accurate?
-2. **Assess stability**: Is performance consistent across different scenarios?
-3. **Evaluate robustness**: How sensitive is the model to data changes?
+### Warning Signs
 
-### Model Comparison
+- **MAPE > 30%**: Poor prediction accuracy
+- **R-squared < 0.5**: Weak model fit
+- **High parameter changes**: Unstable model
+- **Excessive training time**: Computational issues
 
-When comparing multiple models:
+## Thresholds and Benchmarks
 
-1. **Compare accuracy**: Which model has better predictive performance?
-2. **Compare stability**: Which model is more consistent?
-3. **Compare robustness**: Which model is less sensitive to changes?
+### Default Thresholds
+
+```python
+# Accuracy thresholds
+MAPE_THRESHOLD = 0.20  # 20%
+R_SQUARED_THRESHOLD = 0.80  # 80%
+
+# Stability thresholds
+PARAMETER_CHANGE_THRESHOLD = 0.10  # 10%
+
+# Performance thresholds
+TRAINING_TIME_THRESHOLD = 300  # seconds
+MEMORY_USAGE_THRESHOLD = 8  # GB
+```
+
+### Industry Benchmarks
+
+| Metric | Excellent | Good | Acceptable | Poor |
+|--------|-----------|------|------------|------|
+| MAPE | < 10% | 10-20% | 20-30% | > 30% |
+| R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
+| Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
+
+## Customizing Metrics
+
+### Modifying Thresholds
+
+You can customize metric thresholds in your configuration:
+
+```json
+{
+  "metrics": {
+    "mape_threshold": 0.15,
+    "r_squared_threshold": 0.85,
+    "parameter_change_threshold": 0.08
+  }
+}
+```
+
+### Adding Custom Metrics
+
+To add custom metrics, extend the metrics module:
+
+```python
+from mmm_eval.metrics import BaseMetric
+
+class CustomMetric(BaseMetric):
+    def calculate(self, y_true, y_pred):
+        # Your custom calculation
+        return custom_value
+```
 
 ## Best Practices
 
 ### Metric Selection
 
-1. **Use multiple metrics**: Don't rely on a single metric
-2. **Consider business context**: Choose metrics relevant to your goals
-3. **Account for scale**: Use relative metrics for comparison across scales
+- **Start with MAPE**: Most intuitive for business users
+- **Include R-squared**: Technical measure of fit quality
+- **Monitor stability**: Critical for production models
+- **Track performance**: Important for scalability
 
-### Result Interpretation
+### Result Analysis
 
-1. **Set realistic expectations**: MMM accuracy varies by industry
-2. **Consider data quality**: Poor data leads to poor metrics
-3. **Validate assumptions**: Ensure metrics align with business needs
+- **Compare across frameworks**: Use same metrics for fair comparison
+- **Track over time**: Monitor performance as data grows
+- **Set business thresholds**: Align with business requirements
+- **Document decisions**: Record metric choices and rationale
 
-### Continuous Monitoring
+## Troubleshooting
 
-1. **Track metrics over time**: Monitor performance degradation
-2. **Set up alerts**: Flag when metrics fall below thresholds
-3. **Regular re-evaluation**: Periodically reassess model performance
+### Common Issues
 
-## Next Steps
+1. **Extreme MAPE values**: Check for zero or near-zero actual values
+2. **Negative R-squared**: Model performs worse than baseline
+3. **Inconsistent metrics**: Verify data preprocessing
+4. **Missing metrics**: Check test configuration
 
-- Learn about [Tests](../user-guide/tests.md) to understand how metrics are calculated
-- Check [Examples](../examples/basic-usage.md) for practical metric interpretation
-- Review [Configuration](../getting-started/configuration.md) for customizing metric calculation 
+### Getting Help
+
+- Review [Tests](tests.md) for metric context
+- Check [Configuration](getting-started/configuration.md) for settings
+- Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 
