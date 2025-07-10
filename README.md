@@ -26,21 +26,25 @@ pip install mmm-eval
 
 ```bash
 # Run with default settings
-benjammmin --input-data-path data.csv --framework pymc-marketing
+mmm-eval --input-data-path data.csv --framework pymc-marketing
 
 # Run with custom configuration
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run specific tests
-benjammmin --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
+mmm-eval --input-data-path data.csv --framework pymc-marketing --test-names accuracy cross_validation
 ```
 
 ## Documentation
+
+The official hosted documentation can be found [here](https://miniature-succotash-mrjk8q5.pages.github.io/).
 
 - **[Getting Started](docs/getting-started/installation.md)** - Installation and setup guide
 - **[User Guide](docs/user-guide/cli.md)** - Complete usage documentation
 - **[Examples](docs/examples/basic-usage.md)** - Practical examples and use cases
 - **[Configuration](docs/getting-started/configuration.md)** - Framework-specific configuration guides
+
+For the full deve
 
 ## Contributing
 
