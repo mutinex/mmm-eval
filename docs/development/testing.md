@@ -1,6 +1,6 @@
-# Testing Guide
+# Testing
 
-This guide covers testing practices and procedures for the mmm-eval project.
+This guide covers testing practices and procedures for the BenjaMMMin project.
 
 ## Testing Philosophy
 
@@ -18,14 +18,11 @@ The test suite is organized as follows:
 
 ```
 tests/
-├── unit/                    # Unit tests for individual components
-│   ├── test_core/          # Core functionality tests
-│   ├── test_adapters/      # Framework adapter tests
-│   ├── test_data/          # Data handling tests
-│   └── test_metrics/       # Metrics calculation tests
-├── integration/            # Integration tests
-├── fixtures/               # Test data and fixtures
-└── conftest.py            # Pytest configuration and shared fixtures
+├── test_adapters/               # Framework adapter tests
+├── test_configs/                # Configuration object tests
+├── test_core/                   # Core functionality tests
+├── test_data/                   # Data handling tests
+└── test_validation_tests/       # Metrics calculation tests
 ```
 
 ## Running Tests
@@ -131,30 +128,6 @@ def test_pymc_marketing_evaluation_workflow():
     assert result.refresh_stability > 0.6
 ```
 
-### Property-Based Tests
-
-For complex calculations, we use property-based testing with Hypothesis:
-
-```python
-from hypothesis import given, strategies as st
-
-@given(
-    actual=st.lists(st.floats(min_value=0.1, max_value=1000), min_size=1),
-    predicted=st.lists(st.floats(min_value=0.1, max_value=1000), min_size=1)
-)
-def test_mape_properties(actual, predicted):
-    """Test MAPE calculation properties."""
-    if len(actual) == len(predicted):
-        mape = calculate_mape(actual, predicted)
-        
-        # MAPE should always be non-negative
-        assert mape >= 0
-        
-        # MAPE should be 0 when predictions are perfect
-        if actual == predicted:
-            assert mape == 0
-```
-
 ## Test Data and Fixtures
 
 ### Using Fixtures
@@ -182,7 +155,6 @@ def test_data_validation(sample_mmm_data):
 
 ### Test Data Management
 
-- Store test data in `tests/fixtures/`
 - Use realistic but synthetic data
 - Keep test data files small and focused
 - Document the structure and purpose of test data

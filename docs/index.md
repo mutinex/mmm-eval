@@ -1,101 +1,108 @@
 # Welcome to mmm-eval
 
-An open-source tool for evaluating Marketing Mix Modeling (MMM) frameworks with a comprehensive suite of tests.
+A comprehensive evaluation framework for Marketing Mix Modeling (MMM) frameworks.
 
-## 🚀 Quick Start
+## Quick Start
 
 Get started with mmm-eval in just a few steps:
 
-### Using Poetry (Recommended)
-
-**Prerequisite**: Poetry 2.x.x or later is required.
+### 1. Install mmm-eval
 
 ```bash
-# Install from GitHub
-poetry add git+https://github.com/Mutiny-Group/mmm-eval.git
-
-# Or clone and install locally
-git clone https://github.com/Mutiny-Group/mmm-eval.git
-cd mmm-eval
-poetry install
+pip install mmm-eval
 ```
 
-### Using pip
+### 2. Prepare your data
+
+Your data should include:
+- Date column
+- Target variable (e.g., sales, conversions)
+- Media spend columns
+- Revenue column (for ROI calculations)
+
+Example data structure:
+```csv
+date,sales,revenue,tv_spend,digital_spend
+2023-01-01,1000,7000,5000,2000
+2023-01-02,1200,8000,5500,2200
+```
+
+### 3. Create a configuration
+
+For PyMC-Marketing:
+```python
+from pymc_marketing.mmm import MMM, GeometricAdstock, LogisticSaturation
+from mmm_eval.configs import PyMCConfig
+
+model = MMM(
+    date_column="date",
+    channel_columns=["tv_spend", "digital_spend"],
+    adstock=GeometricAdstock(l_max=4),
+    saturation=LogisticSaturation()
+)
+
+config = PyMCConfig.from_model_object(
+    model_object=model,
+    revenue_column="revenue"
+)
+```
+
+### 4. Run evaluation
+
 ```bash
-# Install from GitHub
-pip install git+https://github.com/Mutiny-Group/mmm-eval.git
-
-# Or clone and install locally
-git clone https://github.com/Mutiny-Group/mmm-eval.git
-cd mmm-eval
-pip install -e .
+benjammmin --input-data-path data.csv --config-path config.json --output-path ./output --framework pymc-marketing
 ```
 
-### Run a basic evaluation
-```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing
-```
+## Documentation
 
-> **Note**: mmm-eval is currently in development. For production use, we recommend installing from the latest release tag:
-> ```bash
-> poetry add git+https://github.com/Mutiny-Group/mmm-eval.git@v0.4.2
-> ```
+### Getting Started
+- **[Installation](getting-started/installation.md)** - Get up and running with mmm-eval in minutes.
+- **[Quick Start](getting-started/quick-start.md)** - Learn the basics with a hands-on example.
+- **[Configuration](getting-started/configuration.md)** - Configure your MMM frameworks.
 
-## ✨ Features
+### User Guide
+- **[CLI Reference](user-guide/cli.md)** - Learn how to use mmm-eval effectively.
+- **[Data Requirements](user-guide/data.md)** - Understand data format and requirements.
+- **[Frameworks](user-guide/frameworks.md)** - Supported MMM frameworks.
+- **[Tests](user-guide/tests.md)** - Available validation tests.
+- **[Metrics](user-guide/metrics.md)** - Understanding evaluation metrics.
 
-- **Multi-framework support**: Evaluate PyMC-Marketing and other MMM frameworks
-- **Comprehensive test suite**: Accuracy, cross-validation, refresh stability, and perturbation tests
-- **Standardized metrics**: MAPE, RMSE, R-squared, and other industry-standard metrics
-- **Flexible data handling**: Support for custom column names and data formats
-- **CLI interface**: Easy-to-use command-line tool for evaluation
+### Examples
+- **[Basic Usage](examples/basic-usage.md)** - Practical examples and use cases.
 
-## 📚 Documentation
+### Development
+- **[Contributing](development/contributing.md)** - How to contribute to mmm-eval.
+- **[Setup](development/setup.md)** - Development environment setup.
+- **[Testing](development/testing.md)** - Testing practices and procedures.
 
-- **[Installation](getting-started/installation.md)** - How to install mmm-eval
-- **[Quick Start](getting-started/quick-start.md)** - Get up and running quickly
-- **[User Guide](user-guide/cli.md)** - Detailed usage instructions
-- **[API Reference](api/core.md)** - Complete API documentation
-- **[Examples](examples/basic-usage.md)** - Practical examples and use cases
+## Features
 
-## 🛠️ Development
-
-- **[Contributing](development/contributing.md)** - How to contribute to mmm-eval
-- **[Development Setup](development/setup.md)** - Setting up a development environment
-- **[Testing](development/testing.md)** - Running tests and quality checks
-
-## 📊 Supported Frameworks
-
-Currently supported MMM frameworks:
-
+### Multi-Framework Support
 - **PyMC-Marketing**: Bayesian MMM framework using PyMC
-- *More frameworks coming soon...*
+- **Google Meridian**: Google's MMM framework
+- **Extensible**: Easy to add new frameworks
 
-## 🤝 Contributing
+### Comprehensive Testing
+- **Accuracy Tests**: MAPE, RMSE, R-squared metrics
+- **Cross-Validation**: Time series cross-validation
+- **Refresh Stability**: Model stability over time
+- **Performance Tests**: Computational efficiency metrics
 
-We welcome contributions! Please see our [Contributing Guide](development/contributing.md) for details on how to get started.
+### Standardized Evaluation
+- Consistent metrics across frameworks
+- Reproducible results
+- Industry-standard validation approaches
 
-## 📄 License
+## Quick Navigation
 
-This project is licensed under the Apache 2.0 License - see the [License](about/license.md) file for details.
+### Getting Started
+Get up and running with mmm-eval in minutes.
 
----
+### User Guide
+Learn how to use mmm-eval effectively.
 
-<div class="grid cards" markdown>
+### Examples
+Practical examples and use cases.
 
--   :fontawesome-solid-rocket: __[Quick Start](getting-started/quick-start.md)__
-
-    Get up and running with mmm-eval in minutes.
-
--   :fontawesome-solid-book: __[User Guide](user-guide/cli.md)__
-
-    Learn how to use mmm-eval effectively.
-
--   :fontawesome-solid-code: __[API Reference](api/core.md)__
-
-    Explore the complete API documentation.
-
--   :fontawesome-solid-lightbulb: __[Examples](examples/basic-usage.md)__
-
-    See practical examples and use cases.
-
-</div> 
+### Development
+Contribute to mmm-eval development. 

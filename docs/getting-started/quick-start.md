@@ -8,7 +8,7 @@ Before you begin, make sure you have:
 
 1. **mmm-eval installed** - See [Installation](installation.md) if you haven't installed it yet
 2. **Your MMM data** - A CSV or Parquet file with your marketing mix model data
-3. **A supported framework** - Currently PyMC-Marketing is supported
+3. **A supported framework** - Currently, Meridian and PyMC-Marketing are supported
 
 ## Basic Usage
 
@@ -19,8 +19,13 @@ Your data should contain the following columns (see [Data Requirements](../user-
 * Date/time period
 * Revenue variable (for calculating ROI)
 * Marketing spend $ by channel (e.g., TV, digital, print)
-* `OPTIONAL` Response variable (e.g., sales, conversions, units)
+* `OPTIONAL` Response variable (e.g., sales, conversions, units). If not provided, revenue will be used as the target.
 * `OPTIONAL` Control variables (e.g., price, seasonality)
+
+!!! info "Meridian Data Inputs"
+    Meridian supports multiple types of controls and media treatments, as well as a geography field. For details, see
+    the Meridian notebook in the `examples/` directory for a full walkthrough and their
+    documentation [here](https://developers.google.com/meridian/docs/user-guide/supported-data-types-formats?hl=en).
 
 Example data structure:
 
@@ -33,7 +38,7 @@ date_week,quantity,revenue,TV,radio,price,event_1,event_2
 2023-01-29,1400,9500,6500,2600,12.99,0,0
 ```
 
-### Evaluating your PyMC MMM (follow along in `mmm-eval/examples/pymc_eval.ipynb`)
+### Evaluating a PyMC MMM (follow along in `examples/pymc_eval.ipynb`)
 First, load your data
 ```jupyter
 data = pd.read_csv("data/example_data.csv")
@@ -71,6 +76,71 @@ And we can run the evaluation suite, which returns a dataframe.
 ```jupyter
 result = run_evaluation(framework="pymc-marketing", config=config, data=data)
 ```
+
+### Evaluating a Meridian MMM (follow along in `examples/meridian_eval.ipynb`)
+
+#### Load data and convert to Meridian data object
+
+```jupyter
+df = pd.read_excel(
+    'https://github.com/google/meridian/raw/main/meridian/data/simulated_data/xlsx/geo_media.xlsx',
+    engine='openpyxl',
+)builder = (
+    data_builder.DataFrameInputDataBuilder(kpi_type='non_revenue')
+        .with_kpi(df, kpi_col="conversions")
+        .with_revenue_per_kpi(df, revenue_per_kpi_col="revenue_per_conversion")
+        .with_population(df)
+        .with_controls(df, control_cols=["GQV", "Discount", "Competitor_Sales"])
+)
+channels = ["Channel0", "Channel1", "Channel2", "Channel3", "Channel4", "Channel5"]
+builder = builder.with_media(
+    df,
+    media_cols=[f"{channel}_impression" for channel in channels],
+    media_spend_cols=[f"{channel}_spend" for channel in channels],
+    media_channels=channels,
+)
+
+data = builder.build()
+```
+
+#### Define a Meridian MMM
+```jupyter
+roi_mu = 0.2     # Mu for ROI prior for each media channel.
+roi_sigma = 0.9  # Sigma for ROI prior for each media channel.
+prior = prior_distribution.PriorDistribution(
+    roi_m=tfp.distributions.LogNormal(roi_mu, roi_sigma, name=constants.ROI_M)
+)
+model_spec = spec.ModelSpec(prior=prior)
+# sampling from the posterior is not required prior to evaluation
+mmm = model.Meridian(input_data=data, model_spec=model_spec)
+```
+
+#### Set up Meridian input data builder config
+```jupyter
+data_preproc = df.copy()
+data_preproc["revenue"] = data_preproc["revenue_per_conversion"]*data_preproc["conversions"]
+
+channels = ["Channel0", "Channel1", "Channel2", "Channel3", "Channel4", "Channel5"]
+input_data_builder_config = MeridianInputDataBuilderSchema(
+    date_column="time",
+    media_channels=channels,
+    channel_spend_columns=[f"{col}_spend" for col in channels],
+    channel_impressions_columns=[f"{col}_impression" for col in channels],
+    response_column="conversions",
+    control_columns=["GQV", "Competitor_Sales", "Discount"],
+)
+```
+
+#### Create a config and evaluate
+
+```
+# specify a larger number of samples if you want quality results
+sample_posterior_kwargs = dict(n_chains=1, n_adapt=10, n_burnin=10, n_keep=10)
+config = MeridianConfig.from_model_object(mmm, input_data_builder_config=input_data_builder_config,
+                                          revenue_column="revenue", sample_posterior_kwargs=sample_posterior_kwargs)
+# Run the evaluation suite!
+result = run_evaluation(framework="meridian", config=config, data=data_preproc)
+```
 #### ✨ Done ✨
 
 ## What's in `result`?
@@ -91,7 +161,7 @@ Details on the implementation of the tests can be found in [Tests](../user-guide
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
 
-If we look at the evaluation output ```display(results)```, we see the following table:
+If we look at the evaluation output ```display(results)```, we'll see something like the following:
 
 |     test_name     |                  metric_name                  | metric_value | metric_pass |
 |-------------------|-----------------------------------------------|--------------|-------------|
@@ -114,6 +184,22 @@ Notice that our model is failing every test. Seems we have some work to do!
 ## Changing the Thresholds
 Default metric thresholds in `mmm_eval/metrics/threshold_constants.py` can be overwritten in-place to change the pass/fail cutoff for each metric.
 
+## Troubleshooting
+
+### Common Issues
+
+1. **Data Format**: Ensure your data has the required columns and proper format
+2. **Configuration Errors**: Check that your config file is valid JSON
+3. **Memory Issues**: For large datasets, try reducing the number of chains or draws
+
+### Getting Help
+
+If you encounter issues:
+
+* Check the [CLI Reference](../user-guide/cli.md) for all available options
+* Look at [Examples](../examples/basic-usage.md) for similar use cases
+* Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support
+
 ## Next Steps
 
 Now that you've run your first evaluation:
@@ -121,12 +207,4 @@ Now that you've run your first evaluation:
 1. **Explore the [User Guide](../user-guide/cli.md)** for detailed CLI options
 2. **Check out [Examples](../examples/basic-usage.md)** for more complex scenarios
 3. **Learn about [Data](../user-guide/data.md)** for different data structures
-4. **Review [Configuration](../user-guide/configuration.md)** for advanced settings
-
-## Getting Help
-
-If you encounter issues:
-
-* Check the [CLI Reference](../user-guide/cli.md) for all available options
-* Look at [Examples](../examples/basic-usage.md) for similar use cases
-* Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support
+4. **Review [Configuration](../getting-started/configuration.md)** for advanced settings

@@ -4,7 +4,7 @@ This project is licensed under the Apache License, Version 2.0.
 
 ## Apache License 2.0
 
-Copyright 2024 mmm-eval Contributors
+Copyright 2025 mmm-eval Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

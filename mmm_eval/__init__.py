@@ -7,6 +7,9 @@ such as PyMC-marketing and Google Meridian.
 __author__ = "Mutinex Model Scale Team"
 __email__ = "joseph.kang@mutinex.co"
 
+# Import version information
+from ._version import __version__
+
 # Core functionality
 # Adapters
 from .adapters import (
@@ -51,6 +54,8 @@ from .utils.logging import setup_logging
 setup_logging()
 
 __all__ = [
+    # Version
+    "__version__",
     # Configs
     "PyMCConfig",
     "MeridianConfig",

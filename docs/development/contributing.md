@@ -1,6 +1,6 @@
 # Contributing to mmm-eval
 
-We welcome contributions from the community! This guide will help you get started with contributing to mmm-eval.
+We welcome contributions from the community! This guide will help you get started with contributing to mmm-eval
 
 ## Getting Started
 
@@ -28,7 +28,7 @@ We welcome contributions from the community! This guide will help you get starte
    poetry shell
    ```
 
-4. **Install pre-commit hooks**:
+4. **(Optional) Install pre-commit hooks**:
    ```bash
    pre-commit install
    ```
@@ -70,7 +70,7 @@ git add .
 git commit -m "feat: add new feature description"
 ```
 
-Follow the [conventional commits](https://www.conventionalcommits.org/) format:
+Where possible, please follow the [conventional commits](https://www.conventionalcommits.org/) format:
 
 - `feat:` New features
 - `fix:` Bug fixes
@@ -219,7 +219,7 @@ def test_calculate_mape_empty_input():
 2. **Update documentation** if needed
 3. **Add tests** for new functionality
 4. **Follow coding standards**
-5. **Update CHANGELOG.md** if adding new features
+5. **Update CHANGELOG.md**
 
 ### Pull Request Template
 
@@ -228,7 +228,6 @@ Use the provided pull request template and fill in all sections:
 - **Description** - What does this PR do?
 - **Type of change** - Bug fix, feature, documentation, etc.
 - **Testing** - How was this tested?
-- **Checklist** - Ensure all items are completed
 
 ### Review Process
 
@@ -243,17 +242,17 @@ Use the provided pull request template and fill in all sections:
 
 1. **Search existing issues** to avoid duplicates
 2. **Check documentation** for solutions
-3. **Try the latest version** of mmm-eval
+3. **Update to the latest version** of BenjaMMMin
 
 ### Issue Template
 
-Use the provided issue template and include:
+Be sure to include:
 
 - **Description** - Clear description of the problem
 - **Steps to reproduce** - Detailed steps
 - **Expected behavior** - What should happen
 - **Actual behavior** - What actually happens
-- **Environment** - OS, Python version, mmm-eval version
+- **Environment** - OS, Python version, BenjaMMMin version
 - **Additional context** - Any other relevant information
 
 ## Community Guidelines
@@ -290,4 +289,4 @@ Contributors will be recognized in:
 - **CHANGELOG.md** - For all contributions
 - **GitHub contributors** page
 
-Thank you for contributing to mmm-eval! 🎉 
+Thank you for contributing to BenjaMMMin! 🎉 

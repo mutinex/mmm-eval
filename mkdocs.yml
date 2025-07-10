@@ -9,7 +9,7 @@ repo_url: https://github.com/Mutiny-Group/mmm-eval
 edit_uri: edit/main/docs/
 
 # Copyright
-copyright: Copyright &copy; 2024 mmm-eval Contributors
+copyright: Copyright &copy; 2025 mmm-eval Contributors
 
 # Theme
 theme:
@@ -93,8 +93,6 @@ nav:
     - Metrics: api/metrics.md
   - Examples:
     - Basic Usage: examples/basic-usage.md
-    - Custom Configuration: examples/custom-configuration.md
-    - Advanced Scenarios: examples/advanced-scenarios.md
   - Development:
     - Contributing: development/contributing.md
     - Development Setup: development/setup.md
