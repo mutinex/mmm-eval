@@ -14,7 +14,7 @@ Before setting up the development environment, ensure you have the following ins
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Mutiny-Group/mmm-eval.git
+   git clone https://github.com/mutinex/mmm-eval.git
    cd mmm-eval
    ```
 
@@ -283,6 +283,6 @@ Once your development environment is set up:
 
 If you encounter issues during setup:
 
-1. Check the [GitHub Issues](https://github.com/Mutiny-Group/mmm-eval/issues)
+1. Check the [GitHub Issues](https://github.com/mutinex/mmm-eval/issues)
 2. Review the [Contributing Guide](contributing.md)
 3. Ask questions in the project discussions 
