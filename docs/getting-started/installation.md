@@ -76,7 +76,7 @@ If you want to contribute to mmm-eval, set up a development environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Mutiny-Group/mmm-eval.git
+git clone https://github.com/mutinex/mmm-eval.git
 cd mmm-eval
 
 # Install dependencies
@@ -115,8 +115,8 @@ mmm-eval --help
 
 If you encounter installation issues:
 
-- Check the [GitHub Issues](https://github.com/Mutiny-Group/mmm-eval/issues)
-- Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions)
+- Check the [GitHub Issues](https://github.com/mutinex/mmm-eval/issues)
+- Join our [Discussions](https://github.com/mutinex/mmm-eval/discussions)
 
 ## Next Steps
 
