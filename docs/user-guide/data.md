@@ -231,6 +231,6 @@ date,sales,revenue,tv_spend,digital_spend
 
 If you encounter data format issues:
 
-- Check the [CLI Reference](cli.md) for all available options
-- Review the [Examples](examples/basic-usage.md) for similar use cases
+- Check the [CLI Reference](../user-guide/cli.md) for all available options
+- Review the [Examples](../examples/basic-usage.md) for similar use cases
 - Join our [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for community support 

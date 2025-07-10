@@ -242,7 +242,7 @@ Use the provided pull request template and fill in all sections:
 
 1. **Search existing issues** to avoid duplicates
 2. **Check documentation** for solutions
-3. **Update to the latest version** of BenjaMMMin
+3. **Update to the latest version** of mmm-eval
 
 ### Issue Template
 
@@ -252,7 +252,7 @@ Be sure to include:
 - **Steps to reproduce** - Detailed steps
 - **Expected behavior** - What should happen
 - **Actual behavior** - What actually happens
-- **Environment** - OS, Python version, BenjaMMMin version
+- **Environment** - OS, Python version, mmm-eval version
 - **Additional context** - Any other relevant information
 
 ## Community Guidelines
@@ -289,4 +289,4 @@ Contributors will be recognized in:
 - **CHANGELOG.md** - For all contributions
 - **GitHub contributors** page
 
-Thank you for contributing to BenjaMMMin! 🎉 
+Thank you for contributing to mmm-eval! 🎉 

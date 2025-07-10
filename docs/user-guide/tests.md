@@ -112,13 +112,13 @@ Performance tests measure computational efficiency and resource usage.
 ### All Tests (Default)
 
 ```bash
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 ```
 
 ### Specific Tests
 
 ```bash
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 ```
 
 ### Available Test Names
@@ -208,6 +208,6 @@ benjammmin --input-data-path data.csv --framework pymc-marketing --config-path c
 
 ### Getting Help
 
-- Check [Configuration](getting-started/configuration.md) for test settings
-- Review [Examples](examples/basic-usage.md) for similar cases
+- Check [Configuration](../getting-started/configuration.md) for test settings
+- Review [Examples](../examples/basic-usage.md) for similar cases
 - Join [Discussions](https://github.com/Mutiny-Group/mmm-eval/discussions) for support 

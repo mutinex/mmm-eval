@@ -50,7 +50,7 @@ config = PyMCConfig.from_model_object(
 ### 4. Run evaluation
 
 ```bash
-benjammmin --input-data-path data.csv --config-path config.json --output-path ./output --framework pymc-marketing
+mmm-eval --input-data-path data.csv --config-path config.json --output-path ./output --framework pymc-marketing
 ```
 
 ## Documentation
@@ -95,14 +95,14 @@ benjammmin --input-data-path data.csv --config-path config.json --output-path ./
 
 ## Quick Navigation
 
-### Getting Started
+### [Getting Started](getting-started/installation.md)
 Get up and running with mmm-eval in minutes.
 
-### User Guide
+### [User Guide](user-guide/cli.md)
 Learn how to use mmm-eval effectively.
 
-### Examples
+### [Examples](examples/basic-usage.md)
 Practical examples and use cases.
 
-### Development
+### [Development](development/contributing.md)
 Contribute to mmm-eval development. 
