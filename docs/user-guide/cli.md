@@ -7,7 +7,7 @@ mmm-eval provides a command-line interface (CLI) for running MMM evaluations. Th
 ### Command Structure
 
 ```bash
-benjammmin [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
+mmm-eval [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PATH --output-path PATH
 ```
 
 ### Required Arguments
@@ -21,10 +21,10 @@ benjammmin [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path 
 
 ```bash
 # Basic evaluation
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run specific tests only
-benjammmin --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
 ```
 
 ## Command Options
@@ -54,7 +54,7 @@ benjammmin --input-data-path data.csv --framework pymc-marketing --config-path c
 ### Basic Evaluation
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -64,7 +64,7 @@ benjammmin \
 ### Run Specific Tests
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -75,7 +75,7 @@ benjammmin \
 ### With Custom Random Seed
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -86,7 +86,7 @@ benjammmin \
 ### Verbose Output
 
 ```bash
-benjammmin \
+mmm-eval \
   --input-data-path data.csv \
   --framework pymc-marketing \
   --config-path config.json \
@@ -128,14 +128,14 @@ results/
 
 ```bash
 # Show help
-benjammmin --help
+mmm-eval --help
 
 # Show version
-benjammmin --version
+mmm-eval --version
 ```
 
 ## Next Steps
 
-- Learn about [Data Requirements](data.md) for input format
-- Check [Configuration](getting-started/configuration.md) for setup
-- Explore [Examples](examples/basic-usage.md) for use cases 
+- Learn about [Data Requirements](../user-guide/data.md) for input format
+- Check [Configuration](../getting-started/configuration.md) for setup
+- Explore [Examples](../examples/basic-usage.md) for use cases 
