@@ -173,7 +173,7 @@ def construct_meridian_data_object(df: pd.DataFrame, config: MeridianConfig) -> 
     )
     # population, if provided, needs to be called "population" in the DF
     if "population" in df.columns:
-        builder = builder.with_population(df)
+        builder = builder.with_population(df) 
 
     # controls (non-intervenable, e.g. macroeconomics)
     if input_data_builder_schema.control_columns:
@@ -394,7 +394,8 @@ class MeridianAdapter(BaseAdapter):
             raise RuntimeError("Model must be fit before prediction")
 
         # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False,
+                                                      use_kpi=True)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
