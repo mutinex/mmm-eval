@@ -66,7 +66,8 @@ class ValidationTestOrchestrator:
         for test_name in test_names:
             logger.info(f"Running test: {test_name}")
             test_instance = self.tests[test_name](adapter.date_column)
-            test_result = test_instance.run_with_error_handling(adapter, data)
+            #test_result = test_instance.run_with_error_handling(adapter, data)
+            test_result = test_instance.run(adapter, data)
             results[test_name] = test_result
 
         return ValidationResults(results)
