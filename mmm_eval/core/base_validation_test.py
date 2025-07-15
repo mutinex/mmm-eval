@@ -94,7 +94,7 @@ class BaseValidationTest(ABC):
         logger.info(f"Splitting data into train and test sets for {self.test_name} test")
 
         train_idx, test_idx = split_timeseries_data(
-            data, ValidationTestConstants.TRAIN_TEST_SPLIT_TEST_PROPORTION, date_column=self.date_column
+            data, date_column=self.date_column, test_size=ValidationTestConstants.ACCURACY_TEST_SIZE
         )
         return data[train_idx], data[test_idx]
 
@@ -121,26 +121,53 @@ class BaseValidationTest(ABC):
 
 
 def split_timeseries_data(
-    data: pd.DataFrame, test_proportion: PositiveFloat, date_column: str
+    data: pd.DataFrame,
+    date_column: str,
+    test_size: PositiveInt | None = None,
+    test_proportion: PositiveFloat | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
     """Split data globally based on date.
 
     Arguments:
         data: timeseries data to split, possibly with another index like geography
-        test_proportion: proportion of test data, must be in (0, 1)
         date_column: name of the date column
+        test_size: number of data points to reserve for testing (last N points)
+        test_proportion: proportion of test data, must be in (0, 1)
 
     Returns:
         boolean masks for training and test data respectively
 
+    Raises:
+        ValueError: If neither test_size nor test_proportion is provided, or if values are invalid
+
     """
-    if test_proportion <= 0 or test_proportion >= 1:
-        raise ValueError("`test_proportion` must be in the range (0, 1)")
+    if test_size is None and test_proportion is None:
+        raise ValueError("Either `test_size` or `test_proportion` must be provided")
+    
+    if test_size is not None and test_proportion is not None:
+        raise ValueError("Only one of `test_size` or `test_proportion` should be provided")
+    
+    if test_proportion is not None:
+        if test_proportion <= 0 or test_proportion >= 1:
+            raise ValueError("`test_proportion` must be in the range (0, 1)")
+    
+    if test_size is not None:
+        if test_size <= 0:
+            raise ValueError("`test_size` must be greater than 0")
 
     sorted_dates = sorted(data[date_column].unique())
-    # rounding eliminates possibility of floating point precision issues
-    split_idx = int(round(len(sorted_dates) * (1 - test_proportion)))
-    cutoff = sorted_dates[split_idx]
+    
+    if test_size is not None:
+        # Reserve the last test_size data points for testing
+        if test_size >= len(sorted_dates):
+            raise ValueError(f"`test_size` ({test_size}) must be less than the number of unique dates ({len(sorted_dates)})")
+        
+        cutoff = sorted_dates[-(test_size + 1)]  # Use the date before the test period starts
+    else:
+        # Use test_proportion
+        # rounding eliminates possibility of floating point precision issues
+        split_idx = int(round(len(sorted_dates) * (1 - test_proportion)))
+        cutoff = sorted_dates[split_idx]
 
     train_mask = data[date_column] < cutoff
     test_mask = data[date_column] >= cutoff
