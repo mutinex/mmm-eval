@@ -350,9 +350,7 @@ class MeridianAdapter(BaseAdapter):
         if self.max_train_date:
             self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time)
             # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
-            holdout_id = np.repeat(
-                self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0
-            )
+            holdout_id = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
             # if only a single geo, convert to 1D array
             if holdout_id.shape[0] == 1:
                 holdout_id = holdout_id[0, :]
@@ -394,8 +392,7 @@ class MeridianAdapter(BaseAdapter):
             raise RuntimeError("Model must be fit before prediction")
 
         # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False,
-                                                      use_kpi=True)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
