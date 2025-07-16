@@ -42,7 +42,7 @@ MAPE = (1/n) * Σ |(y_i - ŷ_i) / y_i|
 
 **Interpretation**:
 - **Lower is better**: 0% = perfect predictions
-- **Scale**: Expressed as a proportion, e.g. 0.15 rather than 15%
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
 
 ### RMSE (Root Mean Square Error)
 

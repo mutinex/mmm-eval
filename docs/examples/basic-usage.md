@@ -170,9 +170,9 @@ results/
 
 ```csv
 test_name,metric_name,metric_value,metric_pass
-accuracy,mape,0.15,True
+accuracy,mape,15.0,True
 accuracy,r_squared,0.85,True
-cross_validation,mape,0.18,True
+cross_validation,mape,18.0,True
 cross_validation,r_squared,0.82,True
 refresh_stability,mean_percentage_change_for_each_channel:channel_1,0.05,True
 refresh_stability,mean_percentage_change_for_each_channel:channel_2,0.03,True

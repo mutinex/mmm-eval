@@ -3,43 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults
-
-
-def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
-    """Calculate Symmetric Mean Absolute Percentage Error (SMAPE).
-
-    SMAPE is calculated as: 100 * (2 * |actual - predicted|) / (|actual| + |predicted|)
-
-    Args:
-        actual: Actual values
-        predicted: Predicted values
-
-    Returns:
-        SMAPE value as float (percentage)
-
-    Raises:
-        ValueError: If series are empty or have different lengths
-
-    """
-    # Validate inputs
-    if len(actual) == 0 or len(predicted) == 0:
-        raise ValueError("Cannot calculate SMAPE on empty series")
-
-    if len(actual) != len(predicted):
-        raise ValueError("Actual and predicted series must have the same length")
-
-    # Handle NaN values
-    if actual.isna().any() or predicted.isna().any():
-        return float(np.nan)
-
-    # Handle division by zero and edge cases
-    denominator = np.abs(actual) + np.abs(predicted)
-    # Avoid division by zero by setting denominator to 1 where it's 0
-    denominator = np.where(denominator == 0, 1, denominator)
-
-    smape = 100 * np.mean(2 * np.abs(actual - predicted) / denominator)
-    return float(smape)
+from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults, calculate_smape
 
 
 def calculate_mean_for_singular_values_across_cross_validation_folds(

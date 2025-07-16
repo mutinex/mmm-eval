@@ -165,10 +165,10 @@ If we look at the evaluation output ```display(results)```, we'll see something 
 
 |     test_name     |                  metric_name                  | metric_value | metric_pass |
 |-------------------|-----------------------------------------------|--------------|-------------|
-| accuracy          | mape                                          | 0.121        | False       |
+| accuracy          | mape                                          | 12.1         | False       |
 | accuracy          | r_squared                                     | -0.547       | False       |
-| cross_validation  | mean_mape                                     | 0.084        | False       |
-| cross_validation  | std_mape                                      | 0.058        | False       |
+| cross_validation  | mean_mape                                     | 8.4          | False       |
+| cross_validation  | std_mape                                      | 5.8          | False       |
 | cross_validation  | mean_r_squared                                | -7.141       | False       |
 | cross_validation  | std_r_squared                                 | 9.686        | False       |
 | refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
