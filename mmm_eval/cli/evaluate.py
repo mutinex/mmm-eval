@@ -44,8 +44,8 @@ logger = logging.getLogger(__name__)
     default=tuple(ValidationTestNames.all_tests_as_str()),
     help=(
         "Test names to run. Can specify multiple tests as space-separated values "
-        "(e.g. --test-names accuracy cross_validation) or by repeating the flag "
-        "(e.g. --test-names accuracy --test-names cross_validation). "
+        "(e.g. --test-names holdout_accuracy in_sample_accuracy cross_validation) or by repeating the flag "
+        "(e.g. --test-names holdout_accuracy --test-names in_sample_accuracy). "
         "Defaults to all tests if not specified."
     ),
 )

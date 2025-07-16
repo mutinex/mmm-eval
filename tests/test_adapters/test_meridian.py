@@ -690,11 +690,36 @@ class TestMeridianAdapter:
         masked = np.mean(preds_tensor, axis=(0, 1))[adapter.holdout_mask]
         assert np.allclose(adapter.predict(), masked)
 
+    @patch("mmm_eval.adapters.meridian.Analyzer")
+    def test_predict_in_sample_returns_full_posterior_mean(self, mock_analyzer):
+        """Test that predict_in_sample method returns posterior mean for full dataset."""
+        adapter = MeridianAdapter(self.config)
+        adapter.is_fitted = True
+        adapter.analyzer = mock_analyzer_instance = Mock()
+        # Simulate expected_outcome returns (chains, draws, times)
+        preds_tensor = np.ones((2, 2, 5)) * 10
+        mock_analyzer_instance.expected_outcome.return_value = preds_tensor
+
+        # Test that predict_in_sample always returns full dataset predictions
+        result = adapter.predict_in_sample()
+        assert np.allclose(result, np.mean(preds_tensor, axis=(0, 1)))
+
+        # Even with holdout mask, should still return full dataset
+        adapter.holdout_mask = np.array([False, True, True, False, True])
+        result_with_mask = adapter.predict_in_sample()
+        assert np.allclose(result_with_mask, np.mean(preds_tensor, axis=(0, 1)))
+
     def test_predict_raises_if_not_fitted(self):
         """Test that predict raises RuntimeError if model is not fitted."""
         adapter = MeridianAdapter(self.config)
         with pytest.raises(RuntimeError):
             adapter.predict()
+
+    def test_predict_in_sample_raises_if_not_fitted(self):
+        """Test that predict_in_sample raises RuntimeError if model is not fitted."""
+        adapter = MeridianAdapter(self.config)
+        with pytest.raises(RuntimeError):
+            adapter.predict_in_sample()
 
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict")

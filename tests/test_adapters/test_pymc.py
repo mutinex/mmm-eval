@@ -257,6 +257,25 @@ def test_predict_method_real_pymc(valid_pymc_config, realistic_test_data):
 
 
 @pytest.mark.integration
+def test_predict_in_sample_method_real_pymc(valid_pymc_config, realistic_test_data):
+    """Test the predict_in_sample method with real PyMC (integration test)."""
+    config = valid_pymc_config
+    adapter = PyMCAdapter(config)
+    data = realistic_test_data
+
+    # Fit the model first
+    adapter.fit(data)
+
+    # Test in-sample prediction
+    result = adapter.predict_in_sample()
+
+    # Verify prediction results
+    assert isinstance(result, np.ndarray)
+    assert len(result) == len(data)
+    assert not np.all(np.isnan(result))  # Should have some non-NaN predictions
+
+
+@pytest.mark.integration
 def test_get_channel_roi_real_pymc(valid_pymc_config, realistic_test_data):
     """Test the get_channel_roi method with real PyMC (integration test)."""
     config = valid_pymc_config
@@ -340,6 +359,15 @@ def test_predict_method_not_fitted(valid_pymc_config):
 
     with pytest.raises(RuntimeError, match="Model must be fit before prediction"):
         adapter.predict(data)
+
+
+def test_predict_in_sample_method_not_fitted(valid_pymc_config):
+    """Test predict_in_sample method when model is not fitted."""
+    config = valid_pymc_config
+    adapter = PyMCAdapter(config)
+
+    with pytest.raises(RuntimeError, match="Model must be fit before prediction"):
+        adapter.predict_in_sample()
 
 
 def test_get_channel_roi_method_not_fitted(valid_pymc_config):
