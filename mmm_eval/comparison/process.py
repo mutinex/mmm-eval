@@ -82,7 +82,7 @@ def process_pricing(pricing_df, company_name: str):
         pricing_weekly, extra_group_cols=["company"], agg_mapping={"retail_price": "mean"}
     )
     # alternative is to include competitor prices as separate cols
-    pricing = pricing[pricing["company"]==company_name]
+    pricing = pricing[pricing["company"].isin([company_name, "default"])]
     return pricing[["date", "retail_price"]].set_index("date").ffill()
 
 def process_events(events_df, sales_date_index):
@@ -106,10 +106,70 @@ def process_events(events_df, sales_date_index):
     return reindexed
 
 
-def process_offers(offers_df):
-    raise NotImplementedError("Offers not implemented")
+def process_offers(offers_df, company_name: str):
+    offers_weekly = convert_df_to_weekly(
+        offers_df,
+        numerical_columns=["offer_value", "offer_measure"],
+        downsample_method_to_daily={
+            "retail_price": utils.DownsampleMethod.UNIFORM,
+        },
+        agg_method_to_weekly={
+            "offer_measure": "sum",
+            "offer_value": "sum",
+        },
+    )
 
-# add functions for discounts, offers, owned media, etc.
+    offers = aggregate_to_node_level(
+        offers_weekly, extra_group_cols=["company_name"], agg_mapping={
+                "offer_measure": "sum",
+                "offer_value": "sum",
+            },
+    )
+    # alternative is to include competitor prices as separate cols
+    offers = offers[offers["company_name"].isin([company_name, "default"])]
+    value_col = "offer_measure" if offers["offer_value"].isnull().all() else "offer_value"
+        
+    return offers[["date", value_col]].set_index("date").ffill()
+
+
+def process_discounts(discounts_df):
+    discounts_weekly = convert_df_to_weekly(
+        discounts_df,
+        numerical_columns=[
+            "rebates_value",
+            "discounts_value",
+            "discounted_retail_price",
+            "discount_percentage",
+            "quantity_discounted",
+        ],
+        downsample_method_to_daily={
+            "rebates_value": utils.DownsampleMethod.UNIFORM,
+            "discounts_value": utils.DownsampleMethod.UNIFORM,
+            "discounted_retail_price": utils.DownsampleMethod.REPLICA,
+            "discount_percentage": utils.DownsampleMethod.REPLICA,
+            "quantity_discounted": utils.DownsampleMethod.UNIFORM,
+        },
+        agg_method_to_weekly={
+            "rebates_value": "sum",
+            "discounts_value": "sum",
+            "discounted_retail_price": "mean",
+            "discount_percentage": "mean",
+            "quantity_discounted": "sum",
+        },
+    )
+
+    discounts = aggregate_to_node_level(
+        discounts_weekly,
+        extra_group_cols=[],
+        agg_mapping={
+            "discounts_value": "sum",
+            "discount_percentage": "mean",
+        },
+    )
+
+    value_col = "discount_percentage" if discounts["discounts_value"].isnull().all() else "discounts_value"    
+    return discounts[["date", value_col]].set_index("date").ffill()
+
 
 def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
                      externals: pd.DataFrame):
@@ -120,19 +180,28 @@ def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
     processed = [sales_processed, paid_media_processed]
 
     if datasets.get("pricing_snapshot") is not None:
-        pricing_processed = process_pricing(datasets["pricing_snapshot"], company_name=company_name)
-        processed.append(pricing_processed)
-        column_map["pricing"] = pricing_processed.columns.tolist()
+        if len(datasets["pricing_snapshot"]) > 0:
+            pricing_processed = process_pricing(datasets["pricing_snapshot"], company_name=company_name)
+            processed.append(pricing_processed)
+            column_map["pricing"] = pricing_processed.columns.tolist()
 
     if datasets.get("events_snapshot") is not None:
-        events_processed = process_events(datasets["events_snapshot"], sales_processed.index)
-        processed.append(events_processed)
-        column_map["events"] = events_processed.columns.tolist()
+        if len(datasets["events_snapshot"]) > 0:
+            events_processed = process_events(datasets["events_snapshot"], sales_processed.index)
+            processed.append(events_processed)
+            column_map["events"] = events_processed.columns.tolist()
 
     if datasets.get("offers_snapshot") is not None:
-        offers_processed = process_offers(datasets["offers_snapshot"])
-        processed.append(offers_processed)
-        column_map["offers"] = offers_processed.columns.tolist()
+        if len(datasets["offers_snapshot"]) > 0:
+            offers_processed = process_offers(datasets["offers_snapshot"], company_name=company_name)
+            processed.append(offers_processed)
+            column_map["offers"] = offers_processed.columns.tolist()
+
+    if datasets.get("discounts_snapshot") is not None:
+        if len(datasets["discounts_snapshot"]) > 0:
+            discounts_processed = process_discounts(datasets["discounts_snapshot"])
+            processed.append(discounts_processed)
+            column_map["discounts"] = discounts_processed.columns.tolist()
 
     holidays_processed = holidays.pivot(index="date", columns="variable", values="value")
     column_map["holidays"] = holidays_processed.columns.tolist()
@@ -151,6 +220,8 @@ def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
         merged[column_map["pricing"]] = merged[column_map["pricing"]].ffill().bfill()
     if "offers" in column_map:
         merged[column_map["offers"]] = merged[column_map["offers"]].fillna(0)
+    if "discounts" in column_map:
+        merged[column_map["discounts"]] = merged[column_map["discounts"]].fillna(0)
     if "holidays" in column_map:
         merged[column_map["holidays"]] = merged[column_map["holidays"]].fillna(0)
     if "externals" in column_map:

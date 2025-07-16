@@ -94,25 +94,25 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
 
     table_names = get_available_table_names(bq_loader, project_id, dataset_name)
 
-    if node_filter is not None:
-        brand, category, product = node_filter.split(".")
-        if brand == "default":
-            brand_query = "IS NULL"
-        else:
-            brand_query = f"= '{brand}'"
-        if category == "default":
-            category_query = "IS NULL"
-        else:
-            category_query = f"= '{category}'"
-        if product == "default":
-            product_query = "IS NULL"
-        else:
-            product_query = f"= '{product}'"
+    # if node_filter is not None:
+    #     brand, category, product = node_filter.split(".")
+    #     if brand == "default":
+    #         brand_query = "IS NULL"
+    #     else:
+    #         brand_query = f"= '{brand}'"
+    #     if category == "default":
+    #         category_query = "IS NULL"
+    #     else:
+    #         category_query = f"= '{category}'"
+    #     if product == "default":
+    #         product_query = "IS NULL"
+    #     else:
+    #         product_query = f"= '{product}'"
 
     datasets = {}
     for table in table_names:
         # we don't care about CLV
-        if table == "clv_snapshot":
+        if table in ["clv_snapshot", "brand_snapshot", "sponsorship_snapshot", "competitor_spend_snapshot"]:
             continue
         if "_datamart" in dataset_name:
             if data_version is None:
@@ -146,12 +146,12 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
             date_col = "period_start"
         logger.info(f"Loading {table}")
 
-        if node_filter:
-            query += f"""
-            AND brand {brand_query}
-            AND category {category_query}
-            AND product {product_query}
-            """
+        # if node_filter:
+        #     query += f"""
+        #     AND brand {brand_query}
+        #     AND category {category_query}
+        #     AND product {product_query}
+        #     """
         df = bq_loader.load_data(query)
         df[date_col] = pd.to_datetime(df[date_col])
         df.loc[:, df.dtypes == "object"] = df.loc[:, df.dtypes == "object"].fillna("default")
@@ -159,6 +159,10 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
             df["node"] = df[["brand", "category", "product"]].agg("_".join, axis=1)
         datasets[table] = df
         logger.info(f"Loaded {table} with {df.shape[0]} rows")
+
+        #(datasets[table]["node"].unique())
+        if node_filter:
+            datasets[table] = datasets[table][datasets[table]["node"] == node_filter]
 
     return datasets
 
@@ -226,26 +230,27 @@ def convert_to_daily(
         _df["_start_date"] = _df[date_col].dt.to_period("M").dt.to_timestamp()
         _df["_end_date"] = _df["_start_date"] + pd.offsets.MonthEnd()
     else:
-        raise ValueError("Frequency should be weekly or monthly, got {freq}")
+        raise ValueError(f"Frequency should be weekly or monthly, got {freq}")
 
     _df["_repeat_count"] = (_df["_end_date"] - _df["_start_date"]).dt.days + 1
-    daily_df: pd.DataFrame = _df.loc[_df.index.repeat(_df["_repeat_count"])].reset_index(drop=True)
-    daily_df[date_col] = (
-        _df.apply(lambda row: pd.date_range(row["_start_date"], row["_end_date"]), axis=1)
-        .explode()
-        .reset_index(drop=True)
-    )
+    _df["_source_idx"] = _df.index  # tracks the original index of the row
+
+    daily_df = _df.loc[_df.index.repeat(_df["_repeat_count"])].reset_index(drop=True)
+    group_idx = daily_df.groupby("_source_idx").cumcount()  # get sequential day numbers within each group
+    daily_df[date_col] = daily_df["_start_date"] + pd.to_timedelta(group_idx, unit="D")  # add to start date
 
     downsample_method_per_columns: dict[str, DownsampleMethod] = (
         {numerical_column: downsample_method for numerical_column in numerical_columns}
         if isinstance(downsample_method, DownsampleMethod)
         else downsample_method
     )
+
     uniform_downsample_cols = [
         col for col, method in downsample_method_per_columns.items() if method == DownsampleMethod.UNIFORM
     ]
+
     daily_df[uniform_downsample_cols] = daily_df[uniform_downsample_cols].div(daily_df["_repeat_count"], axis=0)
-    daily_df = daily_df.drop(columns=["_start_date", "_end_date", "_repeat_count"])
+    daily_df = daily_df.drop(columns=["_start_date", "_end_date", "_repeat_count", "_source_idx"])
     daily_df[freq_col] = "D"
 
     return daily_df
@@ -309,6 +314,7 @@ def convert_df_to_weekly(
     date_col: str = const.DATE_COL,
     freq_col: str = const.FREQ_COL,
     weekly_freq: str = const.FREQ_DEFAULT,
+    flag_overflow: bool = False,
 ) -> pd.DataFrame:
     """Convert an entire DataFrame with various frequencies to weekly frequency.
 
@@ -326,6 +332,8 @@ def convert_df_to_weekly(
         date_col (str, optional): The name of the date column. Defaults to const.DATE_COL.
         freq_col (str, optional): The name of the frequency column. Defaults to const.FREQ_COL.
         weekly_freq (str, optional): The weekly frequency to resample to. Defaults to const.FREQ_DEFAULT.
+        flag_overflow (bool, optional): Whether to flag the rows with overflow by adding column `_overflow`.
+            Defaults to False.
 
     Returns:
         pd.DataFrame: A DataFrame where all data has been converted to weekly frequency.
@@ -336,12 +344,12 @@ def convert_df_to_weekly(
 
     categorical_columns = list(set(df.columns) - set(numerical_columns + [date_col, freq_col]))
     daily_df = downscale_rows_to_daily(df, numerical_columns, downsample_method_to_daily, date_col, freq_col)
+    max_date = daily_df[date_col].max()
+
+    # Vectorized approach: shift dates, convert to period and back, then add offset
     # Remove 6 days is equivalent to considering the next week with sample method.
-    daily_df[date_col] = (
-        (daily_df[date_col] - pd.Timedelta(days=6))
-        .dt.to_period(weekly_freq)
-        .apply(lambda x: pd.to_datetime(x.end_time.normalize()))
-    )
+    shifted_dates = daily_df[date_col] - pd.Timedelta(days=6)
+    daily_df[date_col] = shifted_dates.dt.to_period(weekly_freq).dt.to_timestamp() + pd.Timedelta(days=6)
 
     weekly_df = (
         daily_df.groupby([date_col, freq_col] + categorical_columns, dropna=False)
@@ -363,4 +371,7 @@ def convert_df_to_weekly(
             .reset_index(drop=True)
         )
     weekly_df[freq_col] = weekly_freq
-    return weekly_df[df.columns]
+
+    if flag_overflow:
+        weekly_df["_overflow"] = weekly_df.date > max_date - pd.Timedelta(days=6)
+    return weekly_df
