@@ -7,6 +7,7 @@ class AccuracyThresholdConstants:
     """Constants for the accuracy threshold."""
 
     MAPE = 0.15
+    SMAPE = 0.15
     R_SQUARED = 0.8
 
 
@@ -15,6 +16,8 @@ class CrossValidationThresholdConstants:
 
     MEAN_MAPE = 0.15
     STD_MAPE = 0.03
+    MEAN_SMAPE = 0.15
+    STD_SMAPE = 0.03
     MEAN_R_SQUARED = 0.8
 
 

@@ -4,6 +4,7 @@ from typing import Any
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
 from sklearn.metrics import mean_absolute_percentage_error, r2_score
+import numpy as np
 
 from mmm_eval.metrics.exceptions import InvalidMetricNameException
 from mmm_eval.metrics.threshold_constants import (
@@ -27,6 +28,7 @@ class AccuracyMetricNames(MetricNamesBase):
     """Define the names of the accuracy metrics."""
 
     MAPE = "mape"
+    SMAPE = "smape"
     R_SQUARED = "r_squared"
 
 
@@ -35,6 +37,8 @@ class CrossValidationMetricNames(MetricNamesBase):
 
     MEAN_MAPE = "mean_mape"
     STD_MAPE = "std_mape"
+    MEAN_SMAPE = "mean_smape"
+    STD_SMAPE = "std_smape"
     MEAN_R_SQUARED = "mean_r_squared"
 
 
@@ -132,12 +136,15 @@ class AccuracyMetricResults(MetricResults):
     """Define the results of the accuracy metrics."""
 
     mape: float
+    smape: float
     r_squared: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific accuracy metric passes its threshold."""
         if metric_name == AccuracyMetricNames.MAPE.value:
             return bool(metric_value <= AccuracyThresholdConstants.MAPE)
+        elif metric_name == AccuracyMetricNames.SMAPE.value:
+            return bool(metric_value <= AccuracyThresholdConstants.SMAPE)
         elif metric_name == AccuracyMetricNames.R_SQUARED.value:
             return bool(metric_value >= AccuracyThresholdConstants.R_SQUARED)
         else:
@@ -154,6 +161,11 @@ class AccuracyMetricResults(MetricResults):
                     general_metric_name=AccuracyMetricNames.MAPE.value,
                     specific_metric_name=AccuracyMetricNames.MAPE.value,
                     metric_value=self.mape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=AccuracyMetricNames.SMAPE.value,
+                    specific_metric_name=AccuracyMetricNames.SMAPE.value,
+                    metric_value=self.smape,
                 ),
                 self._create_single_metric_dataframe_row(
                     general_metric_name=AccuracyMetricNames.R_SQUARED.value,
@@ -176,8 +188,15 @@ class AccuracyMetricResults(MetricResults):
             AccuracyMetricResults object with the metrics
 
         """
+        # Calculate SMAPE inline to avoid circular import
+        denominator = np.abs(actual) + np.abs(predicted)
+        # Avoid division by zero by setting denominator to 1 where it's 0
+        denominator = np.where(denominator == 0, 1, denominator)
+        smape = 100 * np.mean(2 * np.abs(actual - predicted) / denominator)
+        
         return cls(
             mape=mean_absolute_percentage_error(actual, predicted),
+            smape=float(smape),
             r_squared=r2_score(actual, predicted),
         )
 
@@ -187,6 +206,8 @@ class CrossValidationMetricResults(MetricResults):
 
     mean_mape: float
     std_mape: float
+    mean_smape: float
+    std_smape: float
     mean_r_squared: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
@@ -195,6 +216,10 @@ class CrossValidationMetricResults(MetricResults):
             return bool(metric_value <= CrossValidationThresholdConstants.MEAN_MAPE)
         elif metric_name == CrossValidationMetricNames.STD_MAPE.value:
             return bool(metric_value <= CrossValidationThresholdConstants.STD_MAPE)
+        elif metric_name == CrossValidationMetricNames.MEAN_SMAPE.value:
+            return bool(metric_value <= CrossValidationThresholdConstants.MEAN_SMAPE)
+        elif metric_name == CrossValidationMetricNames.STD_SMAPE.value:
+            return bool(metric_value <= CrossValidationThresholdConstants.STD_SMAPE)
         elif metric_name == CrossValidationMetricNames.MEAN_R_SQUARED.value:
             return bool(metric_value >= CrossValidationThresholdConstants.MEAN_R_SQUARED)
         else:
@@ -216,6 +241,16 @@ class CrossValidationMetricResults(MetricResults):
                     general_metric_name=CrossValidationMetricNames.STD_MAPE.value,
                     specific_metric_name=CrossValidationMetricNames.STD_MAPE.value,
                     metric_value=self.std_mape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.MEAN_SMAPE.value,
+                    specific_metric_name=CrossValidationMetricNames.MEAN_SMAPE.value,
+                    metric_value=self.mean_smape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.STD_SMAPE.value,
+                    specific_metric_name=CrossValidationMetricNames.STD_SMAPE.value,
+                    metric_value=self.std_smape,
                 ),
                 self._create_single_metric_dataframe_row(
                     general_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
