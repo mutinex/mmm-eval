@@ -94,15 +94,6 @@ def test_calculate_mape_returns_correct_value():
     result = calculate_mape(actual, predicted)
     
     assert result == pytest.approx(0.1, rel=1e-2)
-
-def test_calculate_smape_returns_correct_value():
-    """Test that SMAPE calculation returns expected results."""
-    actual = [100, 200, 300]
-    predicted = [110, 190, 310]
-    
-    result = calculate_smape(actual, predicted)
-    
-    assert result == pytest.approx(0.095, rel=1e-2)
 ```
 
 ### Integration Tests
@@ -269,3 +260,111 @@ def test_smape_calculation_performance(benchmark):
     
     assert result > 0
 ```
+
+## Debugging Tests
+
+### Verbose Output
+
+```bash
+# Run with maximum verbosity
+poetry run pytest -vvv
+
+# Show local variables on failures
+poetry run pytest -l
+
+# Stop on first failure
+poetry run pytest -x
+```
+
+### Debugging with pdb
+
+```python
+def test_debug_example():
+    """Example of using pdb for debugging."""
+    import pdb; pdb.set_trace()  # Breakpoint
+    result = complex_calculation()
+    assert result > 0
+```
+
+### Test Isolation
+
+Ensure tests don't interfere with each other:
+
+```python
+@pytest.fixture(autouse=True)
+def reset_global_state():
+    """Reset global state before each test."""
+    # Setup
+    yield
+    # Teardown
+    cleanup_global_state()
+```
+
+## Best Practices
+
+### Test Naming
+
+- Use descriptive test names that explain the expected behavior
+- Follow the pattern: `test_[function]_[scenario]_[expected_result]`
+- Include edge cases and error conditions
+
+### Test Organization
+
+- Group related tests in classes
+- Use fixtures for common setup
+- Keep tests focused and single-purpose
+
+### Assertions
+
+- Use specific assertions (`assert result == expected`)
+- Avoid complex logic in assertions
+- Use appropriate assertion methods (`assertIn`, `assertRaises`, etc.)
+
+### Test Data
+
+- Use realistic test data
+- Avoid hardcoded magic numbers
+- Document test data assumptions
+
+### Documentation
+
+- Write clear docstrings for test functions
+- Explain complex test scenarios
+- Document test data sources and assumptions
+
+## Common Pitfalls
+
+### Flaky Tests
+
+Avoid flaky tests by:
+
+- Not relying on timing or external services
+- Using deterministic random seeds
+- Properly mocking external dependencies
+- Avoiding shared state between tests
+
+### Slow Tests
+
+Keep tests fast by:
+
+- Using appropriate mocks
+- Minimizing I/O operations
+- Using efficient test data
+- Running tests in parallel when possible
+
+### Over-Mocking
+
+Don't over-mock:
+
+- Test the actual behavior, not the implementation
+- Mock only external dependencies
+- Use real objects when possible
+
+## Getting Help
+
+If you encounter testing issues:
+
+1. Check the [pytest documentation](https://docs.pytest.org/)
+2. Review existing tests for examples
+3. Ask questions in project discussions
+4. Consult the [Contributing Guide](contributing.md) 

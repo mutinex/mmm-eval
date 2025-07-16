@@ -24,13 +24,6 @@ mmm-eval calculates several key metrics across different validation tests:
 - **Channel Stability**: Stability of media channel coefficients
 - **Intercept Stability**: Stability of baseline parameters
 
-### Performance Metrics
-
-- **Training Time**: Time required to fit the model
-- **Memory Usage**: Peak memory consumption during training
-- **Prediction Time**: Time to generate predictions
-- **Convergence**: Number of iterations to reach convergence
-
 ## Metric Definitions
 
 ### MAPE (Mean Absolute Percentage Error)
@@ -54,7 +47,6 @@ SMAPE = 100 * (2 * |y_i - ŷ_i|) / (|y_i| + |ŷ_i|)
 - **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
 - **Symmetric**: Treats over and underestimation equally (unlike MAPE)
 - **Robust**: Less sensitive to extreme values and zero actual values
-- **Range**: 0% to 200% (200% when actual = 0 and predicted ≠ 0)
 
 **Advantages over MAPE**:
 - **Symmetry**: 10% overestimation and 10% underestimation give the same SMAPE value
@@ -95,12 +87,11 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 - **Std Percentage Change**: Consistency of parameter changes
 - **Channel-specific Stability**: Stability per media channel
 
-### Performance Metrics
+### Perturbation Metrics
 
-- **Training Time**: Time required to fit the model
-- **Memory Usage**: Peak memory consumption during training
-- **Prediction Time**: Time to generate predictions
-- **Convergence**: Number of iterations to reach convergence
+- **Percentage Change**: Change in ROI estimates when input data is perturbed
+- **Channel-specific Sensitivity**: Sensitivity of each media channel to data perturbations
+- **Model Robustness**: Overall model stability to input noise
 
 ## Interpreting Results
 
@@ -110,19 +101,12 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
 - **Low parameter changes**: Stable model
+- **Low perturbation sensitivity**: Robust to input noise
 - **Reasonable training time**: Efficient computation
-
-### Warning Signs
-
-- **MAPE > 30%**: Poor prediction accuracy
-- **SMAPE > 30%**: Poor symmetric prediction accuracy
-- **R-squared < 0.5**: Weak model fit
-- **High parameter changes**: Unstable model
-- **Excessive training time**: Computational issues
 
 ## Thresholds and Benchmarks
 
-### Industry Benchmarks
+### Rough Benchmarks
 
 | Metric | Excellent | Good | Acceptable | Poor |
 |--------|-----------|------|------------|------|
@@ -130,6 +114,7 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 | SMAPE | < 5% | 5-10% | 10-15% | > 15% |
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
+| Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
 
 ## Customizing Metrics
 

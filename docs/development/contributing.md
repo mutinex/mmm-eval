@@ -140,27 +140,7 @@ def calculate_mape(actual: List[float], predicted: List[float]) -> float:
     Returns:
         MAPE value as a float
     """
-    if len(actual) != len(predicted):
-        raise ValueError("Actual and predicted lists must have same length")
-    
-    errors = [abs((a - p) / a) for a, p in zip(actual, predicted) if a != 0]
-    return sum(errors) / len(errors) if errors else 0.0
-
-def calculate_smape(actual: List[float], predicted: List[float]) -> float:
-    """Calculate Symmetric Mean Absolute Percentage Error.
-    
-    Args:
-        actual: List of actual values
-        predicted: List of predicted values
-        
-    Returns:
-        SMAPE value as a float
-    """
-    if len(actual) != len(predicted):
-        raise ValueError("Actual and predicted lists must have same length")
-    
-    errors = [2 * abs(a - p) / (abs(a) + abs(p)) for a, p in zip(actual, predicted) if abs(a) + abs(p) != 0]
-    return sum(errors) / len(errors) if errors else 0.0
+    pass
 ```
 
 ## Testing
