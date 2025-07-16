@@ -140,7 +140,7 @@ def split_timeseries_data(
 
     Raises:
         ValueError: if `test_size` is invalid.
-    
+
     """
     if test_size <= 0:
         raise ValueError("`test_size` must be greater than 0")
