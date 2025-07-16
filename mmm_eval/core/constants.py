@@ -6,8 +6,8 @@ class ValidationTestConstants:
 
     TRAIN_TEST_SPLIT_TEST_PROPORTION = 0.2
     RANDOM_STATE = 42
-    N_SPLITS = 2
-    TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4  # 4 representing a 4 week refresh
+    N_SPLITS = 5
+    TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4
 
     class PerturbationConstants:
         """Constants for the perturbation test."""

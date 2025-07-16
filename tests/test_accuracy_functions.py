@@ -38,7 +38,7 @@ class TestCalculateAbsolutePercentageChange:
 
         result = calculate_absolute_percentage_change(baseline, comparison)
 
-        assert all(result == 0.1)  # 10% absolute change
+        assert all(result == 10.0)  # 10% absolute change
         assert isinstance(result, pd.Series)
 
     def test_zero_baseline_handling(self):
@@ -51,8 +51,8 @@ class TestCalculateAbsolutePercentageChange:
         # Check that the first element is inf (division by zero)
         assert np.isinf(result.iloc[0])
         # Check that other elements are calculated correctly
-        assert result.iloc[1] == pytest.approx(0.1)  # (110-100)/100 = 0.1
-        assert result.iloc[2] == pytest.approx(0.05)  # (210-200)/200 = 0.05
+        assert result.iloc[1] == pytest.approx(10.0)  # (110-100)/100 = 10%
+        assert result.iloc[2] == pytest.approx(5.0)  # (210-200)/200 = 5%
 
 
 class TestCrossValidationFoldCalculations:
@@ -268,8 +268,5 @@ class TestCalculateSMAPE:
         actual = pd.Series([100, np.nan, 300])
         predicted = pd.Series([110, 220, np.nan])
 
-        result = calculate_smape(actual, predicted)
-
-        # Should handle NaN values gracefully
-        assert np.isnan(result)
-        assert isinstance(result, float)
+        with pytest.raises(ValueError, match="Actual and predicted series must be free of NaN values"):
+            calculate_smape(actual, predicted)

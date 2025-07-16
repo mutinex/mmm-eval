@@ -70,7 +70,9 @@ class TestCrossValidationMetricResults:
 
     def test_cross_validation_metric_threshold_checking_good_metrics(self):
         """Test cross-validation metric threshold checking with good metrics."""
-        results = CrossValidationMetricResults(mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85)
+        results = CrossValidationMetricResults(
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+        )
 
         # Test individual metric threshold checking
         assert results._check_metric_threshold(CrossValidationMetricNames.MEAN_MAPE.value, 12.0) is True
@@ -79,7 +81,9 @@ class TestCrossValidationMetricResults:
 
     def test_cross_validation_metric_threshold_checking_bad_metrics(self):
         """Test cross-validation metric threshold checking with bad metrics."""
-        results = CrossValidationMetricResults(mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85)
+        results = CrossValidationMetricResults(
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+        )
 
         # Test individual metric threshold checking
         assert results._check_metric_threshold(CrossValidationMetricNames.MEAN_MAPE.value, 16.0) is False
@@ -87,7 +91,9 @@ class TestCrossValidationMetricResults:
 
     def test_cross_validation_metric_dataframe_output(self):
         """Test cross-validation metric results DataFrame output."""
-        results = CrossValidationMetricResults(mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85)
+        results = CrossValidationMetricResults(
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+        )
         df = results.to_df()
 
         # Check DataFrame structure

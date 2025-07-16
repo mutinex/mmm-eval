@@ -139,11 +139,28 @@ def calculate_mape(actual: List[float], predicted: List[float]) -> float:
         
     Returns:
         MAPE value as a float
-        
-    Raises:
-        ValueError: If inputs are empty or have different lengths
     """
-    pass
+    if len(actual) != len(predicted):
+        raise ValueError("Actual and predicted lists must have same length")
+    
+    errors = [abs((a - p) / a) for a, p in zip(actual, predicted) if a != 0]
+    return sum(errors) / len(errors) if errors else 0.0
+
+def calculate_smape(actual: List[float], predicted: List[float]) -> float:
+    """Calculate Symmetric Mean Absolute Percentage Error.
+    
+    Args:
+        actual: List of actual values
+        predicted: List of predicted values
+        
+    Returns:
+        SMAPE value as a float
+    """
+    if len(actual) != len(predicted):
+        raise ValueError("Actual and predicted lists must have same length")
+    
+    errors = [2 * abs(a - p) / (abs(a) + abs(p)) for a, p in zip(actual, predicted) if abs(a) + abs(p) != 0]
+    return sum(errors) / len(errors) if errors else 0.0
 ```
 
 ## Testing
@@ -175,7 +192,7 @@ Example test:
 
 ```python
 import pytest
-from mmm_eval.metrics import calculate_mape
+from mmm_eval.metrics import calculate_mape, calculate_smape
 
 def test_calculate_mape_basic():
     """Test basic MAPE calculation."""
@@ -187,10 +204,25 @@ def test_calculate_mape_basic():
     assert isinstance(mape, float)
     assert mape > 0
 
+def test_calculate_smape_basic():
+    """Test basic SMAPE calculation."""
+    actual = [100, 200, 300]
+    predicted = [110, 190, 310]
+    
+    smape = calculate_smape(actual, predicted)
+    
+    assert isinstance(smape, float)
+    assert smape > 0
+
 def test_calculate_mape_empty_input():
     """Test MAPE calculation with empty input."""
     with pytest.raises(ValueError):
         calculate_mape([], [])
+
+def test_calculate_smape_empty_input():
+    """Test SMAPE calculation with empty input."""
+    with pytest.raises(ValueError):
+        calculate_smape([], [])
 ```
 
 ## Documentation

@@ -17,35 +17,36 @@ from mmm_eval.metrics.threshold_constants import (
 
 def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
     """Calculate Symmetric Mean Absolute Percentage Error (SMAPE).
-    
+
     SMAPE is calculated as: 100 * (2 * |actual - predicted|) / (|actual| + |predicted|)
-    
+
     Args:
         actual: Actual values
         predicted: Predicted values
-        
+
     Returns:
         SMAPE value as float (percentage)
-        
+
     Raises:
         ValueError: If series are empty or have different lengths
+
     """
     # Validate inputs
     if len(actual) == 0 or len(predicted) == 0:
         raise ValueError("Cannot calculate SMAPE on empty series")
-    
+
     if len(actual) != len(predicted):
         raise ValueError("Actual and predicted series must have the same length")
-    
+
     # Handle NaN values
     if actual.isna().any() or predicted.isna().any():
         raise ValueError("Actual and predicted series must be free of NaN values")
-    
+
     # Handle division by zero and edge cases
     denominator = np.abs(actual) + np.abs(predicted)
     # Avoid division by zero by setting denominator to 1 where it's 0
     denominator = np.where(denominator == 0, 1, denominator)
-    
+
     smape = 100 * np.mean(2 * np.abs(predicted - actual) / denominator)
     return float(smape)
 
