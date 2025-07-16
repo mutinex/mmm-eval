@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults, calculate_smape
+from mmm_eval.metrics.metric_models import AccuracyMetricNames, AccuracyMetricResults
 
 
 def calculate_mean_for_singular_values_across_cross_validation_folds(
@@ -74,4 +74,4 @@ def calculate_stds_for_series_across_cross_validation_folds(
 
 def calculate_absolute_percentage_change(baseline_series: pd.Series, comparison_series: pd.Series) -> pd.Series:
     """Calculate the absolute percentage change between two series."""
-    return np.abs((comparison_series - baseline_series) / baseline_series)
+    return 100 * np.abs((comparison_series - baseline_series) / baseline_series)

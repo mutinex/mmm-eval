@@ -171,12 +171,12 @@ If we look at the evaluation output ```display(results)```, we'll see something 
 | cross_validation  | std_mape                                      | 5.8          | False       |
 | cross_validation  | mean_r_squared                                | -7.141       | False       |
 | cross_validation  | std_r_squared                                 | 9.686        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:radio | 0.369        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:TV     | 0.021        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:radio  | 0.397        | False       |
-| perturbation      | percentage_change_for_each_channel:TV         | 0.005        | False       |
-| perturbation      | percentage_change_for_each_channel:radio      | 0.112        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:TV    | 2.1          | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:radio | 36.9         | False       |
+| refresh_stability | std_percentage_change_for_each_channel:TV     | 2.1          | False       |
+| refresh_stability | std_percentage_change_for_each_channel:radio  | 39.7         | False       |
+| perturbation      | percentage_change_for_each_channel:TV         | 0.5          | False       |
+| perturbation      | percentage_change_for_each_channel:radio      | 11.2         | False       |
 
 
 Notice that our model is failing every test. Seems we have some work to do!

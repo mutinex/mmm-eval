@@ -154,7 +154,7 @@ class TestValidationResults:
     def test_validation_result_to_df_with_series_metrics(self):
         """Test ValidationResults to_df conversion with Series-based metrics."""
         # Create test result with Series-based metrics
-        percentage_change_series = pd.Series({"TV": 0.03, "Radio": 0.07})
+        percentage_change_series = pd.Series({"TV": 3.0, "Radio": 7.0})
         perturbation_result = ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             metric_names=["percentage_change_for_each_channel"],
