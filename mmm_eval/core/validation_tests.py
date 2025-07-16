@@ -17,7 +17,6 @@ from mmm_eval.metrics.accuracy_functions import (
     calculate_means_for_series_across_cross_validation_folds,
     calculate_std_for_singular_values_across_cross_validation_folds,
     calculate_stds_for_series_across_cross_validation_folds,
-    calculate_smape,
 )
 from mmm_eval.metrics.metric_models import (
     AccuracyMetricNames,

@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
 from sklearn.metrics import mean_absolute_percentage_error, r2_score
-import numpy as np
 
 from mmm_eval.metrics.exceptions import InvalidMetricNameException
 from mmm_eval.metrics.threshold_constants import (
@@ -193,7 +193,7 @@ class AccuracyMetricResults(MetricResults):
         # Avoid division by zero by setting denominator to 1 where it's 0
         denominator = np.where(denominator == 0, 1, denominator)
         smape = 100 * np.mean(2 * np.abs(actual - predicted) / denominator)
-        
+
         return cls(
             mape=mean_absolute_percentage_error(actual, predicted),
             smape=float(smape),
