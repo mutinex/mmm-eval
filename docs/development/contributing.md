@@ -172,7 +172,7 @@ Example test:
 
 ```python
 import pytest
-from mmm_eval.metrics import calculate_mape, calculate_smape
+from mmm_eval.metrics import calculate_mape
 
 def test_calculate_mape_basic():
     """Test basic MAPE calculation."""
