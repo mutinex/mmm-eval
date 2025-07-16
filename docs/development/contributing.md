@@ -184,25 +184,10 @@ def test_calculate_mape_basic():
     assert isinstance(mape, float)
     assert mape > 0
 
-def test_calculate_smape_basic():
-    """Test basic SMAPE calculation."""
-    actual = [100, 200, 300]
-    predicted = [110, 190, 310]
-    
-    smape = calculate_smape(actual, predicted)
-    
-    assert isinstance(smape, float)
-    assert smape > 0
-
 def test_calculate_mape_empty_input():
     """Test MAPE calculation with empty input."""
     with pytest.raises(ValueError):
         calculate_mape([], [])
-
-def test_calculate_smape_empty_input():
-    """Test SMAPE calculation with empty input."""
-    with pytest.raises(ValueError):
-        calculate_smape([], [])
 ```
 
 ## Documentation

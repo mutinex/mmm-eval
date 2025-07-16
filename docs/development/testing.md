@@ -93,7 +93,8 @@ def test_calculate_mape_returns_correct_value():
     
     result = calculate_mape(actual, predicted)
     
-    assert result == pytest.approx(0.1, rel=1e-2)
+    expected = 10.0 # 10% average error
+    assert result == pytest.approx(expected, rel=1e-2)
 ```
 
 ### Integration Tests
@@ -248,15 +249,6 @@ def test_mape_calculation_performance(benchmark):
     predicted = [110, 190, 310] * 1000
     
     result = benchmark(lambda: calculate_mape(actual, predicted))
-    
-    assert result > 0
-
-def test_smape_calculation_performance(benchmark):
-    """Benchmark SMAPE calculation performance."""
-    actual = [100, 200, 300] * 1000
-    predicted = [110, 190, 310] * 1000
-    
-    result = benchmark(lambda: calculate_smape(actual, predicted))
     
     assert result > 0
 ```
