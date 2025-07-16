@@ -6,7 +6,7 @@ from collections.abc import Generator
 
 import numpy as np
 import pandas as pd
-from pydantic import PositiveFloat, PositiveInt
+from pydantic import PositiveInt
 
 from mmm_eval.adapters.base import BaseAdapter
 from mmm_eval.core.constants import ValidationTestConstants
@@ -140,16 +140,19 @@ def split_timeseries_data(
 
     Raises:
         ValueError: if `test_size` is invalid.
+    
     """
     if test_size <= 0:
         raise ValueError("`test_size` must be greater than 0")
 
     sorted_dates = sorted(data[date_column].unique())
-    
+
     # Reserve the last test_size data points for testing
     if test_size >= len(sorted_dates):
-        raise ValueError(f"`test_size` ({test_size}) must be less than the number of unique dates ({len(sorted_dates)})")
-    
+        raise ValueError(
+            f"`test_size` ({test_size}) must be less than the number of unique dates ({len(sorted_dates)})"
+        )
+
     cutoff = sorted_dates[-test_size]  # Use the date before the test period starts
 
     train_mask = data[date_column] < cutoff
