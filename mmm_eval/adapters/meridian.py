@@ -425,15 +425,13 @@ class MeridianAdapter(BaseAdapter):
             RuntimeError: If model is not fitted
 
         """
-        if not self.is_fitted or self.analyzer is None:
-            raise RuntimeError("Model must be fit before prediction")
+        posterior_mean = self._predict_on_all_data()
 
-        # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
-        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        # if holdout mask is provided, use it to mask the predictions to restrict only to the
+        # training period
+        if self.holdout_mask is not None:
+            posterior_mean = posterior_mean[~self.holdout_mask]
 
-        # For in-sample predictions, always return the full dataset predictions
-        # regardless of any holdout mask
         return posterior_mean
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
