@@ -148,7 +148,7 @@ result = run_evaluation(framework="meridian", config=config, data=data_preproc)
 The evaluation suite runs 5 tests, each of which answers a distinct question about the quality of your model: 
 
 * **Holdout Accuracy Test**: "How well does my model predict on unseen data?"
-* **In-Sample Accuracy Test**: "How well does my model fit the training data and is it overfitting?"
+* **In-Sample Accuracy Test**: "How well does my model fit to the training data?"
 * **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
 * **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
 * **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"

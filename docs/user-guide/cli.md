@@ -24,7 +24,7 @@ mmm-eval [OPTIONS] --input-data-path PATH --framework FRAMEWORK --config-path PA
 mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/
 
 # Run specific tests only
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names holdout_accuracy in_sample_accuracy cross_validation
+mmm-eval --input-data-path data.csv --framework meridian --config-path config.json --output-path results/ --test-names holdout_accuracy in_sample_accuracy cross_validation
 ```
 
 ## Command Options
@@ -92,30 +92,6 @@ mmm-eval \
   --config-path config.json \
   --output-path results/ \
   --verbose
-```
-
-## Output Structure
-
-The CLI creates the following output structure:
-
-```
-results/
-├── holdout_accuracy/
-│   ├── metrics.json
-│   └── plots/
-├── in_sample_accuracy/
-│   ├── metrics.json
-│   └── plots/
-├── cross_validation/
-│   ├── metrics.json
-│   └── plots/
-├── refresh_stability/
-│   ├── metrics.json
-│   └── plots/
-├── perturbation/
-│   ├── metrics.json
-│   └── plots/
-└── summary.json
 ```
 
 ## Error Handling

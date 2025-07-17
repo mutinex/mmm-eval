@@ -227,3 +227,74 @@ mmm-eval \
   --test-names holdout_accuracy in_sample_accuracy cross_validation refresh_stability perturbation \
   --verbose
 ```
+
+Use robust sampling parameters:
+```json
+{
+  "fit_config": {
+    "draws": 2000,
+    "tune": 1000,
+    "chains": 4,
+    "target_accept": 0.95
+  }
+}
+```
+
+## Troubleshooting Examples
+
+### Missing Configuration File
+
+If you get a configuration error:
+
+```bash
+# Create a basic config file
+cat > config.json << 'EOF'
+{
+  "pymc_model_config": {
+    "date_column": "date_week",
+    "channel_columns": ["channel_1", "channel_2"],
+    "adstock": "GeometricAdstock(l_max=4)",
+    "saturation": "LogisticSaturation()"
+  },
+  "fit_config": {
+    "target_accept": 0.9,
+    "draws": 100,
+    "tune": 50,
+    "chains": 2,
+    "random_seed": 42
+  },
+  "revenue_column": "revenue"
+}
+EOF
+
+# Run evaluation
+mmm-eval \
+  --input-data-path data.csv \
+  --framework pymc-marketing \
+  --config-path config.json \
+  --output-path ./results/
+```
+
+### Data Format Issues
+
+If you get data format errors, check your CSV structure:
+
+```bash
+# Check your data format
+head -5 data.csv
+
+# Ensure required columns exist
+python -c "
+import pandas as pd
+df = pd.read_csv('data.csv')
+print('Columns:', df.columns.tolist())
+print('Shape:', df.shape)
+print('Date range:', df['date_week'].min(), 'to', df['date_week'].max())
+"
+```
+
+## Next Steps
+
+- Learn about [Data](../user-guide/data.md) for different data structures
+- Explore [Configuration](../getting-started/configuration.md) for advanced settings
+- Check the [CLI Reference](../user-guide/cli.md) for all available options 

@@ -1,173 +1,176 @@
 # Metrics
 
-mmm-eval provides comprehensive metrics for evaluating MMM performance across different validation approaches. This guide explains each metric and how to interpret the results.
+> **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
+
+mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
 
 ## Overview
 
-mmm-eval calculates metrics for different types of validation tests:
+mmm-eval calculates several key metrics across different validation tests:
 
-1. **Accuracy Metrics**: Model fit and prediction accuracy
-2. **Cross-Validation Metrics**: Generalization performance
-3. **Refresh Stability Metrics**: Model stability over time
-4. **Perturbation Metrics**: Model robustness
+### Accuracy Metrics
 
-## Accuracy Metrics
+- **MAPE (Mean Absolute Percentage Error)**: Average percentage error between predictions and actual values
+- **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE that treats over and underestimation equally
+- **R-squared**: Proportion of variance explained by the model
+
+### Stability Metrics
+
+- **Parameter Change**: Percentage change in model parameters
+- **Channel Stability**: Stability of media channel coefficients
+- **Intercept Stability**: Stability of baseline parameters
+
+## Metric Definitions
+
+### MAPE (Mean Absolute Percentage Error)
+
+```python
+MAPE = (1/n) * Σ |(y_i - ŷ_i) / y_i|
+```
+
+**Interpretation**:
+- **Lower is better**: 0% = perfect predictions
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
+
+### SMAPE (Symmetric Mean Absolute Percentage Error)
+
+```python
+SMAPE = 100 * (2 * |y_i - ŷ_i|) / (|y_i| + |ŷ_i|)
+```
+
+**Interpretation**:
+- **Lower is better**: 0% = perfect predictions
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
+- **Symmetric**: Treats over and underestimation equally (unlike MAPE)
+- **Robust**: Less sensitive to extreme values and zero actual values
+
+**Advantages over MAPE**:
+- **Symmetry**: 10% overestimation and 10% underestimation give the same SMAPE value
+- **Zero handling**: Better handling of zero or near-zero actual values
+- **Bounded**: Upper bound of 200% vs. unbounded MAPE
+
+### R-squared (Coefficient of Determination)
+
+```python
+R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
+```
+
+**Interpretation**:
+- **Range**: 0 to 1 (higher is better)
+- **Scale**: 1 = perfect fit, 0 = no predictive power
+- **Benchmark**: > 0.8 is generally good
+
+## Test-Specific Metrics
 
 ### Holdout Accuracy Test Metrics
 
 Metrics calculated on out-of-sample predictions using train/test splits.
 
-#### Primary Metrics
-
 - **MAPE**: Overall prediction accuracy
 - **SMAPE**: Symmetric prediction accuracy
-- **R-squared**: Proportion of variance explained
-
-#### Interpretation
-
-- **MAPE < 15%**: Good prediction accuracy
-- **SMAPE < 15%**: Good symmetric prediction accuracy
-- **R-squared > 0.8**: Good explanatory power
+- **R-squared**: Model fit quality
 
 ### In-Sample Accuracy Test Metrics
 
 Metrics calculated on in-sample predictions using the full dataset.
 
-#### Primary Metrics
-
 - **MAPE**: Model fit accuracy
 - **SMAPE**: Symmetric model fit accuracy
-- **R-squared**: Proportion of variance explained
+- **R-squared**: Model fit quality
 
-#### Interpretation
-
-- **MAPE < 10%**: Excellent model fit
-- **SMAPE < 10%**: Excellent symmetric model fit
-- **R-squared > 0.9**: Very good explanatory power
-- **Comparison with holdout**: Much better in-sample than holdout indicates overfitting
-
-## Cross-Validation Metrics
-
-### Cross-Validation Test Metrics
-
-Metrics calculated across multiple time-series folds.
-
-#### Primary Metrics
+### Cross-Validation Metrics
 
 - **Mean MAPE**: Average out-of-sample accuracy
 - **Std MAPE**: Consistency of accuracy across folds
 - **Mean SMAPE**: Average out-of-sample symmetric accuracy
 - **Std SMAPE**: Consistency of symmetric accuracy across folds
-- **Mean R-squared**: Average explanatory power
+- **Mean R-squared**: Average out-of-sample fit
+- **Std R-squared**: Consistency of fit across folds
 
-#### Interpretation
+### Refresh Stability Metrics
 
-- **Low mean values**: Good average performance
-- **Low std values**: Consistent performance across folds
-- **High R-squared**: Good explanatory power
-
-## Refresh Stability Metrics
-
-### Refresh Stability Test Metrics
-
-Metrics measuring parameter stability when new data is added.
-
-#### Primary Metrics
-
-- **Mean Percentage Change**: Average change in parameter estimates
+- **Mean Percentage Change**: Average parameter change
 - **Std Percentage Change**: Consistency of parameter changes
+- **Channel-specific Stability**: Stability per media channel
 
-#### Interpretation
+### Perturbation Metrics
 
-- **Mean < 10%**: Stable model parameters
-- **Std < 5%**: Consistent parameter stability
-- **High values**: Unstable model (may need more data)
+- **Percentage Change**: Change in ROI estimates when input data is perturbed
+- **Channel-specific Sensitivity**: Sensitivity of each media channel to data perturbations
+- **Model Robustness**: Overall model stability to input noise
 
-## Perturbation Metrics
+## Interpreting Results
 
-### Perturbation Test Metrics
+### Good Performance Indicators
 
-Metrics measuring model robustness to data perturbations.
+- **MAPE < 15%**: Good prediction accuracy
+- **SMAPE < 15%**: Good symmetric prediction accuracy
+- **R-squared > 0.8**: Strong model fit
+- **Low parameter changes**: Stable model
+- **Low perturbation sensitivity**: Robust to input noise
+- **Reasonable training time**: Efficient computation
 
-#### Primary Metrics
+## Thresholds and Benchmarks
 
-- **Percentage Change**: Change in ROI estimates after perturbation
+### Rough Benchmarks
 
-#### Interpretation
+| Metric | Excellent | Good | Acceptable | Poor |
+|--------|-----------|------|------------|------|
+| MAPE | < 5% | 5-10% | 10-15% | > 15% |
+| SMAPE | < 5% | 5-10% | 10-15% | > 15% |
+| R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
+| Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
+| Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
 
-- **Change < 5%**: Robust model
-- **Change > 10%**: Sensitive model
-- **Channel-specific**: Some channels more robust than others
+## Customizing Metrics
 
-## Metric Thresholds
+### Modifying Thresholds
 
-### Good Model Indicators
+If you'd like to modify the test pass/fail thresholds, you can fork the branch and
+modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
-- **Holdout Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8
-- **In-Sample Accuracy**: MAPE < 10%, SMAPE < 10%, R-squared > 0.9
-- **Cross-Validation**: Mean MAPE < 15%, Std MAPE < 5%
-- **Refresh Stability**: Mean change < 10%, Std change < 5%
-- **Perturbation**: ROI change < 5%
+### Adding Custom Metrics
 
-### Warning Signs
-
-- **Poor Performance**: High MAPE/SMAPE or low R-squared
-- **Overfitting**: Much better in-sample than holdout performance
-- **Unstable Model**: Large parameter changes
-- **Inconsistent Performance**: High standard deviations
-
-## Metric Calculations
-
-### MAPE (Mean Absolute Percentage Error)
+To add custom metrics, extend the metrics module:
 
 ```python
-MAPE = (1/n) * Σ|(actual - predicted) / actual| * 100
+from mmm_eval.metrics import BaseMetric
+
+class CustomMetric(BaseMetric):
+    def calculate(self, y_true, y_pred):
+        # Your custom calculation
+        return custom_value
 ```
-
-### SMAPE (Symmetric Mean Absolute Percentage Error)
-
-```python
-SMAPE = (2/n) * Σ|actual - predicted| / (|actual| + |predicted|) * 100
-```
-
-### R-squared
-
-```python
-R² = 1 - (SS_res / SS_tot)
-```
-
-Where:
-- SS_res = Sum of squared residuals
-- SS_tot = Total sum of squares
 
 ## Best Practices
 
 ### Metric Selection
 
-- **Start with holdout accuracy**: Always evaluate out-of-sample performance
-- **Add in-sample accuracy**: To assess model fit and identify overfitting
-- **Include cross-validation**: For robust generalization assessment
-- **Monitor stability**: For production model reliability
-- **Test robustness**: For model sensitivity analysis
+- **Start with MAPE**: Most intuitive for business users
+- **Include SMAPE**: More robust alternative to MAPE for symmetric evaluation
+- **Include R-squared**: Technical measure of fit quality
+- **Monitor stability**: Critical for production models
+- **Track performance**: Important for scalability
 
 ### Result Analysis
 
-- **Compare frameworks**: Run same metrics on different frameworks
-- **Track over time**: Monitor metrics as data grows
-- **Set thresholds**: Define acceptable performance levels
+- **Compare across frameworks**: Use same metrics for fair comparison
+- **Track over time**: Monitor performance as data grows
+- **Set business thresholds**: Align with business requirements
 - **Document decisions**: Record metric choices and rationale
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **High MAPE**: Check data quality and model specification
-2. **Low R-squared**: Consider additional features or model complexity
-3. **Unstable parameters**: May need more data or regularization
-4. **Overfitting**: Reduce model complexity or add regularization
+1. **Extreme MAPE values**: Check for zero or near-zero actual values
+2. **High SMAPE values**: Check for symmetric errors and zero handling
+3. **Negative R-squared**: Model performs worse than baseline
+4. **Inconsistent metrics**: Verify data preprocessing
+5. **Missing metrics**: Check test configuration
 
 ### Getting Help
 
-- Check [Configuration](../getting-started/configuration.md) for metric settings
-- Review [Examples](../examples/basic-usage.md) for similar cases
+- Review [Tests](../user-guide/tests.md) for metric context
+- Check [Configuration](../getting-started/configuration.md) for settings
 - Join [Discussions](https://github.com/mutinex/mmm-eval/discussions) for support 
