@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] ; 2025-07-17
+
+### Added
+
+- New in-sample accuracy validation test, using same metrics as those used for holdout accuracy
+
 ## [0.9.1] ; 2025-07-17
 
 ### Changed
