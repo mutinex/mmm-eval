@@ -734,6 +734,17 @@ class TestMeridianAdapter:
         mock_predict.assert_called_once()
         assert np.all(result == np.array([1, 2]))
 
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict_in_sample")
+    def test_fit_and_predict_in_sample_calls_fit_and_predict_in_sample(self, mock_predict_in_sample, mock_fit):
+        """Test that fit_and_predict_in_sample calls fit and predict_in_sample methods."""
+        adapter = MeridianAdapter(self.config)
+        mock_predict_in_sample.return_value = np.array([1, 2,35])
+        result = adapter.fit_and_predict_in_sample(self.df)
+        mock_fit.assert_called_once_with(self.df)
+        mock_predict_in_sample.assert_called_once()
+        assert np.all(result == np.array(1,2,3,4,5))
+
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_get_channel_roi_returns_series(self, mock_analyzer):
         """Test that get_channel_roi returns a pandas Series."""

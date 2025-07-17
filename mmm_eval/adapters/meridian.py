@@ -411,26 +411,29 @@ class MeridianAdapter(BaseAdapter):
 
         return posterior_mean
 
-    def predict_in_sample(self, data: pd.DataFrame | None = None) -> np.ndarray:
+    def predict_in_sample(self) -> np.ndarray:
         """Make predictions on the training data used to fit the model.
 
-        Args:
-            data: Ignored - Meridian uses the fitted model state for predictions.
+        This method returns predictions for the same data that was used to train the model,
+        providing in-sample performance metrics. Unlike predict(), this method always
+        returns predictions for the full training dataset regardless of any holdout mask.
 
         Returns:
-            predicted values on the training data.
+            Predicted values for the training data
 
-        Raises
+        Raises:
             RuntimeError: If model is not fitted
 
         """
-        posterior_mean = self._predict_on_all_data()
+        if not self.is_fitted or self.analyzer is None:
+            raise RuntimeError("Model must be fit before prediction")
 
-        # if holdout mask is provided, use it to mask the predictions to restrict only
-        # to the training period
-        if self.holdout_mask is not None:
-            posterior_mean = posterior_mean[~self.holdout_mask]
+        # shape (n_chains, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
+        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
 
+        # For in-sample predictions, always return the full dataset predictions
+        # regardless of any holdout mask
         return posterior_mean
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
@@ -452,6 +455,19 @@ class MeridianAdapter(BaseAdapter):
         max_train_date = train[self.date_column].squeeze().max()
         self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
+
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Fit the model on data and return predictions for the same data.
+
+        Args:
+            data: dataset to train model on and make predictions for
+
+        Returns:
+            Predicted values for the training data.
+
+        """
+        self.fit(data)
+        return self.predict_in_sample()
 
     def get_channel_roi(
         self,

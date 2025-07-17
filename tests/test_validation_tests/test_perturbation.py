@@ -68,6 +68,10 @@ class MockAdapter(BaseAdapter):
         """Mock fit_and_predict method."""
         return np.array([1.0, 2.0])
 
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Mock fit_and_predict_in_sample method."""
+        return np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
     def get_channel_roi(self, start_date=None, end_date=None) -> pd.Series:
         """Mock get_channel_roi method."""
         if not self.is_fitted or self._force_not_fitted_error:
