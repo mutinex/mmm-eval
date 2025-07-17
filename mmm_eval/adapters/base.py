@@ -103,16 +103,6 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict_in_sample(self) -> np.ndarray:
-        """Make predictions on the training data used to fit the model.
-
-        Returns:
-            Predicted values for the training data.
-
-        """
-        pass
-
-    @abstractmethod
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit on training data and make predictions on test data.
 

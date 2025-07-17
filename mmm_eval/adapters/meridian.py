@@ -411,29 +411,6 @@ class MeridianAdapter(BaseAdapter):
 
         return posterior_mean
 
-    def predict_in_sample(self) -> np.ndarray:
-        """Make predictions on the training data used to fit the model.
-
-        This method returns predictions for the same data that was used to train the model,
-        providing in-sample performance metrics. Unlike predict(), this method always
-        returns predictions for the full training dataset regardless of any holdout mask.
-
-        Returns:
-            Predicted values for the training data
-
-        Raises:
-            RuntimeError: If model is not fitted
-
-        """
-        posterior_mean = self._predict_on_all_data()
-
-        # if holdout mask is provided, use it to mask the predictions to restrict only to the
-        # training period
-        if self.holdout_mask is not None:
-            posterior_mean = posterior_mean[~self.holdout_mask]
-
-        return posterior_mean
-
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit the Meridian model and make predictions given new input data.
 
@@ -464,8 +441,9 @@ class MeridianAdapter(BaseAdapter):
             Predicted values for the training data.
 
         """
+        # no max train date specified, so predictions are all in-sample
         self.fit(data)
-        return self.predict_in_sample()
+        return self._predict_on_all_data()
 
     def get_channel_roi(
         self,

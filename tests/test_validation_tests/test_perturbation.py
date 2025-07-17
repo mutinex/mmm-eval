@@ -60,10 +60,6 @@ class MockAdapter(BaseAdapter):
         """Mock predict method."""
         return np.array([1.0, 2.0, 3.0])
 
-    def predict_in_sample(self) -> np.ndarray:
-        """Mock predict_in_sample method."""
-        return np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Mock fit_and_predict method."""
         return np.array([1.0, 2.0])

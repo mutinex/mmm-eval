@@ -690,36 +690,11 @@ class TestMeridianAdapter:
         masked = np.mean(preds_tensor, axis=(0, 1))[adapter.holdout_mask]
         assert np.allclose(adapter.predict(), masked)
 
-    @patch("mmm_eval.adapters.meridian.Analyzer")
-    def test_predict_in_sample_returns_full_posterior_mean(self, mock_analyzer):
-        """Test that predict_in_sample method returns posterior mean for full dataset."""
-        adapter = MeridianAdapter(self.config)
-        adapter.is_fitted = True
-        adapter.analyzer = mock_analyzer_instance = Mock()
-        # Simulate expected_outcome returns (chains, draws, times)
-        preds_tensor = np.ones((2, 2, 5)) * 10
-        mock_analyzer_instance.expected_outcome.return_value = preds_tensor
-
-        # Test that predict_in_sample always returns full dataset predictions
-        result = adapter.predict_in_sample()
-        assert np.allclose(result, np.mean(preds_tensor, axis=(0, 1)))
-
-        # Even with holdout mask, should still return full dataset
-        adapter.holdout_mask = np.array([False, True, True, False, True])
-        result_with_mask = adapter.predict_in_sample()
-        assert np.allclose(result_with_mask, np.mean(preds_tensor, axis=(0, 1)))
-
     def test_predict_raises_if_not_fitted(self):
         """Test that predict raises RuntimeError if model is not fitted."""
         adapter = MeridianAdapter(self.config)
         with pytest.raises(RuntimeError):
             adapter.predict()
-
-    def test_predict_in_sample_raises_if_not_fitted(self):
-        """Test that predict_in_sample raises RuntimeError if model is not fitted."""
-        adapter = MeridianAdapter(self.config)
-        with pytest.raises(RuntimeError):
-            adapter.predict_in_sample()
 
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict")
@@ -728,22 +703,22 @@ class TestMeridianAdapter:
         adapter = MeridianAdapter(self.config)
         train = self.df.iloc[:3]
         test = self.df.iloc[3:]
-        mock_predict.return_value = np.array([1, 2])
+        mock_predict.return_value = np.array([1, 2, 35])
         result = adapter.fit_and_predict(train, test)
         mock_fit.assert_called_once()
         mock_predict.assert_called_once()
-        assert np.all(result == np.array([1, 2]))
+        assert np.all(result == np.array([1, 2, 35]))
 
     @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
-    @patch("mmm_eval.adapters.meridian.MeridianAdapter.predict_in_sample")
-    def test_fit_and_predict_in_sample_calls_fit_and_predict_in_sample(self, mock_predict_in_sample, mock_fit):
-        """Test that fit_and_predict_in_sample calls fit and predict_in_sample methods."""
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter._predict_on_all_data")
+    def test_fit_and_predict_in_sample_calls_fit_and_predict_in_sample(self, mock_predict_on_all_data, mock_fit):
+        """Test that fit_and_predict_in_sample calls fit and _predict_on_all_data methods."""
         adapter = MeridianAdapter(self.config)
-        mock_predict_in_sample.return_value = np.array([1, 2,35])
+        mock_predict_on_all_data.return_value = np.array([1, 2, 3, 4, 5])
         result = adapter.fit_and_predict_in_sample(self.df)
         mock_fit.assert_called_once_with(self.df)
-        mock_predict_in_sample.assert_called_once()
-        assert np.all(result == np.array(1,2,3,4,5))
+        mock_predict_on_all_data.assert_called_once()
+        assert np.all(result == np.array([1, 2, 3, 4, 5]))
 
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_get_channel_roi_returns_series(self, mock_analyzer):

@@ -158,31 +158,6 @@ class PyMCAdapter(BaseAdapter):
         )
         return predictions
 
-    def predict_in_sample(self) -> np.ndarray:
-        """Predict the response variable for the training data.
-
-        Returns:
-            Predicted values for the training data
-
-        Raises:
-            RuntimeError: If model is not fitted
-
-        """
-        if not self.is_fitted or self.model is None:
-            raise RuntimeError("Model must be fit before prediction.")
-
-        # For PyMC, we need to reconstruct the training data without the response column
-        # We can get this from the models internal state
-        if hasattr(self.model, 'X') and self.model.X is not None:
-            training_data = self.model.X
-        else:
-            raise RuntimeError("Training data not available for in-sample prediction")
-
-        predictions = self.model.predict(
-            training_data, extend_idata=False, **self.predict_kwargs
-        )
-        return predictions
-
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
         """Fit on training data and make predictions on test data.
 
@@ -208,7 +183,9 @@ class PyMCAdapter(BaseAdapter):
 
         """
         self.fit(data)
-        return self.predict(data)
+        return self.model.predict(
+            data, extend_idata=False, **self.predict_kwargs
+        )
 
     def get_channel_roi(
         self,
