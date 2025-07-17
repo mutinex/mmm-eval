@@ -267,7 +267,7 @@ def test_predict_in_sample_method_real_pymc(valid_pymc_config, realistic_test_da
     adapter.fit(data)
 
     # Test in-sample prediction
-    result = adapter.predict_in_sample()
+    result = adapter.predict_in_sample(data)
 
     # Verify prediction results
     assert isinstance(result, np.ndarray)
@@ -365,9 +365,10 @@ def test_predict_in_sample_method_not_fitted(valid_pymc_config):
     """Test predict_in_sample method when model is not fitted."""
     config = valid_pymc_config
     adapter = PyMCAdapter(config)
+    data = create_sample_data()
 
     with pytest.raises(RuntimeError, match="Model must be fit before prediction"):
-        adapter.predict_in_sample()
+        adapter.predict_in_sample(data)
 
 
 def test_get_channel_roi_method_not_fitted(valid_pymc_config):

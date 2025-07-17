@@ -103,14 +103,17 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict_in_sample(self) -> np.ndarray:
+    def predict_in_sample(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions on the training data used to fit the model.
 
-        This method returns predictions for the same data that was used to train the model,
-        providing in-sample performance metrics.
+        Args:
+            data: Input data for prediction. Behavior varies by adapter:
+                - Some adapters (e.g., PyMC) require this parameter
+                - Other adapters (e.g., Meridian) ignore this parameter and use
+                  the fitted model state instead
 
-        Returns
-            Predicted values for the training data
+        Returns:
+            Predicted values for the training data.
 
         """
         pass

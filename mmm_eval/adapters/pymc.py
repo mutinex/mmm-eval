@@ -158,7 +158,7 @@ class PyMCAdapter(BaseAdapter):
         )
         return predictions
 
-    def predict_in_sample(self) -> np.ndarray:
+    def predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
         """Predict the response variable for the training data.
 
         Returns
@@ -171,14 +171,7 @@ class PyMCAdapter(BaseAdapter):
         if not self.is_fitted or self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
 
-        # For PyMC, we need to reconstruct the training data without the response column
-        # We can get this from the model's internal state
-        if hasattr(self.model, "X") and self.model.X is not None:
-            training_data = self.model.X
-        else:
-            raise RuntimeError("Training data not available for in-sample prediction")
-
-        predictions = self.model.predict(training_data, extend_idata=False, **self.predict_kwargs)
+        predictions = self.model.predict(data, extend_idata=False, **self.predict_kwargs)
         return predictions
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:

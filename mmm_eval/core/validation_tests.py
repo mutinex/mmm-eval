@@ -83,7 +83,7 @@ class InSampleAccuracyTest(BaseValidationTest):
         """Run the in-sample accuracy test."""
         # Fit model on full dataset
         adapter.fit(data)
-        predictions = adapter.predict_in_sample()
+        predictions = adapter.predict_in_sample(data)
         actual = data.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
         assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 

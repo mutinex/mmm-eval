@@ -368,6 +368,20 @@ class MeridianAdapter(BaseAdapter):
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
+    def _predict_on_all_data(self) -> np.ndarray:
+        """Make predictions on all data provided to fit().
+
+        Returns:
+            predicted values on data provided to fit().
+        """
+        if not self.is_fitted or self.analyzer is None:
+            raise RuntimeError("Model must be fit before prediction")
+
+        # shape (n_chains, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
+        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        return posterior_mean
+
     def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions using the fitted model.
 
@@ -388,12 +402,7 @@ class MeridianAdapter(BaseAdapter):
             RuntimeError: If model is not fitted
 
         """
-        if not self.is_fitted or self.analyzer is None:
-            raise RuntimeError("Model must be fit before prediction")
-
-        # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
-        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        posterior_mean = self._predict_on_all_data()
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
         # holdout period
@@ -402,29 +411,26 @@ class MeridianAdapter(BaseAdapter):
 
         return posterior_mean
 
-    def predict_in_sample(self) -> np.ndarray:
+    def predict_in_sample(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions on the training data used to fit the model.
 
-        This method returns predictions for the same data that was used to train the model,
-        providing in-sample performance metrics. Unlike predict(), this method always
-        returns predictions for the full training dataset regardless of any holdout mask.
+        Args:
+            data: Ignored - Meridian uses the fitted model state for predictions.
 
-        Returns
-            Predicted values for the training data
+        Returns:
+            predicted values on the training data.
 
         Raises
             RuntimeError: If model is not fitted
 
         """
-        if not self.is_fitted or self.analyzer is None:
-            raise RuntimeError("Model must be fit before prediction")
+        posterior_mean = self._predict_on_all_data()
 
-        # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
-        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        # if holdout mask is provided, use it to mask the predictions to restrict only
+        # to the training period
+        if self.holdout_mask is not None:
+            posterior_mean = posterior_mean[~self.holdout_mask]
 
-        # For in-sample predictions, always return the full dataset predictions
-        # regardless of any holdout mask
         return posterior_mean
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
