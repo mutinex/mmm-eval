@@ -10,6 +10,7 @@ from mmm_eval.core.base_validation_test import (
     split_timeseries_cv,
     split_timeseries_data,
 )
+from mmm_eval.core.constants import ValidationTestConstants
 from mmm_eval.core.exceptions import MetricCalculationError, TestExecutionError
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -34,18 +35,24 @@ class TestBaseValidationTest:
         """Set up test data."""
         self.test_instance = ConcreteTestClass(InputDataframeConstants.DATE_COL)
 
-        # Create comprehensive test data (40 points - minimum for data validation)
+        # Calculate minimum required data size based on constants
+        # Required: test_size * (n_splits + 1) = TIME_SERIES_CROSS_VALIDATION_TEST_SIZE * (N_SPLITS + 1)
+        min_required_size = ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE * (
+            ValidationTestConstants.N_SPLITS + 1
+        )
+
+        # Create comprehensive test data (minimum for data validation)
         # This serves as the lowest common denominator for all tests
         self.test_data = pd.DataFrame(
             {
-                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=40),
-                "media_channel": ["TV", "Radio"] * 20,  # 42 total, but we'll use 40
-                InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220] * 20,
-                InputDataframeConstants.RESPONSE_COL: [160, 260] * 20,
+                InputDataframeConstants.DATE_COL: pd.date_range("2023-01-01", periods=min_required_size),
+                "media_channel": ["TV", "Radio"] * (min_required_size // 2),
+                InputDataframeConstants.MEDIA_CHANNEL_SPEND_COL: [110, 220] * (min_required_size // 2),
+                InputDataframeConstants.RESPONSE_COL: [160, 260] * (min_required_size // 2),
             }
         )
-        # Trim to exactly 40 rows
-        self.test_data = self.test_data.head(40)
+        # Trim to exactly the required size
+        self.test_data = self.test_data.head(min_required_size)
 
         # Create insufficient data for time series CV error testing (10 points)
         self.insufficient_data = pd.DataFrame(
@@ -76,8 +83,8 @@ class TestBaseValidationTest:
         cv_splits = self.test_instance._split_data_time_series_cv(self.test_data)
         splits_list = list(cv_splits)
 
-        # Check that we get the expected number of splits (N_SPLITS = 5)
-        assert len(splits_list) == 5
+        # Check that we get the expected number of splits
+        assert len(splits_list) == ValidationTestConstants.N_SPLITS
 
         # Check that each split has train and test masks
         for i, (train_mask, test_mask) in enumerate(splits_list):
@@ -91,22 +98,13 @@ class TestBaseValidationTest:
             # Check that train and test are disjoint
             assert not (train_mask & test_mask).any()
 
-            # Check that test size is correct (TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4)
-            assert test_mask.sum() == 4
+            # Check that test size is correct
+            assert test_mask.sum() == ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE
 
             # Check that train size decreases with each split (rolling window behavior)
-            if i == 0:
-                expected_train_size = 36  # 40 - 4
-            elif i == 1:
-                expected_train_size = 32  # 40 - 8
-            elif i == 2:
-                expected_train_size = 28  # 40 - 12
-            elif i == 3:
-                expected_train_size = 24  # 40 - 16
-            elif i == 4:
-                expected_train_size = 20  # 40 - 20
-            else:
-                raise AssertionError(f"Unexpected split index: {i}")
+            total_data_size = len(self.test_data)
+            test_size = ValidationTestConstants.TIME_SERIES_CROSS_VALIDATION_TEST_SIZE
+            expected_train_size = total_data_size - test_size * (i + 1)
             assert train_mask.sum() == expected_train_size
 
     def test_split_data_time_series_cv_insufficient_data(self):
@@ -121,8 +119,8 @@ class TestBaseValidationTest:
         cv_splits = self.test_instance._split_data_time_series_cv(self.test_data)
         splits_list = list(cv_splits)
 
-        # Should get exactly 5 splits
-        assert len(splits_list) == 5
+        # Should get exactly the expected number of splits
+        assert len(splits_list) == ValidationTestConstants.N_SPLITS
 
     def test_split_timeseries_data_basic(self):
         """Test basic functionality of split_timeseries_data."""
@@ -130,7 +128,7 @@ class TestBaseValidationTest:
         dates = pd.date_range("2023-01-01", periods=10)
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(10)})
 
-        train_mask, test_mask = split_timeseries_data(data, 0.3, InputDataframeConstants.DATE_COL)
+        train_mask, test_mask = split_timeseries_data(data, 3, InputDataframeConstants.DATE_COL)
 
         # Check that masks are boolean arrays
         assert isinstance(train_mask, pd.Series)
@@ -144,24 +142,45 @@ class TestBaseValidationTest:
         # Check that all data is covered
         assert (train_mask | test_mask).all()
 
-        # Check proportions (7 train, 3 test for 0.3 test proportion)
+        # Check proportions (7 train, 3 test for test_size=3)
         assert train_mask.sum() == 7
         assert test_mask.sum() == 3
+
+    def test_split_timeseries_data_exact_test_size(self):
+        """Test that split_timeseries_data reserves exactly test_size dates for testing."""
+        # Create test data with 10 unique dates
+        dates = pd.date_range("2023-01-01", periods=10)
+        data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(10)})
+
+        # Test with different test sizes
+        for test_size in [1, 3, 5, 7]:
+            train_mask, test_mask = split_timeseries_data(data, test_size, InputDataframeConstants.DATE_COL)
+
+            # Count unique dates in test set
+            test_dates = data[test_mask][InputDataframeConstants.DATE_COL].unique()
+            assert len(test_dates) == test_size, f"Expected {test_size} test dates, got {len(test_dates)}"
+
+            # Verify train and test are disjoint
+            train_dates = data[train_mask][InputDataframeConstants.DATE_COL].unique()
+            assert len(set(train_dates) & set(test_dates)) == 0
+
+            # Verify all data is covered
+            assert len(train_dates) + len(test_dates) == len(dates)
 
     def test_split_timeseries_data_edge_cases(self):
         """Test edge cases for split_timeseries_data."""
         dates = pd.date_range("2023-01-01", periods=5)
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(5)})
 
-        # Test with very small test proportion
-        train_mask, test_mask = split_timeseries_data(data, 0.1, InputDataframeConstants.DATE_COL)
+        # Test with very small test size
+        train_mask, test_mask = split_timeseries_data(data, 1, InputDataframeConstants.DATE_COL)
         assert train_mask.sum() == 4
         assert test_mask.sum() == 1
 
-        # Test with large test proportion
-        train_mask, test_mask = split_timeseries_data(data, 0.8, InputDataframeConstants.DATE_COL)
-        # With 0.8 test proportion and 5 dates: split_idx = round(5 * 0.2) = 1
-        # cutoff = dates[1] = '2023-01-02', so 1 date < '2023-01-02' and 4 dates >= '2023-01-02'
+        # Test with large test size
+        train_mask, test_mask = split_timeseries_data(data, 4, InputDataframeConstants.DATE_COL)
+        # With test_size=4 and 5 dates: cutoff = dates[-4] = '2023-01-02'
+        # So 1 date < '2023-01-02' and 4 dates >= '2023-01-02'
         assert train_mask.sum() == 1  # 1 date < '2023-01-02'
         assert test_mask.sum() == 4  # 4 dates >= '2023-01-02'
 
@@ -171,9 +190,9 @@ class TestBaseValidationTest:
         dates = pd.to_datetime(["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-02", "2023-01-03"])
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(5)})
 
-        train_mask, test_mask = split_timeseries_data(data, 0.4, InputDataframeConstants.DATE_COL)
+        train_mask, test_mask = split_timeseries_data(data, 1, InputDataframeConstants.DATE_COL)
 
-        # Should split based on unique dates (3 unique dates, 0.4 test = 1 test date)
+        # Should split based on unique dates (3 unique dates, test_size=1)
         unique_dates = data[InputDataframeConstants.DATE_COL].unique()
         assert len(unique_dates) == 3
 

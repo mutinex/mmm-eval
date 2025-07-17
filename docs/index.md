@@ -83,7 +83,7 @@ mmm-eval --input-data-path data.csv --config-path config.json --output-path ./ou
 - **Extensible**: Easy to add new frameworks
 
 ### Comprehensive Testing
-- **Accuracy Tests**: MAPE, RMSE, R-squared metrics
+- **Accuracy Tests**: MAPE, SMAPE, R-squared metrics
 - **Cross-Validation**: Time series cross-validation
 - **Refresh Stability**: Model stability over time
 - **Performance Tests**: Computational efficiency metrics

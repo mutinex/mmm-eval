@@ -18,13 +18,13 @@ Accuracy tests evaluate how well the model fits the training data.
 ### Metrics
 
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error
-- **RMSE (Root Mean Square Error)**: Standard deviation of prediction errors
+- **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE
 - **R-squared**: Proportion of variance explained by the model
-- **MAE (Mean Absolute Error)**: Average absolute prediction error
 
 ### Interpretation
 
-- **Lower MAPE/RMSE/MAE**: Better model performance
+- **Lower MAPE**: Better model performance
+- **Lower SMAPE**: Better symmetric model performance
 - **Higher R-squared**: Better model fit (0-1 scale)
 
 ## Cross-Validation Tests
@@ -41,9 +41,8 @@ Cross-validation tests assess how well the model generalizes to unseen data.
 ### Metrics
 
 - **MAPE**: Out-of-sample prediction accuracy
-- **RMSE**: Out-of-sample error magnitude
+- **SMAPE**: Out-of-sample symmetric prediction accuracy
 - **R-squared**: Out-of-sample explanatory power
-- **MAE**: Out-of-sample absolute error
 
 ### Interpretation
 
@@ -123,17 +122,17 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 ### Good Model Indicators
 
-- **Accuracy**: MAPE < 15%, R-squared > 0.8
-- **Cross-Validation**: Out-of-sample MAPE similar to in-sample
-- **Stability**: Parameter changes < 10%
-- **Performance**: Reasonable training times
+- **Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8
+- **Cross-Validation**: Out-of-sample MAPE/SMAPE similar to in-sample
+- **Refresh Stability**: Parameter changes < 10%
+- **Perturbation**: ROI changes < 5%
 
 ### Warning Signs
 
-- **Overfitting**: Much better in-sample than out-of-sample performance
-- **Instability**: Large parameter changes with new data
-- **Poor Performance**: High MAPE or low R-squared
-- **Slow Training**: Excessive computation time
+- **Poor Performance**: High MAPE/SMAPE or low R-squared
+- **Unstable Model**: Large parameter changes
+- **Overfitting**: In-sample vs out-of-sample performance gap
+- **Data Issues**: Missing values or extreme outliers
 
 ## Best Practices
 
