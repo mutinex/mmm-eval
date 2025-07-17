@@ -371,8 +371,9 @@ class MeridianAdapter(BaseAdapter):
     def _predict_on_all_data(self) -> np.ndarray:
         """Make predictions on all data provided to fit().
 
-        Returns:
+        Returns
             predicted values on data provided to fit().
+        
         """
         if not self.is_fitted or self.analyzer is None:
             raise RuntimeError("Model must be fit before prediction")

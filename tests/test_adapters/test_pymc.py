@@ -341,7 +341,7 @@ def test_fit_and_predict_in_sample_method_real_pymc(valid_pymc_config, realistic
     assert isinstance(result, np.ndarray)
     assert len(result) == len(data)
     assert not np.all(np.isnan(result))  # Should have some non-NaN predictions
-    
+
     # Verify the model was fitted
     assert adapter.is_fitted is True
 

@@ -183,9 +183,7 @@ class PyMCAdapter(BaseAdapter):
 
         """
         self.fit(data)
-        return self.model.predict(
-            data, extend_idata=False, **self.predict_kwargs
-        )
+        return self.model.predict(data, extend_idata=False, **self.predict_kwargs)
 
     def get_channel_roi(
         self,
