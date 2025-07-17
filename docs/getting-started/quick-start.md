@@ -145,9 +145,10 @@ result = run_evaluation(framework="meridian", config=config, data=data_preproc)
 
 ## What's in `result`?
 
-The evaluation suite runs 4 tests, each of which answers a distinct question about the quality of your model: 
+The evaluation suite runs 5 tests, each of which answers a distinct question about the quality of your model: 
 
-* **Accuracy Test**: "How well does my model predict on unseen data?"
+* **Holdout Accuracy Test**: "How well does my model predict on unseen data?"
+* **In-Sample Accuracy Test**: "How well does my model fit the training data and is it overfitting?"
 * **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
 * **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
 * **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"
@@ -168,9 +169,12 @@ If we look at the evaluation output ```display(results)```, we'll see something 
 
 |     test_name     |                  metric_name                  | metric_value | metric_pass |
 |-------------------|-----------------------------------------------|--------------|-------------|
-| accuracy          | mape                                          | 12.1         | False       |
-| accuracy          | smape                                         | 11.8         | False       |
-| accuracy          | r_squared                                     | -0.547       | False       |
+| holdout_accuracy  | mape                                          | 12.1         | False       |
+| holdout_accuracy  | smape                                         | 11.8         | False       |
+| holdout_accuracy  | r_squared                                     | -0.547       | False       |
+| in_sample_accuracy| mape                                          | 8.5          | False       |
+| in_sample_accuracy| smape                                         | 8.2          | False       |
+| in_sample_accuracy| r_squared                                     | 0.92         | True        |
 | cross_validation  | mean_mape                                     | 8.4          | False       |
 | cross_validation  | std_mape                                      | 5.8          | False       |
 | cross_validation  | mean_smape                                    | 8.1          | False       |

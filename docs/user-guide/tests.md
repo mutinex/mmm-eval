@@ -13,19 +13,53 @@ mmm-eval includes four main types of validation tests:
 
 ## Accuracy Tests
 
-Accuracy tests evaluate how well the model fits the training data.
+Accuracy tests evaluate how well the model fits the data using different validation approaches.
 
-### Metrics
+### Holdout Accuracy Test
+
+The holdout accuracy test evaluates model performance by splitting data into train/test sets and calculating metrics on the test set.
+
+#### Process
+
+1. **Data Split**: Data is split into training and test sets
+2. **Model Training**: Model is fitted on training data
+3. **Out-of-Sample Prediction**: Predictions made on held-out test data
+4. **Performance Metrics**: Calculated on out-of-sample predictions
+
+#### Metrics
 
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error
 - **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE
 - **R-squared**: Proportion of variance explained by the model
 
-### Interpretation
+#### Interpretation
 
 - **Lower MAPE**: Better model performance
 - **Lower SMAPE**: Better symmetric model performance
 - **Higher R-squared**: Better model fit (0-1 scale)
+
+### In-Sample Accuracy Test
+
+The in-sample accuracy test evaluates model performance by fitting the model on the full dataset and calculating metrics on the training data.
+
+#### Process
+
+1. **Full Dataset Training**: Model is fitted on the complete dataset
+2. **In-Sample Prediction**: Predictions made on the same data used for training
+3. **Performance Metrics**: Calculated on in-sample predictions
+
+#### Metrics
+
+- **MAPE (Mean Absolute Percentage Error)**: Average percentage error
+- **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE
+- **R-squared**: Proportion of variance explained by the model
+
+#### Interpretation
+
+- **Lower MAPE**: Better model fit to training data
+- **Lower SMAPE**: Better symmetric model fit
+- **Higher R-squared**: Better explanatory power
+- **Comparison with holdout**: Helps identify overfitting (much better in-sample than holdout performance)
 
 ## Cross-Validation Tests
 
@@ -103,15 +137,16 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path con
 ### Specific Tests
 
 ```bash
-mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names accuracy cross_validation
+mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path config.json --output-path results/ --test-names holdout_accuracy in_sample_accuracy cross_validation
 ```
 
 ### Available Test Names
 
-- `accuracy`: Accuracy tests only
+- `holdout_accuracy`: Holdout accuracy tests only
+- `in_sample_accuracy`: In-sample accuracy tests only
 - `cross_validation`: Cross-validation tests only
 - `refresh_stability`: Refresh stability tests only
-- `performance`: Performance tests only
+- `perturbation`: Perturbation tests only
 
 ## Test Configuration
 
@@ -122,7 +157,8 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 ### Good Model Indicators
 
-- **Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8
+- **Holdout Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8
+- **In-Sample Accuracy**: MAPE < 10%, SMAPE < 10%, R-squared > 0.9
 - **Cross-Validation**: Out-of-sample MAPE/SMAPE similar to in-sample
 - **Refresh Stability**: Parameter changes < 10%
 - **Perturbation**: ROI changes < 5%
@@ -130,17 +166,18 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 ### Warning Signs
 
 - **Poor Performance**: High MAPE/SMAPE or low R-squared
+- **Overfitting**: Much better in-sample than holdout performance
 - **Unstable Model**: Large parameter changes
-- **Overfitting**: In-sample vs out-of-sample performance gap
 - **Data Issues**: Missing values or extreme outliers
 
 ## Best Practices
 
 ### Test Selection
 
-- **Start with accuracy**: Always run accuracy tests first
-- **Add cross-validation**: For generalization assessment
-- **Include stability**: For production models
+- **Start with holdout accuracy**: Always run holdout accuracy tests first
+- **Add in-sample accuracy**: To assess model fit and identify overfitting
+- **Include cross-validation**: For generalization assessment
+- **Add stability tests**: For production models
 - **Monitor performance**: For computational constraints
 
 ### Result Analysis
