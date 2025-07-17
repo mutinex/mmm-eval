@@ -119,12 +119,10 @@ def generate_pymc_data():
 def generate_meridian_data():
     """Load and process a Meridian-compatible dataset for E2E testing.
 
-    The parquet file should be placed at: mmm_eval/data/sample_data/meridian_geo_media.parquet
-
     Returns
         DataFrame containing Meridian-compatible data with media channels, controls, and
         response variables
-
+    
     """
     # Path to the local parquet file
     parquet_path = Path(__file__).parent / "sample_data" / "meridian_geo_media.parquet"
