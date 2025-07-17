@@ -153,7 +153,7 @@ def split_timeseries_data(
             f"`test_size` ({test_size}) must be less than the number of unique dates ({len(sorted_dates)})"
         )
 
-    cutoff = sorted_dates[-test_size]  # Use the date before the test period starts
+    cutoff = sorted_dates[-test_size]
 
     train_mask = data[date_column] < cutoff
     test_mask = data[date_column] >= cutoff
