@@ -128,7 +128,7 @@ class TestBaseValidationTest:
         dates = pd.date_range("2023-01-01", periods=10)
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(10)})
 
-        train_mask, test_mask = split_timeseries_data(data, 0.3, InputDataframeConstants.DATE_COL)
+        train_mask, test_mask = split_timeseries_data(data, 3, InputDataframeConstants.DATE_COL)
 
         # Check that masks are boolean arrays
         assert isinstance(train_mask, pd.Series)
@@ -142,24 +142,45 @@ class TestBaseValidationTest:
         # Check that all data is covered
         assert (train_mask | test_mask).all()
 
-        # Check proportions (7 train, 3 test for 0.3 test proportion)
+        # Check proportions (7 train, 3 test for test_size=3)
         assert train_mask.sum() == 7
         assert test_mask.sum() == 3
+
+    def test_split_timeseries_data_exact_test_size(self):
+        """Test that split_timeseries_data reserves exactly test_size dates for testing."""
+        # Create test data with 10 unique dates
+        dates = pd.date_range("2023-01-01", periods=10)
+        data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(10)})
+
+        # Test with different test sizes
+        for test_size in [1, 3, 5, 7]:
+            train_mask, test_mask = split_timeseries_data(data, test_size, InputDataframeConstants.DATE_COL)
+
+            # Count unique dates in test set
+            test_dates = data[test_mask][InputDataframeConstants.DATE_COL].unique()
+            assert len(test_dates) == test_size, f"Expected {test_size} test dates, got {len(test_dates)}"
+
+            # Verify train and test are disjoint
+            train_dates = data[train_mask][InputDataframeConstants.DATE_COL].unique()
+            assert len(set(train_dates) & set(test_dates)) == 0
+
+            # Verify all data is covered
+            assert len(train_dates) + len(test_dates) == len(dates)
 
     def test_split_timeseries_data_edge_cases(self):
         """Test edge cases for split_timeseries_data."""
         dates = pd.date_range("2023-01-01", periods=5)
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(5)})
 
-        # Test with very small test proportion
-        train_mask, test_mask = split_timeseries_data(data, 0.1, InputDataframeConstants.DATE_COL)
+        # Test with very small test size
+        train_mask, test_mask = split_timeseries_data(data, 1, InputDataframeConstants.DATE_COL)
         assert train_mask.sum() == 4
         assert test_mask.sum() == 1
 
-        # Test with large test proportion
-        train_mask, test_mask = split_timeseries_data(data, 0.8, InputDataframeConstants.DATE_COL)
-        # With 0.8 test proportion and 5 dates: split_idx = round(5 * 0.2) = 1
-        # cutoff = dates[1] = '2023-01-02', so 1 date < '2023-01-02' and 4 dates >= '2023-01-02'
+        # Test with large test size
+        train_mask, test_mask = split_timeseries_data(data, 4, InputDataframeConstants.DATE_COL)
+        # With test_size=4 and 5 dates: cutoff = dates[-4] = '2023-01-02'
+        # So 1 date < '2023-01-02' and 4 dates >= '2023-01-02'
         assert train_mask.sum() == 1  # 1 date < '2023-01-02'
         assert test_mask.sum() == 4  # 4 dates >= '2023-01-02'
 
@@ -169,9 +190,9 @@ class TestBaseValidationTest:
         dates = pd.to_datetime(["2023-01-01", "2023-01-01", "2023-01-02", "2023-01-02", "2023-01-03"])
         data = pd.DataFrame({InputDataframeConstants.DATE_COL: dates, "value": range(5)})
 
-        train_mask, test_mask = split_timeseries_data(data, 0.4, InputDataframeConstants.DATE_COL)
+        train_mask, test_mask = split_timeseries_data(data, 1, InputDataframeConstants.DATE_COL)
 
-        # Should split based on unique dates (3 unique dates, 0.4 test = 1 test date)
+        # Should split based on unique dates (3 unique dates, test_size=1)
         unique_dates = data[InputDataframeConstants.DATE_COL].unique()
         assert len(unique_dates) == 3
 
