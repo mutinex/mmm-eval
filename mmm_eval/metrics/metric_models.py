@@ -42,12 +42,12 @@ def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
     if actual.isna().any() or predicted.isna().any():
         raise ValueError("Actual and predicted series must be free of NaN values")
 
-    # Handle division by zero and edge cases
+    numerator = 2 * np.abs(predicted - actual)
     denominator = np.abs(actual) + np.abs(predicted)
-    # Avoid division by zero by setting denominator to 1 where it's 0
-    denominator = np.where(denominator == 0, 1, denominator)
-
-    smape = 100 * np.mean(2 * np.abs(predicted - actual) / denominator)
+    # avoid division by zero edge case if both numerator and denominator are zero
+    mask = denominator != 0
+    smape_terms = np.where(mask, numerator / denominator, 0)
+    smape = 100 * np.mean(smape_terms)
     return float(smape)
 
 
