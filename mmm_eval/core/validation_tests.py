@@ -123,6 +123,12 @@ class CrossValidationTest(BaseValidationTest):
             std_mape=calculate_std_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.MAPE
             ),
+            mean_smape=calculate_mean_for_singular_values_across_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.SMAPE
+            ),
+            std_smape=calculate_std_for_singular_values_across_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.SMAPE
+            ),
             mean_r_squared=calculate_mean_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.R_SQUARED
             ),

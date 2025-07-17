@@ -157,6 +157,9 @@ Details on the implementation of the tests can be found in [Tests](../user-guide
 * **MAPE (Mean Absolute Percentage Error)**  
   `MAPE = (100 / n) * Σ |(y_i - ŷ_i) / y_i|`
 
+* **SMAPE (Symmetric Mean Absolute Percentage Error)**  
+  `SMAPE = 100 * (2 * |y_i - ŷ_i|) / (|y_i| + |ŷ_i|)`
+
 * **R-squared (Coefficient of Determination)**  
   `R² = 1 - (Σ (y_i - ŷ_i)^2) / (Σ (y_i - ȳ)^2)`
 
@@ -165,18 +168,21 @@ If we look at the evaluation output ```display(results)```, we'll see something 
 
 |     test_name     |                  metric_name                  | metric_value | metric_pass |
 |-------------------|-----------------------------------------------|--------------|-------------|
-| accuracy          | mape                                          | 0.121        | False       |
+| accuracy          | mape                                          | 12.1         | False       |
+| accuracy          | smape                                         | 11.8         | False       |
 | accuracy          | r_squared                                     | -0.547       | False       |
-| cross_validation  | mean_mape                                     | 0.084        | False       |
-| cross_validation  | std_mape                                      | 0.058        | False       |
+| cross_validation  | mean_mape                                     | 8.4          | False       |
+| cross_validation  | std_mape                                      | 5.8          | False       |
+| cross_validation  | mean_smape                                    | 8.1          | False       |
+| cross_validation  | std_smape                                     | 5.5          | False       |
 | cross_validation  | mean_r_squared                                | -7.141       | False       |
 | cross_validation  | std_r_squared                                 | 9.686        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:TV    | 0.021        | False       |
-| refresh_stability | mean_percentage_change_for_each_channel:radio | 0.369        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:TV     | 0.021        | False       |
-| refresh_stability | std_percentage_change_for_each_channel:radio  | 0.397        | False       |
-| perturbation      | percentage_change_for_each_channel:TV         | 0.005        | False       |
-| perturbation      | percentage_change_for_each_channel:radio      | 0.112        | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:TV    | 2.1          | False       |
+| refresh_stability | mean_percentage_change_for_each_channel:radio | 36.9         | False       |
+| refresh_stability | std_percentage_change_for_each_channel:TV     | 2.1          | False       |
+| refresh_stability | std_percentage_change_for_each_channel:radio  | 39.7         | False       |
+| perturbation      | percentage_change_for_each_channel:TV         | 0.5          | False       |
+| perturbation      | percentage_change_for_each_channel:radio      | 11.2         | False       |
 
 
 Notice that our model is failing every test. Seems we have some work to do!

@@ -7,7 +7,7 @@ class ValidationTestConstants:
     ACCURACY_TEST_SIZE = 8
     RANDOM_STATE = 42
     N_SPLITS = 5
-    TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4  # 4 representing a 4 week refresh
+    TIME_SERIES_CROSS_VALIDATION_TEST_SIZE = 4
 
     class PerturbationConstants:
         """Constants for the perturbation test."""

@@ -15,22 +15,14 @@ mmm-eval calculates several key metrics across different validation tests:
 ### Accuracy Metrics
 
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error between predictions and actual values
-- **RMSE (Root Mean Square Error)**: Standard deviation of prediction errors
+- **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE that treats over and underestimation equally
 - **R-squared**: Proportion of variance explained by the model
-- **MAE (Mean Absolute Error)**: Average absolute prediction error
 
 ### Stability Metrics
 
 - **Parameter Change**: Percentage change in model parameters
 - **Channel Stability**: Stability of media channel coefficients
 - **Intercept Stability**: Stability of baseline parameters
-
-### Performance Metrics
-
-- **Training Time**: Time required to fit the model
-- **Memory Usage**: Peak memory consumption during training
-- **Prediction Time**: Time to generate predictions
-- **Convergence**: Number of iterations to reach convergence
 
 ## Metric Definitions
 
@@ -42,18 +34,24 @@ MAPE = (1/n) * Σ |(y_i - ŷ_i) / y_i|
 
 **Interpretation**:
 - **Lower is better**: 0% = perfect predictions
-- **Scale**: Expressed as a proportion, e.g. 0.15 rather than 15%
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
 
-### RMSE (Root Mean Square Error)
+### SMAPE (Symmetric Mean Absolute Percentage Error)
 
 ```python
-RMSE = √(Σ(y_i - ŷ_i)² / n)
+SMAPE = 100 * (2 * |y_i - ŷ_i|) / (|y_i| + |ŷ_i|)
 ```
 
 **Interpretation**:
-- **Lower is better**: 0 = perfect predictions
-- **Units**: Same as target variable
-- **Sensitivity**: More sensitive to large errors than MAPE
+- **Lower is better**: 0% = perfect predictions
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
+- **Symmetric**: Treats over and underestimation equally (unlike MAPE)
+- **Robust**: Less sensitive to extreme values and zero actual values
+
+**Advantages over MAPE**:
+- **Symmetry**: 10% overestimation and 10% underestimation give the same SMAPE value
+- **Zero handling**: Better handling of zero or near-zero actual values
+- **Bounded**: Upper bound of 200% vs. unbounded MAPE
 
 ### R-squared (Coefficient of Determination)
 
@@ -66,30 +64,20 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 - **Scale**: 1 = perfect fit, 0 = no predictive power
 - **Benchmark**: > 0.8 is generally good
 
-### MAE (Mean Absolute Error)
-
-```python
-MAE = (1/n) * Σ |y_i - ŷ_i|
-```
-
-**Interpretation**:
-- **Lower is better**: 0 = perfect predictions
-- **Units**: Same as target variable
-- **Robustness**: Less sensitive to outliers than RMSE
-
 ## Test-Specific Metrics
 
 ### Accuracy Test Metrics
 
 - **MAPE**: Overall prediction accuracy
-- **RMSE**: Error magnitude
+- **SMAPE**: Symmetric prediction accuracy
 - **R-squared**: Model fit quality
-- **MAE**: Absolute error magnitude
 
 ### Cross-Validation Metrics
 
 - **Mean MAPE**: Average out-of-sample accuracy
 - **Std MAPE**: Consistency of accuracy across folds
+- **Mean SMAPE**: Average out-of-sample symmetric accuracy
+- **Std SMAPE**: Consistency of symmetric accuracy across folds
 - **Mean R-squared**: Average out-of-sample fit
 - **Std R-squared**: Consistency of fit across folds
 
@@ -99,38 +87,34 @@ MAE = (1/n) * Σ |y_i - ŷ_i|
 - **Std Percentage Change**: Consistency of parameter changes
 - **Channel-specific Stability**: Stability per media channel
 
-### Performance Metrics
+### Perturbation Metrics
 
-- **Training Time**: Model fitting efficiency
-- **Memory Usage**: Resource utilization
-- **Prediction Time**: Inference speed
-- **Convergence Iterations**: Optimization efficiency
+- **Percentage Change**: Change in ROI estimates when input data is perturbed
+- **Channel-specific Sensitivity**: Sensitivity of each media channel to data perturbations
+- **Model Robustness**: Overall model stability to input noise
 
 ## Interpreting Results
 
 ### Good Performance Indicators
 
 - **MAPE < 15%**: Good prediction accuracy
+- **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
 - **Low parameter changes**: Stable model
+- **Low perturbation sensitivity**: Robust to input noise
 - **Reasonable training time**: Efficient computation
-
-### Warning Signs
-
-- **MAPE > 30%**: Poor prediction accuracy
-- **R-squared < 0.5**: Weak model fit
-- **High parameter changes**: Unstable model
-- **Excessive training time**: Computational issues
 
 ## Thresholds and Benchmarks
 
-### Industry Benchmarks
+### Rough Benchmarks
 
 | Metric | Excellent | Good | Acceptable | Poor |
 |--------|-----------|------|------------|------|
 | MAPE | < 5% | 5-10% | 10-15% | > 15% |
+| SMAPE | < 5% | 5-10% | 10-15% | > 15% |
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
+| Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
 
 ## Customizing Metrics
 
@@ -157,6 +141,7 @@ class CustomMetric(BaseMetric):
 ### Metric Selection
 
 - **Start with MAPE**: Most intuitive for business users
+- **Include SMAPE**: More robust alternative to MAPE for symmetric evaluation
 - **Include R-squared**: Technical measure of fit quality
 - **Monitor stability**: Critical for production models
 - **Track performance**: Important for scalability
@@ -173,9 +158,10 @@ class CustomMetric(BaseMetric):
 ### Common Issues
 
 1. **Extreme MAPE values**: Check for zero or near-zero actual values
-2. **Negative R-squared**: Model performs worse than baseline
-3. **Inconsistent metrics**: Verify data preprocessing
-4. **Missing metrics**: Check test configuration
+2. **High SMAPE values**: Check for symmetric errors and zero handling
+3. **Negative R-squared**: Model performs worse than baseline
+4. **Inconsistent metrics**: Verify data preprocessing
+5. **Missing metrics**: Check test configuration
 
 ### Getting Help
 

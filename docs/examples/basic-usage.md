@@ -170,16 +170,18 @@ results/
 
 ```csv
 test_name,metric_name,metric_value,metric_pass
-accuracy,mape,0.15,True
+accuracy,mape,15.0,True
+accuracy,smape,14.5,True
 accuracy,r_squared,0.85,True
-cross_validation,mape,0.18,True
+cross_validation,mape,18.0,True
+cross_validation,smape,17.5,True
 cross_validation,r_squared,0.82,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_1,0.05,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_2,0.03,True
-refresh_stability,std_percentage_change_for_each_channel:channel_1,0.02,True
-refresh_stability,std_percentage_change_for_each_channel:channel_2,0.01,True
-perturbation,percentage_change_for_each_channel:channel_1,0.02,True
-perturbation,percentage_change_for_each_channel:channel_2,0.01,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_1,5.0,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_2,3.0,True
+refresh_stability,std_percentage_change_for_each_channel:channel_1,2.0,True
+refresh_stability,std_percentage_change_for_each_channel:channel_2,1.0,True
+perturbation,percentage_change_for_each_channel:channel_1,2.0,True
+perturbation,percentage_change_for_each_channel:channel_2,1.0,True
 ```
 
 ## Performance Examples
