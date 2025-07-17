@@ -373,7 +373,7 @@ class MeridianAdapter(BaseAdapter):
 
         Returns
             predicted values on data provided to fit().
-        
+
         """
         if not self.is_fitted or self.analyzer is None:
             raise RuntimeError("Model must be fit before prediction")

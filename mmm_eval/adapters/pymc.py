@@ -183,6 +183,8 @@ class PyMCAdapter(BaseAdapter):
 
         """
         self.fit(data)
+        if self.model is None:
+            raise RuntimeError("Model must be fit before prediction.")
         return self.model.predict(data, extend_idata=False, **self.predict_kwargs)
 
     def get_channel_roi(
