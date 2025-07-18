@@ -2,6 +2,7 @@
 
 import gc
 import logging
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -248,7 +249,7 @@ class MeridianAdapter(BaseAdapter):
         self.input_data_builder_schema = config.input_data_builder_config
 
         self.date_column = config.date_column
-        self.channel_spend_columns = self.input_data_builder_schema.channel_spend_columns
+        self.channel_spend_columns = copy(self.input_data_builder_schema.channel_spend_columns)
 
         # Initialize stateful attributes to None/False
         self._reset_state()
@@ -324,6 +325,8 @@ class MeridianAdapter(BaseAdapter):
         """
         # Create a deep copy of the input data builder schema
         new_input_data_builder_schema = MeridianInputDataBuilderSchema(
+            date_column=self.date_column,
+            response_column=InputDataframeConstants.RESPONSE_COL,
             media_channels=self.input_data_builder_schema.media_channels.copy(),
             channel_spend_columns=self.input_data_builder_schema.channel_spend_columns.copy(),
             channel_impressions_columns=(
@@ -366,6 +369,7 @@ class MeridianAdapter(BaseAdapter):
         # Create a new config
         new_config = MeridianConfig(
             date_column=self.date_column,
+            revenue_column=self.config.revenue_column,
             input_data_builder_config=new_input_data_builder_schema,
             model_spec_config=self.config.model_spec_config,
             sample_posterior_config=self.config.sample_posterior_config,
@@ -445,6 +449,120 @@ class MeridianAdapter(BaseAdapter):
                 result.append(channel_to_column_mapping[channel_name])
 
         return result
+
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel.
+
+        For Meridian, this returns the actual column names in the data for the given channel.
+        The mapping depends on the regressor type (spend-only, impressions, or reach/frequency).
+
+        Args:
+            channel_name: Name of the channel to get columns for
+
+        Returns:
+            Dictionary mapping column types to actual column names in the data
+
+        """
+        # Find the index of the channel in the media_channels list
+        try:
+            channel_index = self.media_channels.index(channel_name)
+        except ValueError:
+            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}")
+
+        # Build the column mapping based on the regressor type
+        columns = {}
+        
+        # Always include spend column
+        if channel_index < len(self.input_data_builder_schema.channel_spend_columns):
+            columns["spend"] = self.input_data_builder_schema.channel_spend_columns[channel_index]
+        
+        # Include impressions column if using impressions regressors
+        if (self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS and 
+            self.input_data_builder_schema.channel_impressions_columns and
+            channel_index < len(self.input_data_builder_schema.channel_impressions_columns)):
+            columns["impressions"] = self.input_data_builder_schema.channel_impressions_columns[channel_index]
+        
+        # Include reach and frequency columns if using reach/frequency regressors
+        if (self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY):
+            if (self.input_data_builder_schema.channel_reach_columns and
+                channel_index < len(self.input_data_builder_schema.channel_reach_columns)):
+                columns["reach"] = self.input_data_builder_schema.channel_reach_columns[channel_index]
+            if (self.input_data_builder_schema.channel_frequency_columns and
+                channel_index < len(self.input_data_builder_schema.channel_frequency_columns)):
+                columns["frequency"] = self.input_data_builder_schema.channel_frequency_columns[channel_index]
+
+        return columns
+
+    def _create_adapter_with_placebo_channel(
+        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+    ) -> "MeridianAdapter":
+        """Create a new adapter instance configured to use the placebo channel.
+
+        For Meridian, this creates a new adapter with the shuffled channel added to the
+        appropriate column lists in the input data builder schema.
+
+        Args:
+            original_channel: Name of the original channel
+            shuffled_channel: Name of the new shuffled channel
+            original_columns: Dictionary mapping column types to original column names
+
+        Returns:
+            New MeridianAdapter instance configured to use the placebo channel
+
+        """
+        # Create a deep copy of the input data builder schema
+        new_input_data_builder_schema = MeridianInputDataBuilderSchema(
+            date_column=self.date_column,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            media_channels=self.input_data_builder_schema.media_channels + [shuffled_channel],
+            channel_spend_columns=self.input_data_builder_schema.channel_spend_columns + [f"{shuffled_channel}_spend"],
+            channel_impressions_columns=(
+                self.input_data_builder_schema.channel_impressions_columns + [f"{shuffled_channel}_impressions"]
+                if self.input_data_builder_schema.channel_impressions_columns
+                else None
+            ),
+            channel_reach_columns=(
+                self.input_data_builder_schema.channel_reach_columns + [f"{shuffled_channel}_reach"]
+                if self.input_data_builder_schema.channel_reach_columns
+                else None
+            ),
+            channel_frequency_columns=(
+                self.input_data_builder_schema.channel_frequency_columns + [f"{shuffled_channel}_frequency"]
+                if self.input_data_builder_schema.channel_frequency_columns
+                else None
+            ),
+            control_columns=(
+                self.input_data_builder_schema.control_columns.copy()
+                if self.input_data_builder_schema.control_columns
+                else None
+            ),
+            organic_media_columns=(
+                self.input_data_builder_schema.organic_media_columns.copy()
+                if self.input_data_builder_schema.organic_media_columns
+                else None
+            ),
+            organic_media_channels=(
+                self.input_data_builder_schema.organic_media_channels.copy()
+                if self.input_data_builder_schema.organic_media_channels
+                else None
+            ),
+            non_media_treatment_columns=(
+                self.input_data_builder_schema.non_media_treatment_columns.copy()
+                if self.input_data_builder_schema.non_media_treatment_columns
+                else None
+            ),
+        )
+
+        # Create a new config
+        new_config = MeridianConfig(
+            date_column=self.date_column,
+            revenue_column=self.config.revenue_column,
+            input_data_builder_config=new_input_data_builder_schema,
+            model_spec_config=self.config.model_spec_config,
+            sample_posterior_config=self.config.sample_posterior_config,
+        )
+
+        return MeridianAdapter(new_config)
 
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.
@@ -623,5 +741,6 @@ class MeridianAdapter(BaseAdapter):
 
         rois = {}
         for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
-            rois[channel] = float(roi)
+            # return as a percentage, such that 0% means that the $1 spend -> $1 return
+            rois[channel] = 100 * float(roi - 1)
         return pd.Series(rois)

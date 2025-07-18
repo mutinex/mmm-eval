@@ -96,6 +96,20 @@ class MockAdapter(BaseAdapter):
         """Get the primary media regressor columns for specific channels."""
         return channel_names
 
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel."""
+        # For mock adapter, assume channel names are the same as column names
+        return {"spend": channel_name}
+
+    def _create_adapter_with_placebo_channel(
+        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+    ) -> "MockAdapter":
+        """Create a new adapter instance configured to use the placebo channel."""
+        new_adapter = MockAdapter(self.date_column)
+        new_adapter.channel_spend_columns = self.channel_spend_columns + [f"{shuffled_channel}_spend"]
+        new_adapter._media_channels = self._media_channels + [shuffled_channel]
+        return new_adapter
+
 
 class TestPlaceboTest:
     """Test cases for PlaceboTest."""
@@ -229,6 +243,24 @@ class TestPlaceboTest:
 
             def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
                 return [f"{channel.lower()}_impressions" for channel in channel_names]
+
+            def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+                """Get the original column names for a channel."""
+                # For this mock adapter, map channel names to their spend and impressions columns
+                channel_mapping = {
+                    "TV": {"spend": "tv_spend", "impressions": "tv_impressions"},
+                    "Radio": {"spend": "radio_spend", "impressions": "radio_impressions"},
+                }
+                return channel_mapping.get(channel_name, {"spend": f"{channel_name.lower()}_spend", "impressions": f"{channel_name.lower()}_impressions"})
+
+            def _create_adapter_with_placebo_channel(
+                self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+            ) -> "MeridianStyleAdapter":
+                """Create a new adapter instance configured to use the placebo channel."""
+                new_adapter = MeridianStyleAdapter()
+                new_adapter.channel_spend_columns = self.channel_spend_columns + [f"{shuffled_channel.lower()}_spend"]
+                new_adapter._media_channels = self._media_channels + [shuffled_channel]
+                return new_adapter
 
         # Create test data with both spend and impressions columns
         dates = pd.date_range("2023-01-01", periods=10, freq="D")

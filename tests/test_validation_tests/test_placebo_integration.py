@@ -95,6 +95,20 @@ class MockAdapter(BaseAdapter):
         """Get the primary media regressor columns for specific channels."""
         return channel_names
 
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel."""
+        # For mock adapter, assume channel names are the same as column names
+        return {"spend": channel_name}
+
+    def _create_adapter_with_placebo_channel(
+        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+    ) -> "MockAdapter":
+        """Create a new adapter instance configured to use the placebo channel."""
+        new_adapter = MockAdapter(self.date_column)
+        new_adapter.channel_spend_columns = self.channel_spend_columns + [f"{shuffled_channel}_spend"]
+        new_adapter._media_channels = self._media_channels + [shuffled_channel]
+        return new_adapter
+
 
 class TestPlaceboTestIntegration:
     """Integration tests for PlaceboTest."""

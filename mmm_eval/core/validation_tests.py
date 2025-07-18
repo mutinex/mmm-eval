@@ -385,36 +385,28 @@ class PlaceboTest(BaseValidationTest):
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
         """Run the placebo test."""
+        if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            # FIXME: throw warning and return test result with null values
+            pass
+
         # Select a random channel to shuffle
         original_channel = self.rng.choice(adapter.media_channels)
-
-        # Create shuffled data
-        shuffled_data = data.copy()
-
-        # Create a copy of the adapter and add the shuffled channel
-        adapter_copy = adapter.copy()
-        shuffled_channel_name = f"{original_channel}_shuffled"
-        added_columns = adapter_copy.add_channels([shuffled_channel_name])
-
-        # Get the columns that were added for the shuffled channel
-        shuffled_channel_columns = added_columns[shuffled_channel_name]
-
-        # Get the primary media regressor columns for the original channel
-        original_regressor_columns = adapter.get_primary_media_regressor_columns_for_channels([original_channel])
 
         # Create shuffled indices for consistent shuffling across related columns
         shuffled_indices = np.arange(len(data))
         self.rng.shuffle(shuffled_indices)
 
-        # Shuffle the original channel data and add to shuffled data
-        for i, original_col in enumerate(original_regressor_columns):
-            if original_col in data.columns:
-                shuffled_col = shuffled_channel_columns[i]
-                shuffled_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
+        # Use the new template method to add placebo channel
+        adapter_copy, shuffled_data = adapter.add_placebo_channel(
+            original_channel_name=original_channel,
+            data_to_shuffle=data,
+            shuffled_indices=shuffled_indices
+        )
 
         # Fit the copied adapter and check ROI
         adapter_copy.fit(shuffled_data)
         rois = adapter_copy.get_channel_roi()
+        shuffled_channel_name = f"{original_channel}_shuffled"
         shuffled_roi = rois[shuffled_channel_name]
 
         # Create metric results
