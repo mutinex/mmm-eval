@@ -11,8 +11,8 @@ from mmm_eval.metrics.threshold_constants import (
     AccuracyThresholdConstants,
     CrossValidationThresholdConstants,
     PerturbationThresholdConstants,
-    RefreshStabilityThresholdConstants,
     PlaceboThresholdConstants,
+    RefreshStabilityThresholdConstants,
 )
 
 

@@ -95,7 +95,7 @@ class MockAdapter(BaseAdapter):
         """Add new channels to the adapter."""
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
-        
+
         # For mock adapter, assume channel names are the same as column names
         added_columns = {}
         for channel_name in new_channel_names:
@@ -104,7 +104,7 @@ class MockAdapter(BaseAdapter):
             if self._media_channels is not None:
                 self._media_channels.append(channel_name)
             added_columns[channel_name] = [channel_name]
-        
+
         return added_columns
 
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:

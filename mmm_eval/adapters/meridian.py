@@ -318,7 +318,7 @@ class MeridianAdapter(BaseAdapter):
     def copy(self) -> "MeridianAdapter":
         """Create a deep copy of this adapter with all configuration.
 
-        Returns:
+        Returns
             A new MeridianAdapter instance with the same configuration
 
         """
@@ -326,15 +326,43 @@ class MeridianAdapter(BaseAdapter):
         new_input_data_builder_schema = MeridianInputDataBuilderSchema(
             media_channels=self.input_data_builder_schema.media_channels.copy(),
             channel_spend_columns=self.input_data_builder_schema.channel_spend_columns.copy(),
-            channel_impressions_columns=self.input_data_builder_schema.channel_impressions_columns.copy() if self.input_data_builder_schema.channel_impressions_columns else None,
-            channel_reach_columns=self.input_data_builder_schema.channel_reach_columns.copy() if self.input_data_builder_schema.channel_reach_columns else None,
-            channel_frequency_columns=self.input_data_builder_schema.channel_frequency_columns.copy() if self.input_data_builder_schema.channel_frequency_columns else None,
-            control_columns=self.input_data_builder_schema.control_columns.copy() if self.input_data_builder_schema.control_columns else None,
-            organic_media_columns=self.input_data_builder_schema.organic_media_columns.copy() if self.input_data_builder_schema.organic_media_columns else None,
-            organic_media_channels=self.input_data_builder_schema.organic_media_channels.copy() if self.input_data_builder_schema.organic_media_channels else None,
-            non_media_treatment_columns=self.input_data_builder_schema.non_media_treatment_columns.copy() if self.input_data_builder_schema.non_media_treatment_columns else None,
+            channel_impressions_columns=(
+                self.input_data_builder_schema.channel_impressions_columns.copy()
+                if self.input_data_builder_schema.channel_impressions_columns
+                else None
+            ),
+            channel_reach_columns=(
+                self.input_data_builder_schema.channel_reach_columns.copy()
+                if self.input_data_builder_schema.channel_reach_columns
+                else None
+            ),
+            channel_frequency_columns=(
+                self.input_data_builder_schema.channel_frequency_columns.copy()
+                if self.input_data_builder_schema.channel_frequency_columns
+                else None
+            ),
+            control_columns=(
+                self.input_data_builder_schema.control_columns.copy()
+                if self.input_data_builder_schema.control_columns
+                else None
+            ),
+            organic_media_columns=(
+                self.input_data_builder_schema.organic_media_columns.copy()
+                if self.input_data_builder_schema.organic_media_columns
+                else None
+            ),
+            organic_media_channels=(
+                self.input_data_builder_schema.organic_media_channels.copy()
+                if self.input_data_builder_schema.organic_media_channels
+                else None
+            ),
+            non_media_treatment_columns=(
+                self.input_data_builder_schema.non_media_treatment_columns.copy()
+                if self.input_data_builder_schema.non_media_treatment_columns
+                else None
+            ),
         )
-        
+
         # Create a new config
         new_config = MeridianConfig(
             date_column=self.date_column,
@@ -342,7 +370,7 @@ class MeridianAdapter(BaseAdapter):
             model_spec_config=self.config.model_spec_config,
             sample_posterior_config=self.config.sample_posterior_config,
         )
-        
+
         return MeridianAdapter(new_config)
 
     def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
@@ -358,11 +386,11 @@ class MeridianAdapter(BaseAdapter):
         """
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
-        
+
         # Check if reach/frequency regressor type is not supported
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             raise NotImplementedError("Adding channels is not supported for reach and frequency regressor type")
-        
+
         # Add to the input data builder schema
         self.input_data_builder_schema.media_channels.extend(new_channel_names)
 
@@ -374,18 +402,18 @@ class MeridianAdapter(BaseAdapter):
         added_columns = {}
         for channel_name in new_channel_names:
             channel_columns = [f"{channel_name.lower()}_spend"]
-            
+
             # Determine column names based on regressor type
             if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
                 # For impressions-based models, add both spend and impressions columns
                 impressions_columns = [f"{channel_name.lower()}_impressions"]
                 channel_columns.extend(impressions_columns)
-                
+
                 if self.input_data_builder_schema.channel_impressions_columns:
                     self.input_data_builder_schema.channel_impressions_columns.extend(impressions_columns)
-            
+
             added_columns[channel_name] = channel_columns
-        
+
         return added_columns
 
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
@@ -405,7 +433,7 @@ class MeridianAdapter(BaseAdapter):
         """
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             return []  # Not supported
-        
+
         if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
             # Return impressions columns for the specified channels
             return [f"{channel.lower()}_impressions" for channel in channel_names]

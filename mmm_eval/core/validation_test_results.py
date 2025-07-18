@@ -12,8 +12,8 @@ from mmm_eval.metrics.metric_models import (
     AccuracyMetricResults,
     CrossValidationMetricResults,
     PerturbationMetricResults,
-    RefreshStabilityMetricResults,
     PlaceboMetricResults,
+    RefreshStabilityMetricResults,
 )
 
 

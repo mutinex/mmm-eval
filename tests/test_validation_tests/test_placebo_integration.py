@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.core.validation_test_orchestrator import ValidationTestOrchestrator
@@ -82,14 +81,14 @@ class MockAdapter(BaseAdapter):
         """Add new channels to the adapter."""
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
-        
+
         # For mock adapter, assume channel names are the same as column names
         added_columns = {}
         for channel_name in new_channel_names:
             self.channel_spend_columns.append(channel_name)
             self._media_channels.append(channel_name)
             added_columns[channel_name] = [channel_name]
-        
+
         return added_columns
 
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
@@ -104,25 +103,27 @@ class TestPlaceboTestIntegration:
         """Test that PlaceboTest works with the validation orchestrator."""
         # Create test data
         dates = pd.date_range("2023-01-01", periods=10, freq="D")
-        data = pd.DataFrame({
-            "date": dates,
-            "response": np.random.randn(10) + 100,
-            "revenue": np.random.randn(10) + 1000,
-            "tv_spend": np.random.randn(10) + 50,
-            "radio_spend": np.random.randn(10) + 30,
-        })
+        data = pd.DataFrame(
+            {
+                "date": dates,
+                "response": np.random.randn(10) + 100,
+                "revenue": np.random.randn(10) + 1000,
+                "tv_spend": np.random.randn(10) + 50,
+                "radio_spend": np.random.randn(10) + 30,
+            }
+        )
 
         # Create adapter and orchestrator
         adapter = MockAdapter(date_column="date")
         orchestrator = ValidationTestOrchestrator()
-        
+
         # Run only the placebo test
         results = orchestrator.validate(
             adapter=adapter,
             data=data,
             test_names=[ValidationTestNames.PLACEBO],
         )
-        
+
         # Verify the results
         assert ValidationTestNames.PLACEBO in results.test_results
         placebo_result = results.get_test_result(ValidationTestNames.PLACEBO)
@@ -134,31 +135,33 @@ class TestPlaceboTestIntegration:
         """Test that PlaceboTest results are properly included in DataFrame output."""
         # Create test data
         dates = pd.date_range("2023-01-01", periods=10, freq="D")
-        data = pd.DataFrame({
-            "date": dates,
-            "response": np.random.randn(10) + 100,
-            "revenue": np.random.randn(10) + 1000,
-            "tv_spend": np.random.randn(10) + 50,
-            "radio_spend": np.random.randn(10) + 30,
-        })
+        data = pd.DataFrame(
+            {
+                "date": dates,
+                "response": np.random.randn(10) + 100,
+                "revenue": np.random.randn(10) + 1000,
+                "tv_spend": np.random.randn(10) + 50,
+                "radio_spend": np.random.randn(10) + 30,
+            }
+        )
 
         # Create adapter and orchestrator
         adapter = MockAdapter(date_column="date")
         orchestrator = ValidationTestOrchestrator()
-        
+
         # Run only the placebo test
         results = orchestrator.validate(
             adapter=adapter,
             data=data,
             test_names=[ValidationTestNames.PLACEBO],
         )
-        
+
         # Convert to DataFrame
         df = results.to_df()
-        
+
         # Verify the DataFrame contains placebo test results
         placebo_rows = df[df["test_name"] == ValidationTestNames.PLACEBO.value]
         assert len(placebo_rows) == 1
         assert placebo_rows["general_metric_name"].iloc[0] == "shuffled_channel_roi"
         assert placebo_rows["metric_value"].iloc[0] == 0.1
-        assert placebo_rows["metric_pass"].iloc[0] == True  # noqa: E712 
+        assert placebo_rows["metric_pass"].iloc[0] == True  # noqa: E712

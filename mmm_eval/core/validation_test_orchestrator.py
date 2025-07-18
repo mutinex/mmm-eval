@@ -14,8 +14,8 @@ from mmm_eval.core.validation_tests import (
     HoldoutAccuracyTest,
     InSampleAccuracyTest,
     PerturbationTest,
-    RefreshStabilityTest,
     PlaceboTest,
+    RefreshStabilityTest,
 )
 from mmm_eval.core.validation_tests_models import ValidationTestNames
 

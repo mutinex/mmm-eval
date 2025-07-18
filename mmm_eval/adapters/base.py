@@ -167,7 +167,7 @@ class BaseAdapter(ABC):
         This method creates a complete copy of the adapter including all configuration,
         but without any fitted state (model, trace, etc.).
 
-        Returns:
+        Returns
             A new adapter instance with the same configuration as this one
 
         """

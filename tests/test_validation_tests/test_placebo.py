@@ -2,12 +2,10 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
 from mmm_eval.core.validation_tests import PlaceboTest
 from mmm_eval.core.validation_tests_models import ValidationTestNames
-from mmm_eval.data.constants import InputDataframeConstants
 from mmm_eval.metrics.metric_models import PlaceboMetricResults
 
 
@@ -84,14 +82,14 @@ class MockAdapter(BaseAdapter):
         """Add new channels to the adapter."""
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
-        
+
         # For mock adapter, assume channel names are the same as column names
         added_columns = {}
         for channel_name in new_channel_names:
             self.channel_spend_columns.append(channel_name)
             self._media_channels.append(channel_name)
             added_columns[channel_name] = [channel_name]
-        
+
         return added_columns
 
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
@@ -111,21 +109,23 @@ class TestPlaceboTest:
         """Test that PlaceboTest runs successfully."""
         # Create test data
         dates = pd.date_range("2023-01-01", periods=10, freq="D")
-        data = pd.DataFrame({
-            "date": dates,
-            "response": np.random.randn(10) + 100,
-            "revenue": np.random.randn(10) + 1000,
-            "tv_spend": np.random.randn(10) + 50,
-            "radio_spend": np.random.randn(10) + 30,
-        })
+        data = pd.DataFrame(
+            {
+                "date": dates,
+                "response": np.random.randn(10) + 100,
+                "revenue": np.random.randn(10) + 1000,
+                "tv_spend": np.random.randn(10) + 50,
+                "radio_spend": np.random.randn(10) + 30,
+            }
+        )
 
         # Create adapter and test
         adapter = MockAdapter(date_column="date")
         test = PlaceboTest(date_column="date")
-        
+
         # Run the test
         result = test.run(adapter, data)
-        
+
         # Verify the result
         assert result.test_name == ValidationTestNames.PLACEBO
         assert isinstance(result.test_scores, PlaceboMetricResults)
@@ -137,31 +137,26 @@ class TestPlaceboTest:
     def test_placebo_test_metric_threshold(self):
         """Test that the metric threshold checking works correctly."""
         # Create metric results with low ROI (should pass)
-        results = PlaceboMetricResults(
-            shuffled_channel_roi=0.1,
-            shuffled_channel_name="TV_shuffled"
-        )
-        
+        results = PlaceboMetricResults(shuffled_channel_roi=0.1, shuffled_channel_name="TV_shuffled")
+
         # Test threshold checking
         assert results._check_metric_threshold("shuffled_channel_roi", 0.1) is True
         assert results._check_metric_threshold("shuffled_channel_roi", 0.3) is False
 
     def test_placebo_test_dataframe_output(self):
         """Test that the metric results can be converted to DataFrame."""
-        results = PlaceboMetricResults(
-            shuffled_channel_roi=0.1,
-            shuffled_channel_name="TV_shuffled"
-        )
-        
+        results = PlaceboMetricResults(shuffled_channel_roi=0.1, shuffled_channel_name="TV_shuffled")
+
         df = results.to_df()
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 1
         assert "shuffled_channel_roi" in df["general_metric_name"].values
         assert df["metric_value"].iloc[0] == 0.1
-        assert df["metric_pass"].iloc[0] == True  # noqa: E712 
+        assert df["metric_pass"].iloc[0] == True  # noqa: E712
 
     def test_placebo_test_with_impressions_regressors(self):
         """Test that PlaceboTest correctly handles impressions regressors."""
+
         # Create a mock adapter that simulates Meridian with impressions regressors
         class MeridianStyleAdapter(BaseAdapter):
             def __init__(self):
@@ -219,7 +214,7 @@ class TestPlaceboTest:
             def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
                 if self.is_fitted:
                     raise RuntimeError("Cannot add channels to a fitted adapter")
-                
+
                 added_columns = {}
                 for channel_name in new_channel_names:
                     self.channel_spend_columns.append(f"{channel_name.lower()}_spend")
@@ -227,9 +222,9 @@ class TestPlaceboTest:
                     # For impressions regressors, add both spend and impressions columns
                     added_columns[channel_name] = [
                         f"{channel_name.lower()}_spend",
-                        f"{channel_name.lower()}_impressions"
+                        f"{channel_name.lower()}_impressions",
                     ]
-                
+
                 return added_columns
 
             def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
@@ -237,29 +232,31 @@ class TestPlaceboTest:
 
         # Create test data with both spend and impressions columns
         dates = pd.date_range("2023-01-01", periods=10, freq="D")
-        data = pd.DataFrame({
-            "date": dates,
-            "response": np.random.randn(10) + 100,
-            "revenue": np.random.randn(10) + 1000,
-            "tv_spend": np.random.randn(10) + 50,
-            "radio_spend": np.random.randn(10) + 30,
-            "tv_impressions": np.random.randn(10) + 50000,
-            "radio_impressions": np.random.randn(10) + 25000,
-        })
+        data = pd.DataFrame(
+            {
+                "date": dates,
+                "response": np.random.randn(10) + 100,
+                "revenue": np.random.randn(10) + 1000,
+                "tv_spend": np.random.randn(10) + 50,
+                "radio_spend": np.random.randn(10) + 30,
+                "tv_impressions": np.random.randn(10) + 50000,
+                "radio_impressions": np.random.randn(10) + 25000,
+            }
+        )
 
         # Create adapter and test
         adapter = MeridianStyleAdapter()
         test = PlaceboTest(date_column="date")
-        
+
         # Run the test
         result = test.run(adapter, data)
-        
+
         # Verify the result
         assert result.test_name == ValidationTestNames.PLACEBO
         assert isinstance(result.test_scores, PlaceboMetricResults)
         assert result.test_scores.shuffled_channel_roi == 0.1
         assert result.test_scores.shuffled_channel_name.endswith("_shuffled")
-        
+
         # The test should have worked correctly, indicating that the PlaceboTest
         # can handle impressions regressors properly by shuffling the correct columns
-        # and using the adapter's column naming logic 
+        # and using the adapter's column naming logic

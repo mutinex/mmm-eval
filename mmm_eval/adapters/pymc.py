@@ -95,7 +95,7 @@ class PyMCAdapter(BaseAdapter):
     def copy(self) -> "PyMCAdapter":
         """Create a deep copy of this adapter with all configuration.
 
-        Returns:
+        Returns
             A new PyMCAdapter instance with the same configuration
 
         """
@@ -108,7 +108,7 @@ class PyMCAdapter(BaseAdapter):
             fit_config_dict=self.fit_kwargs.copy(),
             predict_config_dict=self.predict_kwargs.copy(),
         )
-        
+
         return PyMCAdapter(new_config)
 
     def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
@@ -124,14 +124,14 @@ class PyMCAdapter(BaseAdapter):
         """
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
-        
+
         # For PyMC, channel names are the same as column names
         # Add to the current channel lists
         self.channel_spend_columns.extend(new_channel_names)
-        
+
         # Update the original lists as well (for future copy operations)
         self._original_channel_spend_columns.extend(new_channel_names)
-        
+
         # Return mapping of channel names to column names (they're the same for PyMC)
         return {channel_name: [channel_name] for channel_name in new_channel_names}
 
