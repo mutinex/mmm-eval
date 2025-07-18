@@ -92,34 +92,6 @@ class PyMCAdapter(BaseAdapter):
         """
         return self.channel_spend_columns
 
-    def copy_with_modified_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> "PyMCAdapter":
-        """Create a copy of this adapter with modified channel configuration.
-
-        Args:
-            new_channel_columns: New list of channel spend column names
-            new_channel_names: New list of channel names (should match new_channel_columns)
-
-        Returns:
-            A new PyMCAdapter instance with modified channel configuration
-
-        """
-        # Create a new config with modified channel columns
-        from mmm_eval.configs import PyMCConfig
-        
-        # Create a copy of the original config
-        new_config = PyMCConfig(
-            date_column=self.date_column,
-            channel_columns=new_channel_columns,
-            control_columns=self.control_columns,
-            pymc_model_config_dict=self._original_model_kwargs.copy(),
-            fit_config_dict=self.fit_kwargs.copy(),
-            predict_config_dict=self.predict_kwargs.copy(),
-        )
-        
-        # Create and return new adapter instance
-        new_adapter = PyMCAdapter(new_config)
-        return new_adapter
-
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
 

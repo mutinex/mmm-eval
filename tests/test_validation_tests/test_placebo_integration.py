@@ -67,13 +67,6 @@ class MockAdapter(BaseAdapter):
         """Return the primary media regressor columns."""
         return self.channel_spend_columns
 
-    def copy_with_modified_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> "MockAdapter":
-        """Create a copy with modified channels."""
-        new_adapter = MockAdapter(self.date_column)
-        new_adapter.channel_spend_columns = new_channel_columns
-        new_adapter._media_channels = new_channel_names
-        return new_adapter
-
 
 class TestPlaceboTestIntegration:
     """Integration tests for PlaceboTest."""

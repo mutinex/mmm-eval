@@ -397,19 +397,37 @@ class PlaceboTest(BaseValidationTest):
         # Shuffle the original channel data
         shuffled_data[shuffled_channel_col] = data[original_channel_col].sample(frac=1.0, random_state=self.rng).values
         
-        # Create modified adapter with new channel
-        new_channel_columns = adapter.channel_spend_columns + [shuffled_channel_col]
-        new_channel_names = adapter.media_channels + [shuffled_channel_name]
+        # Store original adapter state
+        original_channel_spend_columns = adapter.channel_spend_columns.copy()
+        original_media_channels = adapter.media_channels.copy()
         
-        modified_adapter = adapter.copy_with_modified_channels(
-            new_channel_columns=new_channel_columns,
-            new_channel_names=new_channel_names,
-        )
-        
-        # Fit modified adapter and check ROI
-        modified_adapter.fit(shuffled_data)
-        rois = modified_adapter.get_channel_roi()
-        shuffled_roi = rois[shuffled_channel_name]
+        try:
+            # Temporarily modify adapter to include shuffled channel
+            adapter.channel_spend_columns = original_channel_spend_columns + [shuffled_channel_col]
+            
+            # For adapters that store media_channels as a property, we need to modify it
+            # This is a bit of a hack, but it's the cleanest way without adding new methods
+            if hasattr(adapter, '_media_channels'):
+                adapter._media_channels = original_media_channels + [shuffled_channel_name]
+            elif hasattr(adapter, 'input_data_builder_schema'):
+                # For Meridian adapter, modify the schema
+                adapter.input_data_builder_schema.media_channels = original_media_channels + [shuffled_channel_name]
+                adapter.input_data_builder_schema.channel_spend_columns = adapter.channel_spend_columns
+            
+            # Fit modified adapter and check ROI
+            adapter.fit(shuffled_data)
+            rois = adapter.get_channel_roi()
+            shuffled_roi = rois[shuffled_channel_name]
+            
+        finally:
+            # Restore original adapter state
+            adapter.channel_spend_columns = original_channel_spend_columns
+            if hasattr(adapter, '_media_channels'):
+                adapter._media_channels = original_media_channels
+            elif hasattr(adapter, 'input_data_builder_schema'):
+                # For Meridian adapter, restore the schema
+                adapter.input_data_builder_schema.media_channels = original_media_channels
+                adapter.input_data_builder_schema.channel_spend_columns = original_channel_spend_columns
         
         # Create metric results
         test_scores = PlaceboMetricResults(
