@@ -129,16 +129,7 @@ def test_cli_e2e_meridian(tmp_path):
 
         def fit_and_predict_in_sample(self, data):
             if data is not None:
-                # The test groups by date and sums the response column
-                # Check which column name is available
-                response_col = None
-                if "response" in data.columns:
-                    response_col = "response"
-                elif "conversions" in data.columns:
-                    response_col = "conversions"
-                else:
-                    # Fallback to a reasonable default
-                    return np.ones(10) * 100.0
+                response_col = "response"
 
                 # So we need to return predictions matching the number of unique dates
                 grouped = data.groupby("date")[response_col].sum()
