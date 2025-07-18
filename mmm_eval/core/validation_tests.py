@@ -27,6 +27,8 @@ from mmm_eval.metrics.metric_models import (
     PerturbationMetricResults,
     RefreshStabilityMetricNames,
     RefreshStabilityMetricResults,
+    PlaceboMetricNames,
+    PlaceboMetricResults,
 )
 
 logger = logging.getLogger(__name__)
@@ -364,5 +366,61 @@ class PerturbationTest(BaseValidationTest):
         return ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             metric_names=PerturbationMetricNames.to_list(),
+            test_scores=test_scores,
+        )
+
+
+class PlaceboTest(BaseValidationTest):
+    """Validation test for detecting spurious correlations in the MMM framework.
+
+    This test creates a shuffled version of an existing media channel and tests whether
+    the model assigns a low ROI to this spurious feature. A good model should assign
+    an ROI less than 0.2 to the shuffled channel.
+    """
+
+    @property
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
+        return ValidationTestNames.PLACEBO
+
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the placebo test."""
+        # Select a random channel to shuffle
+        original_channel = self.rng.choice(adapter.media_channels)
+        original_channel_col = adapter.channel_spend_columns[adapter.media_channels.index(original_channel)]
+        
+        # Create shuffled data
+        shuffled_data = data.copy()
+        shuffled_channel_col = f"{original_channel_col}_shuffled"
+        shuffled_channel_name = f"{original_channel}_shuffled"
+        
+        # Shuffle the original channel data
+        shuffled_data[shuffled_channel_col] = data[original_channel_col].sample(frac=1.0, random_state=self.rng).values
+        
+        # Create modified adapter with new channel
+        new_channel_columns = adapter.channel_spend_columns + [shuffled_channel_col]
+        new_channel_names = adapter.media_channels + [shuffled_channel_name]
+        
+        modified_adapter = adapter.copy_with_modified_channels(
+            new_channel_columns=new_channel_columns,
+            new_channel_names=new_channel_names,
+        )
+        
+        # Fit modified adapter and check ROI
+        modified_adapter.fit(shuffled_data)
+        rois = modified_adapter.get_channel_roi()
+        shuffled_roi = rois[shuffled_channel_name]
+        
+        # Create metric results
+        test_scores = PlaceboMetricResults(
+            shuffled_channel_roi=shuffled_roi,
+            shuffled_channel_name=shuffled_channel_name,
+        )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
+
+        return ValidationTestResult(
+            test_name=ValidationTestNames.PLACEBO,
+            metric_names=PlaceboMetricNames.to_list(),
             test_scores=test_scores,
         )

@@ -303,6 +303,58 @@ class MeridianAdapter(BaseAdapter):
             return self.input_data_builder_schema.channel_impressions_columns
         return self.channel_spend_columns
 
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+
+        For Meridian, this returns the media_channels which are the human-readable
+        channel names used in the ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.media_channels
+
+    def copy_with_modified_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> "MeridianAdapter":
+        """Create a copy of this adapter with modified channel configuration.
+
+        Args:
+            new_channel_columns: New list of channel spend column names
+            new_channel_names: New list of channel names (should match new_channel_columns)
+
+        Returns:
+            A new MeridianAdapter instance with modified channel configuration
+
+        """
+        # Create a new config with modified channel configuration
+        from mmm_eval.configs import MeridianConfig
+        from mmm_eval.adapters.schemas import MeridianInputDataBuilderSchema
+        
+        # Create a copy of the input data builder schema with modified channels
+        new_input_data_builder_schema = MeridianInputDataBuilderSchema(
+            media_channels=new_channel_names,
+            channel_spend_columns=new_channel_columns,
+            channel_impressions_columns=self.input_data_builder_schema.channel_impressions_columns,
+            channel_reach_columns=self.input_data_builder_schema.channel_reach_columns,
+            channel_frequency_columns=self.input_data_builder_schema.channel_frequency_columns,
+            control_columns=self.input_data_builder_schema.control_columns,
+            organic_media_columns=self.input_data_builder_schema.organic_media_columns,
+            organic_media_channels=self.input_data_builder_schema.organic_media_channels,
+            non_media_treatment_columns=self.input_data_builder_schema.non_media_treatment_columns,
+        )
+        
+        # Create a new config
+        new_config = MeridianConfig(
+            date_column=self.date_column,
+            input_data_builder_config=new_input_data_builder_schema,
+            model_spec_config=self.config.model_spec_config,
+            sample_posterior_config=self.config.sample_posterior_config,
+        )
+        
+        # Create and return new adapter instance
+        new_adapter = MeridianAdapter(new_config)
+        return new_adapter
+
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.
 
@@ -482,15 +534,3 @@ class MeridianAdapter(BaseAdapter):
         for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
             rois[channel] = float(roi)
         return pd.Series(rois)
-
-    def get_channel_names(self) -> list[str]:
-        """Get the channel names that would be used as the index in get_channel_roi results.
-
-        For Meridian, this returns the media_channels which are the human-readable
-        channel names used in the ROI results.
-
-        Returns
-            List of channel names
-
-        """
-        return self.media_channels

@@ -13,6 +13,7 @@ from mmm_eval.metrics.metric_models import (
     CrossValidationMetricResults,
     PerturbationMetricResults,
     RefreshStabilityMetricResults,
+    PlaceboMetricResults,
 )
 
 
@@ -32,6 +33,7 @@ class ValidationTestResult:
             | CrossValidationMetricResults
             | RefreshStabilityMetricResults
             | PerturbationMetricResults
+            | PlaceboMetricResults
         ),
     ):
         """Initialize test results.
