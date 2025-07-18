@@ -430,20 +430,20 @@ class MeridianAdapter(BaseAdapter):
         """
         # Get the current primary media regressor columns
         all_regressor_columns = self.primary_media_regressor_columns
-        
+
         # Find which columns correspond to the requested channels
         # This assumes the order of channels matches the order of columns
         channel_to_column_mapping = {}
         for i, channel in enumerate(self.media_channels):
             if i < len(all_regressor_columns):
                 channel_to_column_mapping[channel] = all_regressor_columns[i]
-        
+
         # Return the columns for the requested channels
         result = []
         for channel_name in channel_names:
             if channel_name in channel_to_column_mapping:
                 result.append(channel_to_column_mapping[channel_name])
-        
+
         return result
 
     def _reset_state(self) -> None:
