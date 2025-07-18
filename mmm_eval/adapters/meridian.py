@@ -393,7 +393,11 @@ class MeridianAdapter(BaseAdapter):
 
         # Store original column lists to determine what was added
         original_spend_columns = self.input_data_builder_schema.channel_spend_columns.copy()
-        original_impressions_columns = self.input_data_builder_schema.channel_impressions_columns.copy() if self.input_data_builder_schema.channel_impressions_columns else []
+        original_impressions_columns = (
+            self.input_data_builder_schema.channel_impressions_columns.copy()
+            if self.input_data_builder_schema.channel_impressions_columns
+            else []
+        )
 
         # Add to the input data builder schema
         self.input_data_builder_schema.media_channels.extend(new_channel_names)
@@ -413,20 +417,25 @@ class MeridianAdapter(BaseAdapter):
         added_columns = {}
         for channel_name in new_channel_names:
             channel_columns = []
-            
+
             # Add spend column
             spend_col = f"{channel_name.lower()}_spend"
-            if spend_col in self.input_data_builder_schema.channel_spend_columns and spend_col not in original_spend_columns:
+            if (
+                spend_col in self.input_data_builder_schema.channel_spend_columns
+                and spend_col not in original_spend_columns
+            ):
                 channel_columns.append(spend_col)
-            
+
             # Add impressions column if applicable
             if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
                 impressions_col = f"{channel_name.lower()}_impressions"
-                if (self.input_data_builder_schema.channel_impressions_columns and 
-                    impressions_col in self.input_data_builder_schema.channel_impressions_columns and 
-                    impressions_col not in original_impressions_columns):
+                if (
+                    self.input_data_builder_schema.channel_impressions_columns
+                    and impressions_col in self.input_data_builder_schema.channel_impressions_columns
+                    and impressions_col not in original_impressions_columns
+                ):
                     channel_columns.append(impressions_col)
-            
+
             added_columns[channel_name] = channel_columns
 
         return added_columns
@@ -446,20 +455,20 @@ class MeridianAdapter(BaseAdapter):
         """
         # Get the current primary media regressor columns
         all_regressor_columns = self.primary_media_regressor_columns
-        
+
         # Find which columns correspond to the requested channels
         # This assumes the order of channels matches the order of columns
         channel_to_column_mapping = {}
         for i, channel in enumerate(self.media_channels):
             if i < len(all_regressor_columns):
                 channel_to_column_mapping[channel] = all_regressor_columns[i]
-        
+
         # Return the columns for the requested channels
         result = []
         for channel_name in channel_names:
             if channel_name in channel_to_column_mapping:
                 result.append(channel_to_column_mapping[channel_name])
-        
+
         return result
 
     def _reset_state(self) -> None:
