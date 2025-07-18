@@ -28,12 +28,16 @@ class MockAdapter(BaseAdapter):
     def fit(self, data: pd.DataFrame) -> None:
         """Mock fit method."""
         self.is_fitted = True
-        # Set ROI results based on the data columns
-        if "tv_spend_shuffled" in data.columns:
-            # If shuffled channel is present, give it a low ROI
-            self._roi_results = pd.Series({"TV": 1.5, "Radio": 2.0, "TV_shuffled": 0.1})
-        else:
-            self._roi_results = pd.Series({"TV": 1.5, "Radio": 2.0})
+        # Set ROI results based on the data columns and current media channels
+        roi_dict = {}
+        for channel in self._media_channels:
+            if channel.endswith("_shuffled"):
+                # Give shuffled channels a low ROI
+                roi_dict[channel] = 0.1
+            else:
+                # Give original channels normal ROI
+                roi_dict[channel] = 1.5 if channel == "TV" else 2.0
+        self._roi_results = pd.Series(roi_dict)
 
     def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Mock predict method."""
@@ -74,14 +78,23 @@ class MockAdapter(BaseAdapter):
         new_adapter._media_channels = self._media_channels.copy()
         return new_adapter
 
-    def add_channels(self, new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
         """Add new channels to the adapter."""
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
         
         # For mock adapter, assume channel names are the same as column names
-        self.channel_spend_columns.extend(new_channel_names)
-        self._media_channels.extend(new_channel_names)
+        added_columns = {}
+        for channel_name in new_channel_names:
+            self.channel_spend_columns.append(channel_name)
+            self._media_channels.append(channel_name)
+            added_columns[channel_name] = [channel_name]
+        
+        return added_columns
+
+    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
+        """Get the primary media regressor columns for specific channels."""
+        return channel_names
 
 
 class TestPlaceboTestIntegration:

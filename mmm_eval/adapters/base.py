@@ -174,7 +174,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def add_channels(self, new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
         """Add new channels to the adapter's configuration.
 
         This method modifies the adapter's configuration to include additional channels.
@@ -182,6 +182,26 @@ class BaseAdapter(ABC):
 
         Args:
             new_channel_names: List of new channel names to add
+
+        Returns:
+            Dictionary mapping channel names to lists of column names that were added for each channel.
+            For example: {"TV_shuffled": ["tv_shuffled_spend", "tv_shuffled_impressions"]}
+
+        """
+        pass
+
+    @abstractmethod
+    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
+        """Get the primary media regressor columns for specific channels.
+
+        This method returns the column names that should be used as primary media regressors
+        for the given channels. This is useful for tests that need to perturb specific channels.
+
+        Args:
+            channel_names: List of channel names to get regressor columns for
+
+        Returns:
+            List of column names that are used as primary media regressors for the given channels
 
         """
         pass

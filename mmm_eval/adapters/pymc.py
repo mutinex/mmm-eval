@@ -99,8 +99,6 @@ class PyMCAdapter(BaseAdapter):
             A new PyMCAdapter instance with the same configuration
 
         """
-        from mmm_eval.configs import PyMCConfig
-        
         # Create a new config with copied values
         new_config = PyMCConfig(
             date_column=self.date_column,
@@ -113,11 +111,15 @@ class PyMCAdapter(BaseAdapter):
         
         return PyMCAdapter(new_config)
 
-    def add_channels(self, new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
         """Add new channels to the adapter's configuration.
 
         Args:
             new_channel_names: List of new channel names to add
+
+        Returns:
+            Dictionary mapping channel names to lists of column names that were added for each channel.
+            For PyMC, channel names are the same as column names.
 
         """
         if self.is_fitted:
@@ -126,10 +128,26 @@ class PyMCAdapter(BaseAdapter):
         # For PyMC, channel names are the same as column names
         # Add to the current channel lists
         self.channel_spend_columns.extend(new_channel_names)
-        self._media_channels.extend(new_channel_names)
         
         # Update the original lists as well (for future copy operations)
         self._original_channel_spend_columns.extend(new_channel_names)
+        
+        # Return mapping of channel names to column names (they're the same for PyMC)
+        return {channel_name: [channel_name] for channel_name in new_channel_names}
+
+    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
+        """Get the primary media regressor columns for specific channels.
+
+        For PyMC, the primary media regressor columns are the same as the channel names.
+
+        Args:
+            channel_names: List of channel names to get regressor columns for
+
+        Returns:
+            List of column names that are used as primary media regressors for the given channels
+
+        """
+        return channel_names
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
