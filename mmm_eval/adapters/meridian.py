@@ -391,27 +391,42 @@ class MeridianAdapter(BaseAdapter):
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
             raise NotImplementedError("Adding channels is not supported for reach and frequency regressor type")
 
+        # Store original column lists to determine what was added
+        original_spend_columns = self.input_data_builder_schema.channel_spend_columns.copy()
+        original_impressions_columns = self.input_data_builder_schema.channel_impressions_columns.copy() if self.input_data_builder_schema.channel_impressions_columns else []
+
         # Add to the input data builder schema
         self.input_data_builder_schema.media_channels.extend(new_channel_names)
 
+        # Add spend columns for new channels
         spend_columns = [f"{channel.lower()}_spend" for channel in new_channel_names]
         self.input_data_builder_schema.channel_spend_columns.extend(spend_columns)
         self.channel_spend_columns.extend(spend_columns)
 
-        # Track which columns were added for each channel
+        # Add impressions columns if using impressions regressors
+        if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
+            impressions_columns = [f"{channel.lower()}_impressions" for channel in new_channel_names]
+            if self.input_data_builder_schema.channel_impressions_columns:
+                self.input_data_builder_schema.channel_impressions_columns.extend(impressions_columns)
+
+        # Determine which columns were actually added for each channel
         added_columns = {}
         for channel_name in new_channel_names:
-            channel_columns = [f"{channel_name.lower()}_spend"]
-
-            # Determine column names based on regressor type
+            channel_columns = []
+            
+            # Add spend column
+            spend_col = f"{channel_name.lower()}_spend"
+            if spend_col in self.input_data_builder_schema.channel_spend_columns and spend_col not in original_spend_columns:
+                channel_columns.append(spend_col)
+            
+            # Add impressions column if applicable
             if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
-                # For impressions-based models, add both spend and impressions columns
-                impressions_columns = [f"{channel_name.lower()}_impressions"]
-                channel_columns.extend(impressions_columns)
-
-                if self.input_data_builder_schema.channel_impressions_columns:
-                    self.input_data_builder_schema.channel_impressions_columns.extend(impressions_columns)
-
+                impressions_col = f"{channel_name.lower()}_impressions"
+                if (self.input_data_builder_schema.channel_impressions_columns and 
+                    impressions_col in self.input_data_builder_schema.channel_impressions_columns and 
+                    impressions_col not in original_impressions_columns):
+                    channel_columns.append(impressions_col)
+            
             added_columns[channel_name] = channel_columns
 
         return added_columns
@@ -419,10 +434,8 @@ class MeridianAdapter(BaseAdapter):
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 
-        For Meridian, this depends on the regressor type:
-        - SPEND: returns spend columns for the channels
-        - IMPRESSIONS: returns impressions columns for the channels
-        - REACH_AND_FREQUENCY: returns empty list (not supported)
+        This method returns the subset of primary_media_regressor_columns that correspond
+        to the requested channels.
 
         Args:
             channel_names: List of channel names to get regressor columns for
@@ -431,15 +444,23 @@ class MeridianAdapter(BaseAdapter):
             List of column names that are used as primary media regressors for the given channels
 
         """
-        if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
-            return []  # Not supported
-
-        if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
-            # Return impressions columns for the specified channels
-            return [f"{channel.lower()}_impressions" for channel in channel_names]
-        else:
-            # Return spend columns for the specified channels
-            return [f"{channel.lower()}_spend" for channel in channel_names]
+        # Get the current primary media regressor columns
+        all_regressor_columns = self.primary_media_regressor_columns
+        
+        # Find which columns correspond to the requested channels
+        # This assumes the order of channels matches the order of columns
+        channel_to_column_mapping = {}
+        for i, channel in enumerate(self.media_channels):
+            if i < len(all_regressor_columns):
+                channel_to_column_mapping[channel] = all_regressor_columns[i]
+        
+        # Return the columns for the requested channels
+        result = []
+        for channel_name in channel_names:
+            if channel_name in channel_to_column_mapping:
+                result.append(channel_to_column_mapping[channel_name])
+        
+        return result
 
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.
