@@ -92,6 +92,45 @@ class PyMCAdapter(BaseAdapter):
         """
         return self.channel_spend_columns
 
+    def copy(self) -> "PyMCAdapter":
+        """Create a deep copy of this adapter with all configuration.
+
+        Returns:
+            A new PyMCAdapter instance with the same configuration
+
+        """
+        from mmm_eval.configs import PyMCConfig
+        
+        # Create a new config with copied values
+        new_config = PyMCConfig(
+            date_column=self.date_column,
+            channel_columns=self._original_channel_spend_columns.copy(),
+            control_columns=self.control_columns.copy(),
+            pymc_model_config_dict=self._original_model_kwargs.copy(),
+            fit_config_dict=self.fit_kwargs.copy(),
+            predict_config_dict=self.predict_kwargs.copy(),
+        )
+        
+        return PyMCAdapter(new_config)
+
+    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+        """Add new channels to the adapter's configuration.
+
+        Args:
+            new_channel_columns: List of new channel column names to add
+            new_channel_names: List of new channel names to add
+
+        """
+        if self.is_fitted:
+            raise RuntimeError("Cannot add channels to a fitted adapter")
+        
+        # Add to the current channel lists
+        self.channel_spend_columns.extend(new_channel_columns)
+        self._media_channels.extend(new_channel_names)
+        
+        # Update the original lists as well (for future copy operations)
+        self._original_channel_spend_columns.extend(new_channel_columns)
+
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.
 

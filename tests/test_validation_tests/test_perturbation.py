@@ -81,6 +81,26 @@ class MockAdapter(BaseAdapter):
         """Get the channel names that would be used as the index in get_channel_roi results."""
         return self.media_channels
 
+    def copy(self) -> "MockAdapter":
+        """Create a deep copy of this adapter."""
+        new_adapter = MockAdapter(
+            primary_media_regressor_type=self._primary_media_regressor_type,
+            primary_media_regressor_columns=self._primary_media_regressor_columns.copy(),
+            channel_spend_columns=self.channel_spend_columns.copy() if self.channel_spend_columns else None,
+            media_channels=self._media_channels.copy() if self._media_channels else None,
+        )
+        return new_adapter
+
+    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+        """Add new channels to the adapter."""
+        if self.is_fitted:
+            raise RuntimeError("Cannot add channels to a fitted adapter")
+        
+        if self.channel_spend_columns is not None:
+            self.channel_spend_columns.extend(new_channel_columns)
+        if self._media_channels is not None:
+            self._media_channels.extend(new_channel_names)
+
 
 @pytest.fixture
 def sample_data():

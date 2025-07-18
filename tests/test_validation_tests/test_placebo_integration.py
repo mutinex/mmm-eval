@@ -67,6 +67,21 @@ class MockAdapter(BaseAdapter):
         """Return the primary media regressor columns."""
         return self.channel_spend_columns
 
+    def copy(self) -> "MockAdapter":
+        """Create a deep copy of this adapter."""
+        new_adapter = MockAdapter(self.date_column)
+        new_adapter.channel_spend_columns = self.channel_spend_columns.copy()
+        new_adapter._media_channels = self._media_channels.copy()
+        return new_adapter
+
+    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+        """Add new channels to the adapter."""
+        if self.is_fitted:
+            raise RuntimeError("Cannot add channels to a fitted adapter")
+        
+        self.channel_spend_columns.extend(new_channel_columns)
+        self._media_channels.extend(new_channel_names)
+
 
 class TestPlaceboTestIntegration:
     """Integration tests for PlaceboTest."""
