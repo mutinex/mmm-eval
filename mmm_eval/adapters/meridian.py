@@ -348,23 +348,39 @@ class MeridianAdapter(BaseAdapter):
         
         return MeridianAdapter(new_config)
 
-    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> None:
         """Add new channels to the adapter's configuration.
 
         Args:
-            new_channel_columns: List of new channel column names to add
-            new_channel_names: List of new channel names to add
+            new_channel_names: List of new channel names to add (e.g., ["TV", "Radio"])
 
         """
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
         
+        # Check if reach/frequency regressor type is not supported
+        if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            raise NotImplementedError("Adding channels is not supported for reach and frequency regressor type")
+        
         # Add to the input data builder schema
         self.input_data_builder_schema.media_channels.extend(new_channel_names)
-        self.input_data_builder_schema.channel_spend_columns.extend(new_channel_columns)
         
-        # Update the adapter's channel_spend_columns attribute
-        self.channel_spend_columns.extend(new_channel_columns)
+        # Determine column names based on regressor type
+        if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
+            # For impressions-based models, add both spend and impressions columns
+            spend_columns = [f"{channel.lower()}_spend" for channel in new_channel_names]
+            impressions_columns = [f"{channel.lower()}_impressions" for channel in new_channel_names]
+            
+            self.input_data_builder_schema.channel_spend_columns.extend(spend_columns)
+            self.channel_spend_columns.extend(spend_columns)
+            
+            if self.input_data_builder_schema.channel_impressions_columns:
+                self.input_data_builder_schema.channel_impressions_columns.extend(impressions_columns)
+        else:
+            # For spend-based models, only add spend columns
+            spend_columns = [f"{channel.lower()}_spend" for channel in new_channel_names]
+            self.input_data_builder_schema.channel_spend_columns.extend(spend_columns)
+            self.channel_spend_columns.extend(spend_columns)
 
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.

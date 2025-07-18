@@ -174,15 +174,14 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> None:
         """Add new channels to the adapter's configuration.
 
         This method modifies the adapter's configuration to include additional channels.
         The adapter should not be fitted when this method is called.
 
         Args:
-            new_channel_columns: List of new channel column names to add
-            new_channel_names: List of new channel names to add (should match new_channel_columns)
+            new_channel_names: List of new channel names to add
 
         """
         pass

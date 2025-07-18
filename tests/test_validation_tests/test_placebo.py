@@ -76,12 +76,13 @@ class MockAdapter(BaseAdapter):
         new_adapter._media_channels = self._media_channels.copy()
         return new_adapter
 
-    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> None:
         """Add new channels to the adapter."""
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
         
-        self.channel_spend_columns.extend(new_channel_columns)
+        # For mock adapter, assume channel names are the same as column names
+        self.channel_spend_columns.extend(new_channel_names)
         self._media_channels.extend(new_channel_names)
 
 

@@ -113,23 +113,23 @@ class PyMCAdapter(BaseAdapter):
         
         return PyMCAdapter(new_config)
 
-    def add_channels(self, new_channel_columns: list[str], new_channel_names: list[str]) -> None:
+    def add_channels(self, new_channel_names: list[str]) -> None:
         """Add new channels to the adapter's configuration.
 
         Args:
-            new_channel_columns: List of new channel column names to add
             new_channel_names: List of new channel names to add
 
         """
         if self.is_fitted:
             raise RuntimeError("Cannot add channels to a fitted adapter")
         
+        # For PyMC, channel names are the same as column names
         # Add to the current channel lists
-        self.channel_spend_columns.extend(new_channel_columns)
+        self.channel_spend_columns.extend(new_channel_names)
         self._media_channels.extend(new_channel_names)
         
         # Update the original lists as well (for future copy operations)
-        self._original_channel_spend_columns.extend(new_channel_columns)
+        self._original_channel_spend_columns.extend(new_channel_names)
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.

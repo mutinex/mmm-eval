@@ -399,10 +399,7 @@ class PlaceboTest(BaseValidationTest):
         
         # Create a copy of the adapter and add the shuffled channel
         adapter_copy = adapter.copy()
-        adapter_copy.add_channels(
-            new_channel_columns=[shuffled_channel_col],
-            new_channel_names=[shuffled_channel_name]
-        )
+        adapter_copy.add_channels([shuffled_channel_name])
         
         # Fit the copied adapter and check ROI
         adapter_copy.fit(shuffled_data)
