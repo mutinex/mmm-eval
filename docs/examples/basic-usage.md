@@ -64,11 +64,12 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path config.json \
   --output-path ./results/ \
-  --test-names accuracy cross_validation
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation
 ```
 
 Available tests:
-- `accuracy` - Model accuracy using holdout validation
+- `holdout_accuracy` - Model accuracy using holdout validation
+- `in_sample_accuracy` - Model accuracy using in-sample validation
 - `cross_validation` - Time series cross-validation
 - `refresh_stability` - Model stability over time
 - `perturbation` - Sensitivity to data changes
@@ -123,7 +124,7 @@ mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path advanced_config.json \
-  --test-names accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation \
   --output-path ./advanced_results/ \
   --verbose
 ```
@@ -170,9 +171,12 @@ results/
 
 ```csv
 test_name,metric_name,metric_value,metric_pass
-accuracy,mape,15.0,True
-accuracy,smape,14.5,True
-accuracy,r_squared,0.85,True
+holdout_accuracy,mape,15.0,True
+holdout_accuracy,smape,14.5,True
+holdout_accuracy,r_squared,0.85,True
+in_sample_accuracy,mape,8.5,True
+in_sample_accuracy,smape,8.2,True
+in_sample_accuracy,r_squared,0.92,True
 cross_validation,mape,18.0,True
 cross_validation,smape,17.5,True
 cross_validation,r_squared,0.82,True
@@ -196,7 +200,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path test_config.json \
   --output-path ./test_results/ \
-  --test-names accuracy
+  --test-names holdout_accuracy
 ```
 
 Use minimal sampling parameters in your config:
@@ -220,7 +224,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path production_config.json \
   --output-path ./production_results/ \
-  --test-names accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy in_sample_accuracy cross_validation refresh_stability perturbation \
   --verbose
 ```
 

@@ -6,10 +6,6 @@ mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. Th
 
 ## Overview
 
-mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
-
-## Available Metrics
-
 mmm-eval calculates several key metrics across different validation tests:
 
 ### Accuracy Metrics
@@ -66,10 +62,20 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 
 ## Test-Specific Metrics
 
-### Accuracy Test Metrics
+### Holdout Accuracy Test Metrics
+
+Metrics calculated on out-of-sample predictions using train/test splits.
 
 - **MAPE**: Overall prediction accuracy
 - **SMAPE**: Symmetric prediction accuracy
+- **R-squared**: Model fit quality
+
+### In-Sample Accuracy Test Metrics
+
+Metrics calculated on in-sample predictions using the full dataset.
+
+- **MAPE**: Model fit accuracy
+- **SMAPE**: Symmetric model fit accuracy
 - **R-squared**: Model fit quality
 
 ### Cross-Validation Metrics

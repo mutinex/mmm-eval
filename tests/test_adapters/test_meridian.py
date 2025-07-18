@@ -703,11 +703,22 @@ class TestMeridianAdapter:
         adapter = MeridianAdapter(self.config)
         train = self.df.iloc[:3]
         test = self.df.iloc[3:]
-        mock_predict.return_value = np.array([1, 2])
+        mock_predict.return_value = np.array([1, 2, 35])
         result = adapter.fit_and_predict(train, test)
         mock_fit.assert_called_once()
         mock_predict.assert_called_once()
-        assert np.all(result == np.array([1, 2]))
+        assert np.all(result == np.array([1, 2, 35]))
+
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter.fit")
+    @patch("mmm_eval.adapters.meridian.MeridianAdapter._predict_on_all_data")
+    def test_fit_and_predict_in_sample_calls_fit_and_predict_in_sample(self, mock_predict_on_all_data, mock_fit):
+        """Test that fit_and_predict_in_sample calls fit and _predict_on_all_data methods."""
+        adapter = MeridianAdapter(self.config)
+        mock_predict_on_all_data.return_value = np.array([1, 2, 3, 4, 5])
+        result = adapter.fit_and_predict_in_sample(self.df)
+        mock_fit.assert_called_once_with(self.df)
+        mock_predict_on_all_data.assert_called_once()
+        assert np.all(result == np.array([1, 2, 3, 4, 5]))
 
     @patch("mmm_eval.adapters.meridian.Analyzer")
     def test_get_channel_roi_returns_series(self, mock_analyzer):

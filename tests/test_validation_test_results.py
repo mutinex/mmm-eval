@@ -28,19 +28,22 @@ class TestValidationTestResult:
         metric_names = AccuracyMetricNames.to_list()
 
         result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=metric_names,
             test_scores=test_scores,
         )
 
         # Test basic properties
-        assert result.test_name == ValidationTestNames.ACCURACY
+        assert result.test_name == ValidationTestNames.HOLDOUT_ACCURACY
         assert isinstance(result.timestamp, datetime)
 
         # Test to_df conversion
         result_df = result.to_df()
         assert isinstance(result_df, pd.DataFrame)
-        assert result_df[ValidationTestAttributeNames.TEST_NAME.value].iloc[0] == ValidationTestNames.ACCURACY.value
+        assert (
+            result_df[ValidationTestAttributeNames.TEST_NAME.value].iloc[0]
+            == ValidationTestNames.HOLDOUT_ACCURACY.value
+        )
         assert ValidationTestAttributeNames.TIMESTAMP.value in result_df.columns
 
         # Check that we have the expected long-format structure
@@ -101,7 +104,7 @@ class TestValidationResults:
         """Test ValidationResults creation and basic operations."""
         # Create test results
         accuracy_result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
             test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
         )
@@ -119,7 +122,7 @@ class TestValidationResults:
         )
 
         test_results = {
-            ValidationTestNames.ACCURACY: accuracy_result,
+            ValidationTestNames.HOLDOUT_ACCURACY: accuracy_result,
             ValidationTestNames.REFRESH_STABILITY: stability_result,
         }
 
@@ -129,18 +132,18 @@ class TestValidationResults:
         assert validation_result.test_results == test_results
 
         # Test get_test_result
-        retrieved_result = validation_result.get_test_result(ValidationTestNames.ACCURACY)
+        retrieved_result = validation_result.get_test_result(ValidationTestNames.HOLDOUT_ACCURACY)
         assert retrieved_result == accuracy_result
 
     def test_validation_result_to_df(self):
         """Test ValidationResults to_df conversion."""
         accuracy_result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
             test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
         )
 
-        test_results = {ValidationTestNames.ACCURACY: accuracy_result}
+        test_results = {ValidationTestNames.HOLDOUT_ACCURACY: accuracy_result}
         validation_result = ValidationResults(test_results)
 
         result_df = validation_result.to_df()

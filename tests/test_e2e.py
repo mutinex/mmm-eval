@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from unittest.mock import MagicMock, patch
 
@@ -6,9 +7,14 @@ import numpy as np
 import pandas as pd
 from click.testing import CliRunner
 
+from mmm_eval.adapters.meridian import MeridianAdapter
 from mmm_eval.cli.evaluate import main
 from mmm_eval.data.synth_data_generator import generate_meridian_data, generate_pymc_data
 from tests.test_configs.test_configs import SAMPLE_CONFIG_JSON
+
+# Set up logging to see debug output
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Meridian config JSON for e2e testing
 SAMPLE_MERIDIAN_CONFIG_JSON = {
@@ -100,34 +106,59 @@ def test_cli_e2e_meridian(tmp_path):
 
     runner = CliRunner()
 
-    # Patch the Meridian model's sample_posterior method to avoid actual training
-    with (
-        patch("mmm_eval.adapters.meridian.Meridian.sample_posterior", return_value=MagicMock(name="FakeTrace")),
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.fit", return_value=None),
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.fit_and_predict") as mock_fit_and_predict,
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.get_channel_roi") as mock_get_channel_roi,
-        patch("mmm_eval.adapters.meridian.Analyzer.expected_outcome", return_value=MagicMock()),
-    ):
+    # Create a mock adapter class that inherits from MeridianAdapter
+    class MockMeridianAdapter(MeridianAdapter):
+        def __init__(self, config):
+            super().__init__(config)
+            # Set up mock methods
+            self.is_fitted = False
 
-        # Create a simple mock that returns predictions matching the test data length
-        def mock_fit_and_predict_side_effect(*args, **kwargs):
+        def fit(self, data, max_train_date=None):
+            self.is_fitted = True
+            return None
+
+        def fit_and_predict(self, train, test):
             # The test data should be the last argument
-            test_data = args[-1] if args else kwargs.get("test")
-            if test_data is not None:
+            if test is not None:
                 # The actual data is grouped by date, so we need to count unique dates
-                unique_dates = test_data["date"].nunique()
+                unique_dates = test["date"].nunique()
                 return np.ones(unique_dates) * 100.0
             else:
                 # Fallback to a reasonable default
                 return np.ones(10) * 100.0
 
-        # Mock get_channel_roi to return a simple Series
-        def mock_get_channel_roi_side_effect(*args, **kwargs):
-            return pd.Series({"Channel0": 1.5, "Channel1": 2.0})
+        def fit_and_predict_in_sample(self, data):
+            if data is not None:
+                response_col = "response"
 
-        mock_fit_and_predict.side_effect = mock_fit_and_predict_side_effect
-        mock_get_channel_roi.side_effect = mock_get_channel_roi_side_effect
+                # So we need to return predictions matching the number of unique dates
+                grouped = data.groupby("date")[response_col].sum()
+                predictions = np.ones(len(grouped)) * 100.0
+                return predictions
+            else:
+                # Fallback to a reasonable default
+                return np.ones(10) * 100.0
 
+        def get_channel_roi(self, start_date=None, end_date=None):
+            result = pd.Series({"Channel0": 1.5, "Channel1": 2.0})
+            return result
+
+    # Mock the adapter factory to return our mock adapter
+    def mock_get_adapter(framework, config):
+        if framework == "meridian":
+            return MockMeridianAdapter(config)
+        else:
+            # For other frameworks, use the original logic
+            from mmm_eval.adapters import get_adapter as original_get_adapter
+
+            return original_get_adapter(framework, config)
+
+    # Apply patches
+    with (
+        patch("mmm_eval.adapters.meridian.Meridian.sample_posterior", return_value=MagicMock(name="FakeTrace")),
+        patch("mmm_eval.core.evaluator.get_adapter", side_effect=mock_get_adapter),
+        patch("mmm_eval.adapters.meridian.Analyzer.expected_outcome", return_value=MagicMock()),
+    ):
         result = runner.invoke(
             main,
             [

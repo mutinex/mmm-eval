@@ -368,6 +368,21 @@ class MeridianAdapter(BaseAdapter):
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
+    def _predict_on_all_data(self) -> np.ndarray:
+        """Make predictions on all data provided to fit().
+
+        Returns
+            predicted values on data provided to fit().
+
+        """
+        if not self.is_fitted or self.analyzer is None:
+            raise RuntimeError("Model must be fit before prediction")
+
+        # shape (n_chains, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
+        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        return posterior_mean
+
     def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions using the fitted model.
 
@@ -388,12 +403,7 @@ class MeridianAdapter(BaseAdapter):
             RuntimeError: If model is not fitted
 
         """
-        if not self.is_fitted or self.analyzer is None:
-            raise RuntimeError("Model must be fit before prediction")
-
-        # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
-        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        posterior_mean = self._predict_on_all_data()
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
         # holdout period
@@ -421,6 +431,20 @@ class MeridianAdapter(BaseAdapter):
         max_train_date = train[self.date_column].squeeze().max()
         self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
+
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Fit the model on data and return predictions for the same data.
+
+        Args:
+            data: dataset to train model on and make predictions for
+
+        Returns:
+            Predicted values for the training data.
+
+        """
+        # no max train date specified, so predictions are all in-sample
+        self.fit(data)
+        return self._predict_on_all_data()
 
     def get_channel_roi(
         self,

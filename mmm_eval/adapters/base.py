@@ -117,6 +117,19 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Fit the model on data and return predictions for the same data.
+
+        Args:
+            data: dataset to train model on and make predictions for
+
+        Returns:
+            Predicted values for the training data.
+
+        """
+        pass
+
+    @abstractmethod
     def get_channel_roi(
         self,
         start_date: pd.Timestamp | None = None,

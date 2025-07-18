@@ -32,7 +32,7 @@ from mmm_eval.metrics.metric_models import (
 logger = logging.getLogger(__name__)
 
 
-class AccuracyTest(BaseValidationTest):
+class HoldoutAccuracyTest(BaseValidationTest):
     """Validation test for model accuracy using holdout validation.
 
     This test evaluates model performance by splitting data into train/test sets
@@ -42,7 +42,7 @@ class AccuracyTest(BaseValidationTest):
     @property
     def test_name(self) -> ValidationTestNames:
         """Return the name of the test."""
-        return ValidationTestNames.ACCURACY
+        return ValidationTestNames.HOLDOUT_ACCURACY
 
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
         """Run the accuracy test."""
@@ -61,7 +61,41 @@ class AccuracyTest(BaseValidationTest):
         logger.info(f"Saving the test results for {self.test_name} test")
 
         return ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
+            metric_names=AccuracyMetricNames.to_list(),
+            test_scores=test_scores,
+        )
+
+
+class InSampleAccuracyTest(BaseValidationTest):
+    """Validation test for model accuracy using in-sample validation.
+
+    This test evaluates model performance by fitting the model on the full dataset
+    and calculating MAPE and R-squared metrics on the training data.
+    """
+
+    @property
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
+        return ValidationTestNames.IN_SAMPLE_ACCURACY
+
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the in-sample accuracy test."""
+        # Fit model on full dataset and get predictions
+        predictions = adapter.fit_and_predict_in_sample(data)
+        actual = data.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
+        assert len(actual) == len(predictions), "Actual and predicted lengths must match"
+
+        # Calculate metrics
+        test_scores = AccuracyMetricResults.populate_object_with_metrics(
+            actual=pd.Series(actual),  # Ensure it's a Series
+            predicted=pd.Series(predictions, index=actual.index),
+        )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
+
+        return ValidationTestResult(
+            test_name=ValidationTestNames.IN_SAMPLE_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
             test_scores=test_scores,
         )

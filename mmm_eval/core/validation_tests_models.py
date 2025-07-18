@@ -9,7 +9,8 @@ from enum import StrEnum
 class ValidationTestNames(StrEnum):
     """Define the names of the validation tests."""
 
-    ACCURACY = "accuracy"
+    HOLDOUT_ACCURACY = "holdout_accuracy"
+    IN_SAMPLE_ACCURACY = "in_sample_accuracy"
     CROSS_VALIDATION = "cross_validation"
     REFRESH_STABILITY = "refresh_stability"
     PERTURBATION = "perturbation"

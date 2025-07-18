@@ -172,6 +172,21 @@ class PyMCAdapter(BaseAdapter):
         self.fit(train)
         return self.predict(test)
 
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Fit the model on data and return predictions for the same data.
+
+        Args:
+            data: dataset to train model on and make predictions for
+
+        Returns:
+            Predicted values for the training data.
+
+        """
+        self.fit(data)
+        if self.model is None:
+            raise RuntimeError("Model must be fit before prediction.")
+        return self.model.predict(data, extend_idata=False, **self.predict_kwargs)
+
     def get_channel_roi(
         self,
         start_date: pd.Timestamp | None = None,

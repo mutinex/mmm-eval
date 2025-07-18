@@ -327,6 +327,25 @@ def test_adapter_integration_real_pymc(valid_pymc_config, realistic_test_data):
     assert len(rois_first_half) == len(adapter.channel_spend_columns)
 
 
+@pytest.mark.integration
+def test_fit_and_predict_in_sample_method_real_pymc(valid_pymc_config, realistic_test_data):
+    """Test the fit_and_predict_in_sample method with real PyMC (integration test)."""
+    config = valid_pymc_config
+    adapter = PyMCAdapter(config)
+    data = realistic_test_data
+
+    # Test fit_and_predict_in_sample
+    result = adapter.fit_and_predict_in_sample(data)
+
+    # Verify prediction results
+    assert isinstance(result, np.ndarray)
+    assert len(result) == len(data)
+    assert not np.all(np.isnan(result))  # Should have some non-NaN predictions
+
+    # Verify the model was fitted
+    assert adapter.is_fitted is True
+
+
 def test_predict_method_not_fitted(valid_pymc_config):
     """Test predict method when model is not fitted.
 
