@@ -98,8 +98,12 @@ class MockAdapter(BaseAdapter):
 
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel."""
-        # For mock adapter, assume channel names are the same as column names
-        return {"spend": channel_name}
+        # For mock adapter, map channel names to their actual column names
+        channel_mapping = {
+            "TV": {"spend": "tv_spend"},
+            "Radio": {"spend": "radio_spend"},
+        }
+        return channel_mapping.get(channel_name, {"spend": f"{channel_name.lower()}_spend"})
 
     def _create_adapter_with_placebo_channel(
         self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]

@@ -11,6 +11,7 @@ import pandas as pd
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
+from mmm_eval.adapters.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -25,6 +26,7 @@ class PyMCAdapter(BaseAdapter):
             config: PyMCConfig object
 
         """
+        super().__init__(config)
         self.model_kwargs = config.pymc_model_config_dict
         self.fit_kwargs = config.fit_config_dict
         self.predict_kwargs = config.predict_config_dict
@@ -99,14 +101,16 @@ class PyMCAdapter(BaseAdapter):
             A new PyMCAdapter instance with the same configuration
 
         """
+        # Create schema objects from the current configuration
+        model_config = PyMCModelSchema(**self._original_model_kwargs)
+        fit_config = PyMCFitSchema(**self.fit_kwargs)
+        
         # Create a new config with copied values
         new_config = PyMCConfig(
-            date_column=self.date_column,
-            channel_columns=self._original_channel_spend_columns.copy(),
-            control_columns=self.control_columns.copy(),
-            pymc_model_config_dict=self._original_model_kwargs.copy(),
-            fit_config_dict=self.fit_kwargs.copy(),
-            predict_config_dict=self.predict_kwargs.copy(),
+            pymc_model_config=model_config,
+            fit_config=fit_config,
+            revenue_column=self.config.revenue_column,
+            response_column=self.config.response_column,
         )
 
         return PyMCAdapter(new_config)
@@ -166,6 +170,21 @@ class PyMCAdapter(BaseAdapter):
         # PyMC only uses spend as the primary regressor
         return {"spend": channel_name}
 
+    def _get_shuffled_column_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+        """Get the name for a shuffled column based on PyMC's naming convention.
+        
+        For PyMC, channel names are the same as column names, so we just use the shuffled channel name.
+        
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions")
+            original_col: Original column name
+            
+        Returns:
+            Name for the shuffled column
+        """
+        return shuffled_channel_name
+
     def _create_adapter_with_placebo_channel(
         self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
     ) -> "PyMCAdapter":
@@ -183,14 +202,20 @@ class PyMCAdapter(BaseAdapter):
             New PyMCAdapter instance configured to use the placebo channel
 
         """
+        # Create updated model config with the new channel
+        updated_model_kwargs = self._original_model_kwargs.copy()
+        updated_model_kwargs["channel_columns"] = self._original_channel_spend_columns + [shuffled_channel]
+        
+        # Create schema objects from the updated configuration
+        model_config = PyMCModelSchema(**updated_model_kwargs)
+        fit_config = PyMCFitSchema(**self.fit_kwargs)
+        
         # Create a new config with the shuffled channel added
         new_config = PyMCConfig(
-            date_column=self.date_column,
-            channel_columns=self._original_channel_spend_columns + [shuffled_channel],
-            control_columns=self.control_columns.copy(),
-            pymc_model_config_dict=self._original_model_kwargs.copy(),
-            fit_config_dict=self.fit_kwargs.copy(),
-            predict_config_dict=self.predict_kwargs.copy(),
+            pymc_model_config=model_config,
+            fit_config=fit_config,
+            revenue_column=self.config.revenue_column,
+            response_column=self.config.response_column,
         )
 
         return PyMCAdapter(new_config)
