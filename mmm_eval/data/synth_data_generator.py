@@ -122,7 +122,7 @@ def generate_meridian_data():
     Returns
         DataFrame containing Meridian-compatible data with media channels, controls, and
         response variables
-    
+
     """
     # Path to the local parquet file
     parquet_path = Path(__file__).parent / "sample_data" / "meridian_geo_media.parquet"
