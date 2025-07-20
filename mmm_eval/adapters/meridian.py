@@ -387,7 +387,8 @@ class MeridianAdapter(BaseAdapter):
             channel_names: List of channel names to get regressor columns for
 
         Returns:
-            List of column names that are used as primary media regressors for the given channels
+            List of column names that are used as primary media regressors for the given
+            channels
 
         """
         # Get the current primary media regressor columns
@@ -411,8 +412,9 @@ class MeridianAdapter(BaseAdapter):
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel.
 
-        For Meridian, this returns the actual column names in the data for the given channel.
-        The mapping depends on the regressor type (spend-only, impressions, or reach/frequency).
+        For Meridian, this returns the actual column names in the data for the given
+        channel. The mapping depends on the regressor type (spend-only, impressions, or
+        reach/frequency).
 
         Args:
             channel_name: Name of the channel to get columns for
@@ -455,7 +457,7 @@ class MeridianAdapter(BaseAdapter):
 
         return columns
 
-    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
         """Get the name for a shuffled column based on Meridian's naming convention.
 
         For Meridian, column names include the column type suffix (e.g., "tv_spend", "tv_impressions").
@@ -463,7 +465,6 @@ class MeridianAdapter(BaseAdapter):
         Args:
             shuffled_channel_name: Name of the shuffled channel
             column_type: Type of column (e.g., "spend", "impressions")
-            original_col: Original column name
 
         Returns:
             Name for the shuffled column
@@ -472,7 +473,8 @@ class MeridianAdapter(BaseAdapter):
         return f"{shuffled_channel_name}_{column_type}"
 
     def _create_adapter_with_placebo_channel(
-        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+        self,
+        shuffled_channel: str,
     ) -> "MeridianAdapter":
         """Create a new adapter instance configured to use the placebo channel.
 
@@ -480,9 +482,7 @@ class MeridianAdapter(BaseAdapter):
         appropriate column lists in the input data builder schema.
 
         Args:
-            original_channel: Name of the original channel
             shuffled_channel: Name of the new shuffled channel
-            original_columns: Dictionary mapping column types to original column names
 
         Returns:
             New MeridianAdapter instance configured to use the placebo channel

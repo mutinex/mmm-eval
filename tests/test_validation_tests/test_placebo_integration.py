@@ -77,23 +77,28 @@ class MockAdapter(BaseAdapter):
         new_adapter._media_channels = self._media_channels.copy()
         return new_adapter
 
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels."""
         return channel_names
 
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel."""
-        # For mock adapter, assume channel names are the same as column names
-        return {"spend": channel_name}
+        # For mock adapter, map channel names to their actual column names
+        # The data has columns like "tv_spend", "radio_spend"
+        channel_mapping = {
+            "TV": {"spend": "tv_spend"},
+            "Radio": {"spend": "radio_spend"},
+        }
+        return channel_mapping.get(channel_name, {"spend": f"{channel_name.lower()}_spend"})
 
-    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
         """Get the name for a shuffled column based on the mock adapter's naming convention."""
         # For mock adapter, use the same convention as Meridian (with suffix)
         return f"{shuffled_channel_name}_{column_type}"
 
     def _create_adapter_with_placebo_channel(
-        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+        self,
+        shuffled_channel: str,
     ) -> "MockAdapter":
         """Create a new adapter instance configured to use the placebo channel."""
         new_adapter = MockAdapter(self.date_column)

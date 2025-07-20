@@ -176,16 +176,18 @@ def test_cli_e2e_meridian(tmp_path):
 
         def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
             """Get the original column names for a channel."""
-            # For mock adapter, assume channel names are the same as column names
-            return {"spend": channel_name}
+            # For mock adapter, map channel names to their actual column names
+            # The data has columns like "Channel0_spend", "Channel1_spend"
+            return {"spend": f"{channel_name}_spend"}
 
-        def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+        def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
             """Get the name for a shuffled column based on the mock adapter's naming convention."""
             # For mock adapter, use the same convention as Meridian (with suffix)
             return f"{shuffled_channel_name}_{column_type}"
 
         def _create_adapter_with_placebo_channel(
-            self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+            self,
+            shuffled_channel: str,
         ) -> "MockMeridianAdapter":
             """Create a new adapter instance configured to use the placebo channel."""
             new_adapter = MockMeridianAdapter(self.config)

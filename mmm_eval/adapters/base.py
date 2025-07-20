@@ -202,8 +202,8 @@ class BaseAdapter(ABC):
         implementations.
 
         Args:
-            original_channel_name: Name of the original channel to create a placebo version
-                of
+            original_channel_name: Name of the original channel to create a placebo
+                version of (shuffled to preserve the marginal distribution)
             data_to_shuffle: DataFrame containing the data to add shuffled columns to
             shuffled_indices: Array of shuffled indices to use for creating the placebo
                 channel
@@ -224,9 +224,7 @@ class BaseAdapter(ABC):
         )
 
         # Step 3: Create new adapter (subclass-specific)
-        new_adapter = self._create_adapter_with_placebo_channel(
-            original_channel_name, shuffled_channel_name, original_columns
-        )
+        new_adapter = self._create_adapter_with_placebo_channel(shuffled_channel_name)
 
         return new_adapter, updated_data
 
@@ -239,13 +237,15 @@ class BaseAdapter(ABC):
     ) -> pd.DataFrame:
         """Create shuffled columns in the data for the placebo channel.
 
-        This is a common implementation that creates shuffled versions of the original columns.
-        The column naming is handled by each adapter according to their conventions.
+        This is a common implementation that creates shuffled versions of the original
+        columns. The column naming is handled by each adapter according to their
+        conventions.
 
         Args:
             data: DataFrame to add shuffled columns to
             original_columns: Dictionary mapping column types to original column names
-            shuffled_indices: Array of shuffled indices to use
+            shuffled_indices: Array of shuffled indices to use to transform the original
+                column(s)
             shuffled_channel_name: Name for the new shuffled channel
 
         Returns:
@@ -255,15 +255,14 @@ class BaseAdapter(ABC):
         updated_data = data.copy()
 
         for column_type, original_col in original_columns.items():
-            if original_col in data.columns:
-                # Let each adapter determine the column naming convention
-                shuffled_col = self._get_shuffled_col_name(shuffled_channel_name, column_type, original_col)
-                updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
+            # Let each adapter determine the column naming convention
+            shuffled_col = self._get_shuffled_col_name(shuffled_channel_name, column_type)
+            updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
 
         return updated_data
 
     @abstractmethod
-    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
         """Get the name for a shuffled column based on the adapter's naming convention.
 
         This method should be implemented by each adapter to return the correct column name
@@ -272,7 +271,6 @@ class BaseAdapter(ABC):
         Args:
             shuffled_channel_name: Name of the shuffled channel
             column_type: Type of column (e.g., "spend", "impressions")
-            original_col: Original column name
 
         Returns:
             Name for the shuffled column
@@ -300,7 +298,8 @@ class BaseAdapter(ABC):
 
     @abstractmethod
     def _create_adapter_with_placebo_channel(
-        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+        self,
+        shuffled_channel: str,
     ) -> "BaseAdapter":
         """Create a new adapter instance configured to use the placebo channel.
 
@@ -309,9 +308,7 @@ class BaseAdapter(ABC):
         names that were created in the data.
 
         Args:
-            original_channel: Name of the original channel
             shuffled_channel: Name of the new shuffled channel
-            original_columns: Dictionary mapping column types to original column names
 
         Returns:
             New adapter instance configured to use the placebo channel

@@ -146,15 +146,14 @@ class PyMCAdapter(BaseAdapter):
         # PyMC only uses spend as the primary regressor
         return {"spend": channel_name}
 
-    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
         """Get the name for a shuffled column based on PyMC's naming convention.
 
         For PyMC, channel names are the same as column names, so we just use the shuffled channel name.
 
         Args:
             shuffled_channel_name: Name of the shuffled channel
-            column_type: Type of column (e.g., "spend", "impressions")
-            original_col: Original column name
+            column_type: Type of column (e.g., "spend", "impressions"). Unused for PyMC.
 
         Returns:
             Name for the shuffled column
@@ -163,7 +162,8 @@ class PyMCAdapter(BaseAdapter):
         return shuffled_channel_name
 
     def _create_adapter_with_placebo_channel(
-        self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+        self,
+        shuffled_channel: str,
     ) -> "PyMCAdapter":
         """Create a new adapter instance configured to use the placebo channel.
 
@@ -171,9 +171,7 @@ class PyMCAdapter(BaseAdapter):
         channel_columns list.
 
         Args:
-            original_channel: Name of the original channel
             shuffled_channel: Name of the new shuffled channel
-            original_columns: Dictionary mapping column types to original column names
 
         Returns:
             New PyMCAdapter instance configured to use the placebo channel

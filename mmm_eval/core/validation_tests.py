@@ -374,8 +374,7 @@ class PlaceboTest(BaseValidationTest):
     """Validation test for detecting spurious correlations in the MMM framework.
 
     This test creates a shuffled version of an existing media channel and tests whether
-    the model assigns a low ROI to this spurious feature. A good model should assign
-    an ROI less than 0.2 to the shuffled channel.
+    the model assigns a low ROI to this spurious feature.
     """
 
     @property
