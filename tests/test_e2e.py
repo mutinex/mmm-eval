@@ -170,21 +170,6 @@ def test_cli_e2e_meridian(tmp_path):
             # Don't try to set media_channels directly since it's a property
             return new_adapter
 
-        def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-            """Add new channels to the adapter's configuration."""
-            if self.is_fitted:
-                raise RuntimeError("Cannot add channels to a fitted adapter")
-
-            # For mock adapter, assume channel names are the same as column names
-            added_columns = {}
-            for channel_name in new_channel_names:
-                self.channel_spend_columns.append(channel_name)
-                # Add to the underlying schema instead of trying to set the property
-                self.input_data_builder_schema.media_channels.append(channel_name)
-                added_columns[channel_name] = [channel_name]
-
-            return added_columns
-
         def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
             """Get the primary media regressor columns for specific channels."""
             return channel_names

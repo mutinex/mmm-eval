@@ -78,19 +78,6 @@ class MockAdapter(BaseAdapter):
         new_adapter._media_channels = self._media_channels.copy()
         return new_adapter
 
-    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-        """Add new channels to the adapter."""
-        if self.is_fitted:
-            raise RuntimeError("Cannot add channels to a fitted adapter")
-
-        # For mock adapter, assume channel names are the same as column names
-        added_columns = {}
-        for channel_name in new_channel_names:
-            self.channel_spend_columns.append(channel_name)
-            self._media_channels.append(channel_name)
-            added_columns[channel_name] = [channel_name]
-
-        return added_columns
 
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels."""
@@ -235,22 +222,6 @@ class TestPlaceboTest:
                 new_adapter.channel_spend_columns = self.channel_spend_columns.copy()
                 new_adapter._media_channels = self._media_channels.copy()
                 return new_adapter
-
-            def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-                if self.is_fitted:
-                    raise RuntimeError("Cannot add channels to a fitted adapter")
-
-                added_columns = {}
-                for channel_name in new_channel_names:
-                    self.channel_spend_columns.append(f"{channel_name.lower()}_spend")
-                    self._media_channels.append(channel_name)
-                    # For impressions regressors, add both spend and impressions columns
-                    added_columns[channel_name] = [
-                        f"{channel_name.lower()}_spend",
-                        f"{channel_name.lower()}_impressions",
-                    ]
-
-                return added_columns
 
             def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
                 return [f"{channel.lower()}_impressions" for channel in channel_names]

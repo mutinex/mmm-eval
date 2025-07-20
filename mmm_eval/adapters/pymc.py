@@ -115,30 +115,6 @@ class PyMCAdapter(BaseAdapter):
 
         return PyMCAdapter(new_config)
 
-    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-        """Add new channels to the adapter's configuration.
-
-        Args:
-            new_channel_names: List of new channel names to add
-
-        Returns:
-            Dictionary mapping channel names to lists of column names that were added for each channel.
-            For PyMC, channel names are the same as column names.
-
-        """
-        if self.is_fitted:
-            raise RuntimeError("Cannot add channels to a fitted adapter")
-
-        # For PyMC, channel names are the same as column names
-        # Add to the current channel lists
-        self.channel_spend_columns.extend(new_channel_names)
-
-        # Update the original lists as well (for future copy operations)
-        self._original_channel_spend_columns.extend(new_channel_names)
-
-        # Return mapping of channel names to column names (they're the same for PyMC)
-        return {channel_name: [channel_name] for channel_name in new_channel_names}
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 

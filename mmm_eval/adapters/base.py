@@ -174,34 +174,19 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-        """Add new channels to the adapter's configuration.
-
-        This method modifies the adapter's configuration to include additional channels.
-        The adapter should not be fitted when this method is called.
-
-        Args:
-            new_channel_names: List of new channel names to add
-
-        Returns:
-            Dictionary mapping channel names to lists of column names that were added for each channel.
-            For example: {"TV_shuffled": ["tv_shuffled_spend", "tv_shuffled_impressions"]}
-
-        """
-        pass
-
-    @abstractmethod
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 
-        This method returns the column names that should be used as primary media regressors
-        for the given channels. This is useful for tests that need to perturb specific channels.
+        This method returns the column names that should be used as primary media
+        regressors for the given channels. This is useful for tests that need to perturb
+        specific channels.
 
         Args:
             channel_names: List of channel names to get regressor columns for
 
         Returns:
-            List of column names that are used as primary media regressors for the given channels
+            List of column names that are used as primary media regressors for the given
+            channels
 
         """
         pass
@@ -211,14 +196,17 @@ class BaseAdapter(ABC):
     ) -> tuple["BaseAdapter", pd.DataFrame]:
         """Template method for adding a placebo channel to the adapter and data.
 
-        This method creates a shuffled version of an existing channel and returns a new adapter
-        configured to use the shuffled channel. The template method pattern ensures consistent
-        behavior across adapters while allowing adapter-specific implementations.
+        This method creates a shuffled version of an existing channel and returns a new
+        adapter configured to use the shuffled channel. The template method pattern
+        ensures consistent behavior across adapters while allowing adapter-specific
+        implementations.
 
         Args:
-            original_channel_name: Name of the original channel to create a placebo version of
+            original_channel_name: Name of the original channel to create a placebo version
+                of
             data_to_shuffle: DataFrame containing the data to add shuffled columns to
-            shuffled_indices: Array of shuffled indices to use for creating the placebo channel
+            shuffled_indices: Array of shuffled indices to use for creating the placebo
+                channel
 
         Returns:
             Tuple of (new_adapter, updated_data) where:
@@ -226,10 +214,10 @@ class BaseAdapter(ABC):
             - updated_data: DataFrame with the shuffled columns added
 
         """
-        # Step 1: Get original columns (subclass-specific)
+        # Step 1: Get original columns to shuffle (subclass-specific)
         original_columns = self._get_original_channel_columns(original_channel_name)
 
-        # Step 2: Create shuffled data (common)
+        # Step 2: Add shuffled columns to the data
         shuffled_channel_name = f"{original_channel_name}_shuffled"
         updated_data = self._create_shuffled_columns(
             data_to_shuffle, original_columns, shuffled_indices, shuffled_channel_name

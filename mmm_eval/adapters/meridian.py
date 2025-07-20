@@ -377,48 +377,6 @@ class MeridianAdapter(BaseAdapter):
 
         return MeridianAdapter(new_config)
 
-    def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
-        """Add new channels to the adapter's configuration.
-
-        Args:
-            new_channel_names: List of new channel names to add (e.g., ["TV", "Radio"])
-
-        Returns:
-            Dictionary mapping channel names to lists of column names that were added for each channel.
-            For Meridian, this includes spend columns and potentially impressions columns.
-
-        """
-        if self.is_fitted:
-            raise RuntimeError("Cannot add channels to a fitted adapter")
-
-        # Check if reach/frequency regressor type, not currently supported
-        if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
-            raise NotImplementedError("Adding channels is not supported for reach and frequency regressor type")
-
-        # Add to the input data builder schema
-        self.input_data_builder_schema.media_channels.extend(new_channel_names)
-
-        # Add spend columns for new channels
-        spend_columns = [f"{channel.lower()}_spend" for channel in new_channel_names]
-        self.input_data_builder_schema.channel_spend_columns.extend(spend_columns)
-        self.channel_spend_columns.extend(spend_columns)
-
-        # Add impressions columns if using impressions regressors
-        if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
-            impressions_columns = [f"{channel.lower()}_impressions" for channel in new_channel_names]
-            if self.input_data_builder_schema.channel_impressions_columns:
-                self.input_data_builder_schema.channel_impressions_columns.extend(impressions_columns)
-
-        # Return the column names that correspond to the new channels
-        added_columns = {}
-        for channel_name in new_channel_names:
-            channel_columns = [f"{channel_name.lower()}_spend"]
-            if self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS:
-                channel_columns.append(f"{channel_name.lower()}_impressions")
-            added_columns[channel_name] = channel_columns
-
-        return added_columns
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 
