@@ -151,6 +151,7 @@ def test_cli_e2e_meridian(tmp_path):
         def primary_media_regressor_type(self):
             """Return the type of primary media regressors."""
             from mmm_eval.adapters.base import PrimaryMediaRegressor
+
             return PrimaryMediaRegressor.SPEND
 
         @property
@@ -173,7 +174,7 @@ def test_cli_e2e_meridian(tmp_path):
             """Add new channels to the adapter's configuration."""
             if self.is_fitted:
                 raise RuntimeError("Cannot add channels to a fitted adapter")
-            
+
             # For mock adapter, assume channel names are the same as column names
             added_columns = {}
             for channel_name in new_channel_names:
@@ -181,7 +182,7 @@ def test_cli_e2e_meridian(tmp_path):
                 # Add to the underlying schema instead of trying to set the property
                 self.input_data_builder_schema.media_channels.append(channel_name)
                 added_columns[channel_name] = [channel_name]
-            
+
             return added_columns
 
         def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
