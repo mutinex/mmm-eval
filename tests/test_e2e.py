@@ -125,6 +125,7 @@ def test_cli_e2e_meridian(tmp_path):
 
         def fit_and_predict(self, train, test):
             # Return predictions matching the number of unique dates in test data
+            # The data pipeline renames 'conversions' to 'response', so we need to use the processed column name
             unique_dates = test["date"].nunique()
             return np.ones(unique_dates) * 100.0
 
@@ -135,8 +136,77 @@ def test_cli_e2e_meridian(tmp_path):
             return np.ones(unique_dates) * 100.0
 
         def get_channel_roi(self, start_date=None, end_date=None):
-            result = pd.Series({"Channel0": 1.5, "Channel1": 2.0})
-            return result
+            # Dynamically create ROI results based on current media channels
+            roi_dict = {}
+            for channel in self.media_channels:
+                if channel.endswith("_shuffled"):
+                    # Give shuffled channels a low ROI (should pass threshold of -50%)
+                    roi_dict[channel] = -60.0
+                else:
+                    # Give original channels normal ROI
+                    roi_dict[channel] = 1.5 if channel == "Channel0" else 2.0
+            return pd.Series(roi_dict)
+
+        @property
+        def primary_media_regressor_type(self):
+            """Return the type of primary media regressors."""
+            from mmm_eval.adapters.base import PrimaryMediaRegressor
+            return PrimaryMediaRegressor.SPEND
+
+        @property
+        def primary_media_regressor_columns(self) -> list[str]:
+            """Return the primary media regressor columns."""
+            return self.channel_spend_columns
+
+        def get_channel_names(self) -> list[str]:
+            """Get the channel names that would be used as the index in get_channel_roi results."""
+            return self.media_channels
+
+        def copy(self) -> "MockMeridianAdapter":
+            """Create a deep copy of this adapter with all configuration."""
+            new_adapter = MockMeridianAdapter(self.config)
+            new_adapter.channel_spend_columns = self.channel_spend_columns.copy()
+            # Don't try to set media_channels directly since it's a property
+            return new_adapter
+
+        def add_channels(self, new_channel_names: list[str]) -> dict[str, list[str]]:
+            """Add new channels to the adapter's configuration."""
+            if self.is_fitted:
+                raise RuntimeError("Cannot add channels to a fitted adapter")
+            
+            # For mock adapter, assume channel names are the same as column names
+            added_columns = {}
+            for channel_name in new_channel_names:
+                self.channel_spend_columns.append(channel_name)
+                # Add to the underlying schema instead of trying to set the property
+                self.input_data_builder_schema.media_channels.append(channel_name)
+                added_columns[channel_name] = [channel_name]
+            
+            return added_columns
+
+        def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
+            """Get the primary media regressor columns for specific channels."""
+            return channel_names
+
+        def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+            """Get the original column names for a channel."""
+            # For mock adapter, assume channel names are the same as column names
+            return {"spend": channel_name}
+
+        def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+            """Get the name for a shuffled column based on the mock adapter's naming convention."""
+            # For mock adapter, use the same convention as Meridian (with suffix)
+            return f"{shuffled_channel_name}_{column_type}"
+
+        def _create_adapter_with_placebo_channel(
+            self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
+        ) -> "MockMeridianAdapter":
+            """Create a new adapter instance configured to use the placebo channel."""
+            new_adapter = MockMeridianAdapter(self.config)
+            new_adapter.channel_spend_columns = self.channel_spend_columns + [f"{shuffled_channel}_spend"]
+            # Add to the underlying schema instead of trying to set the property
+            new_adapter.input_data_builder_schema.media_channels.append(shuffled_channel)
+            return new_adapter
 
     # Mock the adapter factory to return our mock adapter
     def mock_get_adapter(framework, config):
@@ -151,7 +221,7 @@ def test_cli_e2e_meridian(tmp_path):
     # Apply patches
     with (
         patch("mmm_eval.adapters.meridian.Meridian.sample_posterior", return_value=MagicMock(name="FakeTrace")),
-        patch("mmm_eval.adapters.get_adapter", side_effect=mock_get_adapter),
+        patch("mmm_eval.core.evaluator.get_adapter", side_effect=mock_get_adapter),
         patch("mmm_eval.adapters.meridian.Analyzer.expected_outcome", return_value=MagicMock()),
     ):
         result = runner.invoke(
