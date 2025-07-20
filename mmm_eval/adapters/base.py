@@ -248,6 +248,7 @@ class BaseAdapter(ABC):
         """Create shuffled columns in the data for the placebo channel.
 
         This is a common implementation that creates shuffled versions of the original columns.
+        The column naming is handled by each adapter according to their conventions.
 
         Args:
             data: DataFrame to add shuffled columns to
@@ -262,10 +263,29 @@ class BaseAdapter(ABC):
         updated_data = data.copy()
         
         for column_type, original_col in original_columns.items():
-            shuffled_col = f"{shuffled_channel_name}_{column_type}"
-            updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
+            if original_col in data.columns:
+                # Let each adapter determine the column naming convention
+                shuffled_col = self._get_shuffled_col_name(shuffled_channel_name, column_type, original_col)
+                updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
         
         return updated_data
+
+    @abstractmethod
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+        """Get the name for a shuffled column based on the adapter's naming convention.
+        
+        This method should be implemented by each adapter to return the correct column name
+        for the shuffled channel according to their naming conventions.
+        
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions")
+            original_col: Original column name
+            
+        Returns:
+            Name for the shuffled column
+        """
+        pass
 
     @abstractmethod
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:

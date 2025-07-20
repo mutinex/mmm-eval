@@ -100,6 +100,11 @@ class MockAdapter(BaseAdapter):
         # For mock adapter, assume channel names are the same as column names
         return {"spend": channel_name}
 
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+        """Get the name for a shuffled column based on the mock adapter's naming convention."""
+        # For mock adapter, use the same convention as Meridian (with suffix)
+        return f"{shuffled_channel_name}_{column_type}"
+
     def _create_adapter_with_placebo_channel(
         self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
     ) -> "MockAdapter":

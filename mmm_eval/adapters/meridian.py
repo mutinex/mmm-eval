@@ -493,6 +493,21 @@ class MeridianAdapter(BaseAdapter):
 
         return columns
 
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+        """Get the name for a shuffled column based on Meridian's naming convention.
+        
+        For Meridian, column names include the column type suffix (e.g., "tv_spend", "tv_impressions").
+        
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions")
+            original_col: Original column name
+            
+        Returns:
+            Name for the shuffled column
+        """
+        return f"{shuffled_channel_name}_{column_type}"
+
     def _create_adapter_with_placebo_channel(
         self, original_channel: str, shuffled_channel: str, original_columns: dict[str, str]
     ) -> "MeridianAdapter":

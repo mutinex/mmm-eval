@@ -170,7 +170,7 @@ class PyMCAdapter(BaseAdapter):
         # PyMC only uses spend as the primary regressor
         return {"spend": channel_name}
 
-    def _get_shuffled_column_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
         """Get the name for a shuffled column based on PyMC's naming convention.
         
         For PyMC, channel names are the same as column names, so we just use the shuffled channel name.
@@ -204,6 +204,7 @@ class PyMCAdapter(BaseAdapter):
         """
         # Create updated model config with the new channel
         updated_model_kwargs = self._original_model_kwargs.copy()
+        #shuffled_channel_with_suffix = shuffled_channel + "_spend"
         updated_model_kwargs["channel_columns"] = self._original_channel_spend_columns + [shuffled_channel]
         
         # Create schema objects from the updated configuration
