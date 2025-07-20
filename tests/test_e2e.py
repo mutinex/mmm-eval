@@ -114,30 +114,25 @@ def test_cli_e2e_meridian(tmp_path):
             self.is_fitted = False
 
         def fit(self, data, max_train_date=None):
+            # Completely override the fit method to avoid calling real Meridian
             self.is_fitted = True
+            # Set up mock attributes that other methods expect
+            self.training_data = MagicMock()
+            self.model = MagicMock()
+            self.trace = MagicMock()
+            self.analyzer = MagicMock()
             return None
 
         def fit_and_predict(self, train, test):
-            # The test data should be the last argument
-            if test is not None:
-                # The actual data is grouped by date, so we need to count unique dates
-                unique_dates = test["date"].nunique()
-                return np.ones(unique_dates) * 100.0
-            else:
-                # Fallback to a reasonable default
-                return np.ones(10) * 100.0
+            # Return predictions matching the number of unique dates in test data
+            unique_dates = test["date"].nunique()
+            return np.ones(unique_dates) * 100.0
 
         def fit_and_predict_in_sample(self, data):
-            if data is not None:
-                response_col = "response"
-
-                # So we need to return predictions matching the number of unique dates
-                grouped = data.groupby("date")[response_col].sum()
-                predictions = np.ones(len(grouped)) * 100.0
-                return predictions
-            else:
-                # Fallback to a reasonable default
-                return np.ones(10) * 100.0
+            # Return predictions matching the number of unique dates in full data
+            # The data pipeline renames 'conversions' to 'response'
+            unique_dates = data["date"].nunique()
+            return np.ones(unique_dates) * 100.0
 
         def get_channel_roi(self, start_date=None, end_date=None):
             result = pd.Series({"Channel0": 1.5, "Channel1": 2.0})
@@ -156,7 +151,7 @@ def test_cli_e2e_meridian(tmp_path):
     # Apply patches
     with (
         patch("mmm_eval.adapters.meridian.Meridian.sample_posterior", return_value=MagicMock(name="FakeTrace")),
-        patch("mmm_eval.core.evaluator.get_adapter", side_effect=mock_get_adapter),
+        patch("mmm_eval.adapters.get_adapter", side_effect=mock_get_adapter),
         patch("mmm_eval.adapters.meridian.Analyzer.expected_outcome", return_value=MagicMock()),
     ):
         result = runner.invoke(

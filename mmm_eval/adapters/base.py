@@ -228,22 +228,26 @@ class BaseAdapter(ABC):
         """
         # Step 1: Get original columns (subclass-specific)
         original_columns = self._get_original_channel_columns(original_channel_name)
-        
+
         # Step 2: Create shuffled data (common)
         shuffled_channel_name = f"{original_channel_name}_shuffled"
-        updated_data = self._create_shuffled_columns(data_to_shuffle, original_columns, shuffled_indices, shuffled_channel_name)
-        
+        updated_data = self._create_shuffled_columns(
+            data_to_shuffle, original_columns, shuffled_indices, shuffled_channel_name
+        )
+
         # Step 3: Create new adapter (subclass-specific)
-        new_adapter = self._create_adapter_with_placebo_channel(original_channel_name, shuffled_channel_name, original_columns)
-        
+        new_adapter = self._create_adapter_with_placebo_channel(
+            original_channel_name, shuffled_channel_name, original_columns
+        )
+
         return new_adapter, updated_data
 
     def _create_shuffled_columns(
-        self, 
-        data: pd.DataFrame, 
-        original_columns: dict[str, str], 
-        shuffled_indices: np.ndarray, 
-        shuffled_channel_name: str
+        self,
+        data: pd.DataFrame,
+        original_columns: dict[str, str],
+        shuffled_indices: np.ndarray,
+        shuffled_channel_name: str,
     ) -> pd.DataFrame:
         """Create shuffled columns in the data for the placebo channel.
 
@@ -261,29 +265,30 @@ class BaseAdapter(ABC):
 
         """
         updated_data = data.copy()
-        
+
         for column_type, original_col in original_columns.items():
             if original_col in data.columns:
                 # Let each adapter determine the column naming convention
                 shuffled_col = self._get_shuffled_col_name(shuffled_channel_name, column_type, original_col)
                 updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
-        
+
         return updated_data
 
     @abstractmethod
     def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
         """Get the name for a shuffled column based on the adapter's naming convention.
-        
+
         This method should be implemented by each adapter to return the correct column name
         for the shuffled channel according to their naming conventions.
-        
+
         Args:
             shuffled_channel_name: Name of the shuffled channel
             column_type: Type of column (e.g., "spend", "impressions")
             original_col: Original column name
-            
+
         Returns:
             Name for the shuffled column
+
         """
         pass
 

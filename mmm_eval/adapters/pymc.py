@@ -104,7 +104,7 @@ class PyMCAdapter(BaseAdapter):
         # Create schema objects from the current configuration
         model_config = PyMCModelSchema(**self._original_model_kwargs)
         fit_config = PyMCFitSchema(**self.fit_kwargs)
-        
+
         # Create a new config with copied values
         new_config = PyMCConfig(
             pymc_model_config=model_config,
@@ -172,16 +172,17 @@ class PyMCAdapter(BaseAdapter):
 
     def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
         """Get the name for a shuffled column based on PyMC's naming convention.
-        
+
         For PyMC, channel names are the same as column names, so we just use the shuffled channel name.
-        
+
         Args:
             shuffled_channel_name: Name of the shuffled channel
             column_type: Type of column (e.g., "spend", "impressions")
             original_col: Original column name
-            
+
         Returns:
             Name for the shuffled column
+
         """
         return shuffled_channel_name
 
@@ -204,13 +205,13 @@ class PyMCAdapter(BaseAdapter):
         """
         # Create updated model config with the new channel
         updated_model_kwargs = self._original_model_kwargs.copy()
-        #shuffled_channel_with_suffix = shuffled_channel + "_spend"
+        # shuffled_channel_with_suffix = shuffled_channel + "_spend"
         updated_model_kwargs["channel_columns"] = self._original_channel_spend_columns + [shuffled_channel]
-        
+
         # Create schema objects from the updated configuration
         model_config = PyMCModelSchema(**updated_model_kwargs)
         fit_config = PyMCFitSchema(**self.fit_kwargs)
-        
+
         # Create a new config with the shuffled channel added
         new_config = PyMCConfig(
             pymc_model_config=model_config,

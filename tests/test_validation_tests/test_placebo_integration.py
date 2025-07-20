@@ -31,8 +31,8 @@ class MockAdapter(BaseAdapter):
         roi_dict = {}
         for channel in self._media_channels:
             if channel.endswith("_shuffled"):
-                # Give shuffled channels a low ROI
-                roi_dict[channel] = 0.1
+                # Give shuffled channels a low ROI (should pass threshold of -50%)
+                roi_dict[channel] = -60.0
             else:
                 # Give original channels normal ROI
                 roi_dict[channel] = 1.5 if channel == "TV" else 2.0
@@ -147,7 +147,7 @@ class TestPlaceboTestIntegration:
         assert ValidationTestNames.PLACEBO in results.test_results
         placebo_result = results.get_test_result(ValidationTestNames.PLACEBO)
         assert placebo_result.test_name == ValidationTestNames.PLACEBO
-        assert placebo_result.test_scores.shuffled_channel_roi == 0.1
+        assert placebo_result.test_scores.shuffled_channel_roi == -60.0
         assert placebo_result.test_scores.shuffled_channel_name.endswith("_shuffled")
 
     def test_placebo_test_in_dataframe_output(self):
@@ -182,5 +182,5 @@ class TestPlaceboTestIntegration:
         placebo_rows = df[df["test_name"] == ValidationTestNames.PLACEBO.value]
         assert len(placebo_rows) == 1
         assert placebo_rows["general_metric_name"].iloc[0] == "shuffled_channel_roi"
-        assert placebo_rows["metric_value"].iloc[0] == 0.1
+        assert placebo_rows["metric_value"].iloc[0] == -60.0
         assert placebo_rows["metric_pass"].iloc[0] == True  # noqa: E712

@@ -466,45 +466,50 @@ class MeridianAdapter(BaseAdapter):
         # Find the index of the channel in the media_channels list
         try:
             channel_index = self.media_channels.index(channel_name)
-        except ValueError:
-            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}")
+        except ValueError as e:
+            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}") from e
 
         # Build the column mapping based on the regressor type
         columns = {}
-        
+
         # Always include spend column
         if channel_index < len(self.input_data_builder_schema.channel_spend_columns):
             columns["spend"] = self.input_data_builder_schema.channel_spend_columns[channel_index]
-        
+
         # Include impressions column if using impressions regressors
-        if (self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS and 
-            self.input_data_builder_schema.channel_impressions_columns and
-            channel_index < len(self.input_data_builder_schema.channel_impressions_columns)):
+        if (
+            self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS
+            and self.input_data_builder_schema.channel_impressions_columns
+            and channel_index < len(self.input_data_builder_schema.channel_impressions_columns)
+        ):
             columns["impressions"] = self.input_data_builder_schema.channel_impressions_columns[channel_index]
-        
+
         # Include reach and frequency columns if using reach/frequency regressors
-        if (self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY):
-            if (self.input_data_builder_schema.channel_reach_columns and
-                channel_index < len(self.input_data_builder_schema.channel_reach_columns)):
+        if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            if self.input_data_builder_schema.channel_reach_columns and channel_index < len(
+                self.input_data_builder_schema.channel_reach_columns
+            ):
                 columns["reach"] = self.input_data_builder_schema.channel_reach_columns[channel_index]
-            if (self.input_data_builder_schema.channel_frequency_columns and
-                channel_index < len(self.input_data_builder_schema.channel_frequency_columns)):
+            if self.input_data_builder_schema.channel_frequency_columns and channel_index < len(
+                self.input_data_builder_schema.channel_frequency_columns
+            ):
                 columns["frequency"] = self.input_data_builder_schema.channel_frequency_columns[channel_index]
 
         return columns
 
     def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
         """Get the name for a shuffled column based on Meridian's naming convention.
-        
+
         For Meridian, column names include the column type suffix (e.g., "tv_spend", "tv_impressions").
-        
+
         Args:
             shuffled_channel_name: Name of the shuffled channel
             column_type: Type of column (e.g., "spend", "impressions")
             original_col: Original column name
-            
+
         Returns:
             Name for the shuffled column
+
         """
         return f"{shuffled_channel_name}_{column_type}"
 

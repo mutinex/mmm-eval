@@ -32,8 +32,8 @@ class MockAdapter(BaseAdapter):
         roi_dict = {}
         for channel in self._media_channels:
             if channel.endswith("_shuffled"):
-                # Give shuffled channels a low ROI
-                roi_dict[channel] = 0.1
+                # Give shuffled channels a low ROI (should pass threshold of -50%)
+                roi_dict[channel] = -60.0
             else:
                 # Give original channels normal ROI
                 roi_dict[channel] = 1.5 if channel == "TV" else 2.0
@@ -152,7 +152,7 @@ class TestPlaceboTest:
         # Verify the result
         assert result.test_name == ValidationTestNames.PLACEBO
         assert isinstance(result.test_scores, PlaceboMetricResults)
-        assert result.test_scores.shuffled_channel_roi == 0.1
+        assert result.test_scores.shuffled_channel_roi == -60.0
         assert result.test_scores.shuffled_channel_name.endswith("_shuffled")
         assert len(result.metric_names) == 1
         assert "shuffled_channel_roi" in result.metric_names
@@ -160,21 +160,23 @@ class TestPlaceboTest:
     def test_placebo_test_metric_threshold(self):
         """Test that the metric threshold checking works correctly."""
         # Create metric results with low ROI (should pass)
-        results = PlaceboMetricResults(shuffled_channel_roi=0.1, shuffled_channel_name="TV_shuffled")
+        results = PlaceboMetricResults(shuffled_channel_roi=-60.0, shuffled_channel_name="TV_shuffled")
 
         # Test threshold checking
-        assert results._check_metric_threshold("shuffled_channel_roi", 0.1) is True
-        assert results._check_metric_threshold("shuffled_channel_roi", 0.3) is False
+        # ROI of -60% should pass (≤ -50% threshold)
+        assert results._check_metric_threshold("shuffled_channel_roi", -60.0) is True
+        # ROI of -30% should fail (> -50% threshold)
+        assert results._check_metric_threshold("shuffled_channel_roi", -30.0) is False
 
     def test_placebo_test_dataframe_output(self):
         """Test that the metric results can be converted to DataFrame."""
-        results = PlaceboMetricResults(shuffled_channel_roi=0.1, shuffled_channel_name="TV_shuffled")
+        results = PlaceboMetricResults(shuffled_channel_roi=-60.0, shuffled_channel_name="TV_shuffled")
 
         df = results.to_df()
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 1
         assert "shuffled_channel_roi" in df["general_metric_name"].values
-        assert df["metric_value"].iloc[0] == 0.1
+        assert df["metric_value"].iloc[0] == -60.0
         assert df["metric_pass"].iloc[0] == True  # noqa: E712
 
     def test_placebo_test_with_impressions_regressors(self):
@@ -206,7 +208,7 @@ class TestPlaceboTest:
                 roi_dict = {}
                 for channel in self._media_channels:
                     if channel.endswith("_shuffled"):
-                        roi_dict[channel] = 0.1
+                        roi_dict[channel] = -60.0
                     else:
                         roi_dict[channel] = 1.5 if channel == "TV" else 2.0
                 self._roi_results = pd.Series(roi_dict)
@@ -260,7 +262,10 @@ class TestPlaceboTest:
                     "TV": {"spend": "tv_spend", "impressions": "tv_impressions"},
                     "Radio": {"spend": "radio_spend", "impressions": "radio_impressions"},
                 }
-                return channel_mapping.get(channel_name, {"spend": f"{channel_name.lower()}_spend", "impressions": f"{channel_name.lower()}_impressions"})
+                return channel_mapping.get(
+                    channel_name,
+                    {"spend": f"{channel_name.lower()}_spend", "impressions": f"{channel_name.lower()}_impressions"},
+                )
 
             def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str, original_col: str) -> str:
                 """Get the name for a shuffled column based on the mock adapter's naming convention."""
@@ -300,7 +305,7 @@ class TestPlaceboTest:
         # Verify the result
         assert result.test_name == ValidationTestNames.PLACEBO
         assert isinstance(result.test_scores, PlaceboMetricResults)
-        assert result.test_scores.shuffled_channel_roi == 0.1
+        assert result.test_scores.shuffled_channel_roi == -60.0
         assert result.test_scores.shuffled_channel_name.endswith("_shuffled")
 
         # The test should have worked correctly, indicating that the PlaceboTest

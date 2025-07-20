@@ -128,7 +128,9 @@ class MockAdapter(BaseAdapter):
         new_adapter = MockAdapter(
             primary_media_regressor_type=self._primary_media_regressor_type,
             primary_media_regressor_columns=self._primary_media_regressor_columns.copy(),
-            channel_spend_columns=self.channel_spend_columns + [f"{shuffled_channel}_spend"] if self.channel_spend_columns else None,
+            channel_spend_columns=(
+                self.channel_spend_columns + [f"{shuffled_channel}_spend"] if self.channel_spend_columns else None
+            ),
             media_channels=self._media_channels + [shuffled_channel] if self._media_channels else None,
         )
         return new_adapter

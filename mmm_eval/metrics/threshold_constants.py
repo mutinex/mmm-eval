@@ -37,4 +37,5 @@ class PerturbationThresholdConstants:
 class PlaceboThresholdConstants:
     """Constants for the placebo test threshold."""
 
-    ROI_THRESHOLD = 0.2
+    # means $1 spend -> $0.50 return (50% loss)
+    ROI_THRESHOLD = -50.0

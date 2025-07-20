@@ -398,9 +398,7 @@ class PlaceboTest(BaseValidationTest):
 
         # Use the new template method to add placebo channel
         adapter_copy, shuffled_data = adapter.add_placebo_channel(
-            original_channel_name=original_channel,
-            data_to_shuffle=data,
-            shuffled_indices=shuffled_indices
+            original_channel_name=original_channel, data_to_shuffle=data, shuffled_indices=shuffled_indices
         )
 
         # Fit the copied adapter and check ROI

@@ -735,7 +735,8 @@ class TestMeridianAdapter:
         # No date filtering
         result = adapter.get_channel_roi()
         assert isinstance(result, pd.Series)
-        assert result["tv"] == 5.0
+        # ROI calculation: 100 * (roi - 1) = 100 * (5.0 - 1) = 400.0
+        assert result["tv"] == 400.0
         # With date filtering
         result = adapter.get_channel_roi(start_date=pd.Timestamp("2023-01-03"))
         assert isinstance(result, pd.Series)
