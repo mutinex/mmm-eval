@@ -11,6 +11,7 @@ from mmm_eval.metrics.threshold_constants import (
     AccuracyThresholdConstants,
     CrossValidationThresholdConstants,
     PerturbationThresholdConstants,
+    PlaceboThresholdConstants,
     RefreshStabilityThresholdConstants,
 )
 
@@ -90,6 +91,12 @@ class PerturbationMetricNames(MetricNamesBase):
     """Define the names of the perturbation metrics."""
 
     PERCENTAGE_CHANGE = "percentage_change"
+
+
+class PlaceboMetricNames(MetricNamesBase):
+    """Define the names of the placebo test metrics."""
+
+    SHUFFLED_CHANNEL_ROI = "shuffled_channel_roi"
 
 
 class TestResultDFAttributes(MetricNamesBase):
@@ -358,5 +365,35 @@ class PerturbationMetricResults(MetricResults):
                 channel_series=self.percentage_change_for_each_channel,
                 metric_name=PerturbationMetricNames.PERCENTAGE_CHANGE,
             )
+        )
+        return self.add_pass_fail_column(df)
+
+
+class PlaceboMetricResults(MetricResults):
+    """Define the results of the placebo test metrics."""
+
+    shuffled_channel_roi: float
+    shuffled_channel_name: str
+
+    def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
+        """Check if a specific placebo test metric passes its threshold."""
+        if metric_name == PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value:
+            return bool(metric_value <= PlaceboThresholdConstants.ROI_THRESHOLD)
+        else:
+            valid_metric_names = PlaceboMetricNames.to_list()
+            raise InvalidMetricNameException(
+                f"Invalid metric name: {metric_name}. Valid metric names are: {valid_metric_names}"
+            )
+
+    def to_df(self) -> pd.DataFrame:
+        """Convert the placebo test metric results to a long DataFrame format."""
+        df = pd.DataFrame(
+            [
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value,
+                    specific_metric_name=f"{PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value}_{self.shuffled_channel_name}",
+                    metric_value=self.shuffled_channel_roi,
+                ),
+            ]
         )
         return self.add_pass_fail_column(df)

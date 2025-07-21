@@ -159,3 +159,130 @@ class BaseAdapter(ABC):
 
         """
         pass
+
+    def add_placebo_channel(
+        self, original_channel_name: str, data_to_shuffle: pd.DataFrame, shuffled_indices: np.ndarray
+    ) -> tuple["BaseAdapter", pd.DataFrame]:
+        """Template method for adding a placebo channel to the adapter and data.
+
+        This method creates a shuffled version of an existing channel and returns a new
+        adapter configured to use the shuffled channel. The template method pattern
+        ensures consistent behavior across adapters while allowing adapter-specific
+        implementations.
+
+        Args:
+            original_channel_name: Name of the original channel to create a placebo
+                version of (shuffled to preserve the marginal distribution)
+            data_to_shuffle: DataFrame containing the data to add shuffled columns to
+            shuffled_indices: Array of shuffled indices to use for creating the placebo
+                channel
+
+        Returns:
+            Tuple of (new_adapter, updated_data) where:
+            - new_adapter: A new adapter instance configured to use the placebo channel
+            - updated_data: DataFrame with the shuffled columns added
+
+        """
+        # Step 1: Get original columns to shuffle (subclass-specific)
+        original_columns = self._get_original_channel_columns(original_channel_name)
+
+        # Step 2: Add shuffled columns to the data
+        shuffled_channel_name = f"{original_channel_name}_shuffled"
+        updated_data = self._create_shuffled_columns(
+            data_to_shuffle, original_columns, shuffled_indices, shuffled_channel_name
+        )
+
+        # Step 3: Create new adapter (subclass-specific)
+        new_adapter = self._create_adapter_with_placebo_channel(shuffled_channel_name)
+
+        return new_adapter, updated_data
+
+    def _create_shuffled_columns(
+        self,
+        data: pd.DataFrame,
+        original_columns: dict[str, str],
+        shuffled_indices: np.ndarray,
+        shuffled_channel_name: str,
+    ) -> pd.DataFrame:
+        """Create shuffled columns in the data for the placebo channel.
+
+        This is a common implementation that creates shuffled versions of the original
+        columns. The column naming is handled by each adapter according to their
+        conventions.
+
+        Args:
+            data: DataFrame to add shuffled columns to
+            original_columns: Dictionary mapping column types to original column names
+            shuffled_indices: Array of shuffled indices to use to transform the original
+                column(s)
+            shuffled_channel_name: Name for the new shuffled channel
+
+        Returns:
+            DataFrame with shuffled columns added
+
+        """
+        updated_data = data.copy()
+
+        for column_type, original_col in original_columns.items():
+            # Let each adapter determine the column naming convention
+            shuffled_col = self._get_shuffled_col_name(shuffled_channel_name, column_type)
+            updated_data[shuffled_col] = data[original_col].iloc[shuffled_indices].values
+
+        return updated_data
+
+    # TODO: add media_channels attribute to PyMC adapter for consistency within Meridian,
+    # and remove the need for this method
+    @abstractmethod
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
+        """Get the name for a shuffled column based on the adapter's naming convention.
+
+        This method should be implemented by each adapter to return the correct column name
+        for the shuffled channel according to their naming conventions.
+
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions")
+
+        Returns:
+            Name for the shuffled column
+
+        """
+        pass
+
+    @abstractmethod
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel.
+
+        This method should return a dictionary mapping column types to actual column names
+        in the data. For example:
+        - {"spend": "tv_spend", "impressions": "tv_impressions"} for impressions-based models
+        - {"spend": "tv_spend"} for spend-only models
+
+        Args:
+            channel_name: Name of the channel to get columns for
+
+        Returns:
+            Dictionary mapping column types to actual column names in the data
+
+        """
+        pass
+
+    @abstractmethod
+    def _create_adapter_with_placebo_channel(
+        self,
+        shuffled_channel: str,
+    ) -> "BaseAdapter":
+        """Create a new adapter instance configured to use the placebo channel.
+
+        This method should create a new adapter instance that includes the placebo channel
+        in its configuration. The adapter should be configured to use the shuffled column
+        names that were created in the data.
+
+        Args:
+            shuffled_channel: Name of the new shuffled channel
+
+        Returns:
+            New adapter instance configured to use the placebo channel
+
+        """
+        pass

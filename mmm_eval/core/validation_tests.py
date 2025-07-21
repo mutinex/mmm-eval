@@ -25,6 +25,8 @@ from mmm_eval.metrics.metric_models import (
     CrossValidationMetricResults,
     PerturbationMetricNames,
     PerturbationMetricResults,
+    PlaceboMetricNames,
+    PlaceboMetricResults,
     RefreshStabilityMetricNames,
     RefreshStabilityMetricResults,
 )
@@ -364,5 +366,67 @@ class PerturbationTest(BaseValidationTest):
         return ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             metric_names=PerturbationMetricNames.to_list(),
+            test_scores=test_scores,
+        )
+
+
+class PlaceboTest(BaseValidationTest):
+    """Validation test for detecting spurious correlations in the MMM framework.
+
+    This test creates a shuffled version of an existing media channel and tests whether
+    the model assigns a low ROI to this spurious feature.
+    """
+
+    @property
+    def test_name(self) -> ValidationTestNames:
+        """Return the name of the test."""
+        return ValidationTestNames.PLACEBO
+
+    def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
+        """Run the placebo test."""
+        if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            logger.warning(
+                "Placebo test skipped: Reach and frequency regressor type not supported for placebo testing."
+            )
+            # Return NaN results indicating the test was not run
+            test_scores = PlaceboMetricResults(
+                shuffled_channel_roi=np.nan,
+                shuffled_channel_name="test_skipped",
+            )
+            return ValidationTestResult(
+                test_name=ValidationTestNames.PLACEBO,
+                metric_names=PlaceboMetricNames.to_list(),
+                test_scores=test_scores,
+            )
+
+        # Select a random channel to shuffle
+        original_channel = str(self.rng.choice(adapter.media_channels))
+
+        # Create shuffled indices for consistent shuffling across related columns
+        shuffled_indices = np.arange(len(data))
+        self.rng.shuffle(shuffled_indices)
+
+        # Use the new template method to add placebo channel
+        adapter_copy, shuffled_data = adapter.add_placebo_channel(
+            original_channel_name=original_channel, data_to_shuffle=data, shuffled_indices=shuffled_indices
+        )
+
+        # Fit the copied adapter and check ROI
+        adapter_copy.fit(shuffled_data)
+        rois = adapter_copy.get_channel_roi()
+        shuffled_channel_name = f"{original_channel}_shuffled"
+        shuffled_roi = rois[shuffled_channel_name]
+
+        # Create metric results
+        test_scores = PlaceboMetricResults(
+            shuffled_channel_roi=shuffled_roi,
+            shuffled_channel_name=shuffled_channel_name,
+        )
+
+        logger.info(f"Saving the test results for {self.test_name} test")
+
+        return ValidationTestResult(
+            test_name=ValidationTestNames.PLACEBO,
+            metric_names=PlaceboMetricNames.to_list(),
             test_scores=test_scores,
         )
