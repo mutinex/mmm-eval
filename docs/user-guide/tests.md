@@ -7,13 +7,19 @@ mmm-eval provides a comprehensive suite of validation tests to evaluate MMM perf
 mmm-eval includes four main types of validation tests:
 
 1. **Accuracy Tests**: Measure how well the model fits the data
-2. **Cross-Validation Tests**: Assess model generalization
+2. **Cross-Validation Accuracy Test**: Assess model generalization
 3. **Refresh Stability Tests**: Evaluate model stability over time
 4. **Performance Tests**: Measure computational efficiency
 
 ## Accuracy Tests
 
 Accuracy tests evaluate how well the model fits the data using different validation approaches.
+
+Accuracy can be considered a necessary, but not sufficient indicator of a good model - a model
+can have high predictive performance but still get the causal relationships in the data wrong. However,
+it is very effective for identifying poor models, as poor in-sample and/or out-of-sample performance
+almost always implies that the model is failing to capture the causual structure of the problem at
+hand.
 
 ### Holdout Accuracy Test
 
@@ -61,9 +67,18 @@ The in-sample accuracy test evaluates model performance by fitting the model on 
 - **Higher R-squared**: Better explanatory power
 - **Comparison with holdout**: Helps identify overfitting (much better in-sample than holdout performance)
 
-## Cross-Validation Tests
+## Cross-Validated Holdout Accuracy Test
 
-Cross-validation tests assess how well the model generalizes to unseen data.
+A cross-validated version of the holdout accuracy test. The generalization performance of the
+model is tested more rigorously by splitting the data into multiple train/test "folds" and
+averaging over the results.
+
+We use the leave-future-out (LFO) cross validation strategy, which is widely used for
+out-of-sample testing of timeseries models. For a dataset with time indices `0, ..., T`,
+this involves fitting on `[0, ..., T-X]` and testing on 
+`[T-X+1, T-X+1+k]`, then incrementing `X` in order to increase the size of the training set
+while keeping the test set size `k` fixed. (N.B. `X` and `k` must be strictly positive 
+integers)
 
 ### Process
 
@@ -86,7 +101,12 @@ Cross-validation tests assess how well the model generalizes to unseen data.
 
 ## Refresh Stability Tests
 
-Refresh stability tests evaluate how model parameters change when new data is added.
+The refresh stability test evaluates how much media ROI estimates change as more data is
+added to the model.
+
+NOTE: we define ROI as `100 * (R/S - 1)`, where `R` is estimated revenue and `S` is paid
+media spend. Under this convntion, a ROI of 0% implies $1 spend yields a $1 return, a ROI
+of 100% implies $1 spend yields a $2 return, and so on.
 
 ### Process
 
@@ -107,24 +127,6 @@ Refresh stability tests evaluate how model parameters change when new data is ad
 - **Low percentage changes**: Stable model parameters
 - **High percentage changes**: Unstable model (may need more data)
 - **Channel-specific stability**: Some channels more stable than others
-
-## Performance Tests
-
-Performance tests measure computational efficiency and resource usage.
-
-### Metrics
-
-- **Training Time**: Time to fit the model
-- **Memory Usage**: Peak memory consumption
-- **Prediction Time**: Time to generate predictions
-- **Convergence**: Number of iterations to convergence
-
-### Interpretation
-
-- **Faster training**: More efficient model
-- **Lower memory**: Better resource utilization
-- **Faster predictions**: Better for real-time applications
-- **Fewer iterations**: Better convergence properties
 
 ## Running Tests
 
@@ -178,7 +180,6 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 - **Add in-sample accuracy**: To assess model fit and identify overfitting
 - **Include cross-validation**: For generalization assessment
 - **Add stability tests**: For production models
-- **Monitor performance**: For computational constraints
 
 ### Result Analysis
 

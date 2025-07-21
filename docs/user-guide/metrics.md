@@ -2,7 +2,10 @@
 
 > **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
 
-mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+mmm-eval provides a suite of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+
+Note that these metrics do not claim to be entirely comprehensive, but instead aim to provide an overall view
+of MMM performance across several key dimensions.
 
 ## Overview
 
@@ -106,9 +109,7 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **MAPE < 15%**: Good prediction accuracy
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
-- **Low parameter changes**: Stable model
 - **Low perturbation sensitivity**: Robust to input noise
-- **Reasonable training time**: Efficient computation
 
 ## Thresholds and Benchmarks
 
