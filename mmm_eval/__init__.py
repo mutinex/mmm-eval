@@ -7,13 +7,14 @@ such as PyMC-marketing and Google Meridian.
 __author__ = "Mutinex Model Scale Team"
 __email__ = "joseph.kang@mutinex.co"
 
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 try:
     __version__ = version("mmm-eval")
 except PackageNotFoundError as e:
     __version__ = "0.0.0"
     import warnings
+
     warnings.warn(
         f"Could not read version from importlib.metadata: {e}. Using fallback version {__version__}", stacklevel=2
     )
