@@ -163,13 +163,6 @@ def test_cli_e2e_meridian(tmp_path):
             """Get the channel names that would be used as the index in get_channel_roi results."""
             return self.media_channels
 
-        def copy(self) -> "MockMeridianAdapter":
-            """Create a deep copy of this adapter with all configuration."""
-            new_adapter = MockMeridianAdapter(self.config)
-            new_adapter.channel_spend_columns = self.channel_spend_columns.copy()
-            # Don't try to set media_channels directly since it's a property
-            return new_adapter
-
         def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
             """Get the primary media regressor columns for specific channels."""
             return channel_names

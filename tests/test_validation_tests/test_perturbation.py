@@ -81,16 +81,6 @@ class MockAdapter(BaseAdapter):
         """Get the channel names that would be used as the index in get_channel_roi results."""
         return self.media_channels
 
-    def copy(self) -> "MockAdapter":
-        """Create a deep copy of this adapter."""
-        new_adapter = MockAdapter(
-            primary_media_regressor_type=self._primary_media_regressor_type,
-            primary_media_regressor_columns=self._primary_media_regressor_columns.copy(),
-            channel_spend_columns=self.channel_spend_columns.copy() if self.channel_spend_columns else None,
-            media_channels=self._media_channels.copy() if self._media_channels else None,
-        )
-        return new_adapter
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels."""
         return channel_names

@@ -316,67 +316,6 @@ class MeridianAdapter(BaseAdapter):
         """
         return self.media_channels
 
-    def copy(self) -> "MeridianAdapter":
-        """Create a deep copy of this adapter with all configuration.
-
-        Returns
-            A new MeridianAdapter instance with the same configuration
-
-        """
-        # Create a deep copy of the input data builder schema
-        new_input_data_builder_schema = MeridianInputDataBuilderSchema(
-            date_column=self.date_column,
-            response_column=InputDataframeConstants.RESPONSE_COL,
-            media_channels=self.input_data_builder_schema.media_channels.copy(),
-            channel_spend_columns=self.input_data_builder_schema.channel_spend_columns.copy(),
-            channel_impressions_columns=(
-                self.input_data_builder_schema.channel_impressions_columns.copy()
-                if self.input_data_builder_schema.channel_impressions_columns
-                else None
-            ),
-            channel_reach_columns=(
-                self.input_data_builder_schema.channel_reach_columns.copy()
-                if self.input_data_builder_schema.channel_reach_columns
-                else None
-            ),
-            channel_frequency_columns=(
-                self.input_data_builder_schema.channel_frequency_columns.copy()
-                if self.input_data_builder_schema.channel_frequency_columns
-                else None
-            ),
-            control_columns=(
-                self.input_data_builder_schema.control_columns.copy()
-                if self.input_data_builder_schema.control_columns
-                else None
-            ),
-            organic_media_columns=(
-                self.input_data_builder_schema.organic_media_columns.copy()
-                if self.input_data_builder_schema.organic_media_columns
-                else None
-            ),
-            organic_media_channels=(
-                self.input_data_builder_schema.organic_media_channels.copy()
-                if self.input_data_builder_schema.organic_media_channels
-                else None
-            ),
-            non_media_treatment_columns=(
-                self.input_data_builder_schema.non_media_treatment_columns.copy()
-                if self.input_data_builder_schema.non_media_treatment_columns
-                else None
-            ),
-        )
-
-        # Create a new config
-        new_config = MeridianConfig(
-            date_column=self.date_column,
-            revenue_column=self.config.revenue_column,
-            input_data_builder_config=new_input_data_builder_schema,
-            model_spec_config=self.config.model_spec_config,
-            sample_posterior_config=self.config.sample_posterior_config,
-        )
-
-        return MeridianAdapter(new_config)
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 

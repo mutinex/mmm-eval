@@ -70,13 +70,6 @@ class MockAdapter(BaseAdapter):
         """Return the primary media regressor columns."""
         return self.channel_spend_columns
 
-    def copy(self) -> "MockAdapter":
-        """Create a deep copy of this adapter."""
-        new_adapter = MockAdapter(self.date_column)
-        new_adapter.channel_spend_columns = self.channel_spend_columns.copy()
-        new_adapter._media_channels = self._media_channels.copy()
-        return new_adapter
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels."""
         return channel_names

@@ -161,19 +161,6 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def copy(self) -> "BaseAdapter":
-        """Create a deep copy of this adapter with all configuration.
-
-        This method creates a complete copy of the adapter including all configuration,
-        but without any fitted state (model, trace, etc.).
-
-        Returns
-            A new adapter instance with the same configuration as this one
-
-        """
-        pass
-
-    @abstractmethod
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 

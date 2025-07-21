@@ -94,27 +94,6 @@ class PyMCAdapter(BaseAdapter):
         """
         return self.channel_spend_columns
 
-    def copy(self) -> "PyMCAdapter":
-        """Create a deep copy of this adapter with all configuration.
-
-        Returns
-            A new PyMCAdapter instance with the same configuration
-
-        """
-        # Create schema objects from the current configuration
-        model_config = PyMCModelSchema(**self._original_model_kwargs)
-        fit_config = PyMCFitSchema(**self.fit_kwargs)
-
-        # Create a new config with copied values
-        new_config = PyMCConfig(
-            pymc_model_config=model_config,
-            fit_config=fit_config,
-            revenue_column=self.config.revenue_column,
-            response_column=self.config.response_column,
-        )
-
-        return PyMCAdapter(new_config)
-
     def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
         """Get the primary media regressor columns for specific channels.
 
