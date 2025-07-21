@@ -331,17 +331,18 @@ class MeridianAdapter(BaseAdapter):
 
         """
         # Find the index of the channel in the media_channels list
-        try:
-            channel_index = self.media_channels.index(channel_name)
-        except ValueError as e:
-            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}") from e
+        if channel_name not in self.media_channels:
+            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}")
+        # the integer location of the channel in the media_channels list, assumed to be consistent
+        # across all regressors
+        channel_index = self.media_channels.index(channel_name)
 
         # Build the column mapping based on the regressor type
         columns = {}
 
         # Always include spend column
         if channel_index < len(self.input_data_builder_schema.channel_spend_columns):
-            columns["spend"] = self.input_data_builder_schema.channel_spend_columns[channel_index]
+            columns[PrimaryMediaRegressor.SPEND.value] = self.input_data_builder_schema.channel_spend_columns[channel_index]
 
         # Include impressions column if using impressions regressors
         if (
@@ -349,7 +350,7 @@ class MeridianAdapter(BaseAdapter):
             and self.input_data_builder_schema.channel_impressions_columns
             and channel_index < len(self.input_data_builder_schema.channel_impressions_columns)
         ):
-            columns["impressions"] = self.input_data_builder_schema.channel_impressions_columns[channel_index]
+            columns[PrimaryMediaRegressor.IMPRESSIONS.value] = self.input_data_builder_schema.channel_impressions_columns[channel_index]
 
         # Include reach and frequency columns if using reach/frequency regressors
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:

@@ -144,7 +144,6 @@ class PyMCAdapter(BaseAdapter):
         """
         # Create updated model config with the new channel
         updated_model_kwargs = self._original_model_kwargs.copy()
-        # shuffled_channel_with_suffix = shuffled_channel + "_spend"
         updated_model_kwargs["channel_columns"] = self._original_channel_spend_columns + [shuffled_channel]
 
         # Create schema objects from the updated configuration
