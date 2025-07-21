@@ -11,7 +11,7 @@ from importlib.metadata import version, PackageNotFoundError
 
 try:
     __version__ = version("mmm-eval")
-except PackageNotFoundError:
+except PackageNotFoundError as e:
     __version__ = "0.0.0"
     import warnings
     warnings.warn(
