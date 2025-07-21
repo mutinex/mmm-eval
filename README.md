@@ -1,15 +1,14 @@
 # mmm-eval
 
-A comprehensive evaluation framework for Marketing Mix Modeling (MMM) frameworks.
+An evaluation framework for Marketing Mix Modeling (MMM) frameworks.
 
 ## Overview
 
-mmm-eval provides a standardized way to evaluate and compare different MMM frameworks using a comprehensive suite of validation tests including holdout accuracy, in-sample accuracy, cross-validation, refresh stability, and perturbation metrics.
+mmm-eval provides a standardized way to evaluate and compare different MMM frameworks using a full suite of validation tests including holdout accuracy, in-sample accuracy, cross-validation, refresh stability, perturbation, and placebo metrics.
 
 ## Features
 
 - **Multi-framework support**: Evaluate PyMC-Marketing and Google Meridian models
-- **Comprehensive testing**: Holdout accuracy, in-sample accuracy, cross-validation, refresh stability, and perturbation tests
 - **Standardized metrics**: Consistent evaluation across different frameworks
 - **Easy to use**: Simple CLI interface and Python API
 - **Extensible**: Add new frameworks and tests easily

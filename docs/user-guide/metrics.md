@@ -2,7 +2,10 @@
 
 > **Note:** To render math equations, enable `pymdownx.arithmatex` in your `mkdocs.yml` and include MathJax. See the user guide for details.
 
-mmm-eval provides a comprehensive set of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+mmm-eval provides a suite of metrics to evaluate MMM performance. This guide explains each metric and how to interpret the results.
+
+Note that these metrics do not claim to be entirely comprehensive, but instead aim to provide an overall view
+of MMM performance across several key dimensions.
 
 ## Overview
 
@@ -99,6 +102,15 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **Channel-specific Sensitivity**: Sensitivity of each media channel to data perturbations
 - **Model Robustness**: Overall model stability to input noise
 
+### Placebo Metrics
+
+- **Shuffled Channel ROI**: Estimated ROI for the spurious (shuffled) channel, ideally close
+as possible to -100% (indicating the model learned that the feature had no impact).
+
+Note that the result of this test will be heavily impacted by the choice of media prior.
+Consider using relatively uninformative media priors in order to reduce the chance of the
+model picking up spurious correlations.
+
 ## Interpreting Results
 
 ### Good Performance Indicators
@@ -106,13 +118,16 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **MAPE < 15%**: Good prediction accuracy
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
-- **Low parameter changes**: Stable model
 - **Low perturbation sensitivity**: Robust to input noise
-- **Reasonable training time**: Efficient computation
+- **Low placebo ROI (≤ -50%)**: Correctly identifies spurious features and assigns them low effect sizes
 
 ## Thresholds and Benchmarks
 
 ### Rough Benchmarks
+
+The below is only intended to be an approximate guide, as performance depends on multiple factors
+including the quality and quantity of the training data, as well as the suitability of the
+model specification to the problem at hand.
 
 | Metric | Excellent | Good | Acceptable | Poor |
 |--------|-----------|------|------------|------|
@@ -121,6 +136,7 @@ Metrics calculated on in-sample predictions using the full dataset.
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
 | Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
+| Placebo ROI | ≤ -50% | -50% to -25% | -25% to 0% | > 0% |
 
 ## Customizing Metrics
 

@@ -1,19 +1,25 @@
 # Tests
 
-mmm-eval provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
+mmm-eval provides a wide-ranging suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
 
 ## Overview
 
-mmm-eval includes four main types of validation tests:
+mmm-eval includes six main types of validation tests:
 
 1. **Accuracy Tests**: Measure how well the model fits the data
-2. **Cross-Validation Tests**: Assess model generalization
+2. **Cross-Validation Accuracy Test**: Assess model generalization
 3. **Refresh Stability Tests**: Evaluate model stability over time
-4. **Performance Tests**: Measure computational efficiency
+4. **Robustness Tests**: Evaluate model sensitivity to data changes
 
 ## Accuracy Tests
 
 Accuracy tests evaluate how well the model fits the data using different validation approaches.
+
+Accuracy can be considered a necessary, but not sufficient indicator of a good model - a model
+can perform well on accuracy tests but still get the causal relationships in the data wrong. However,
+it is very effective for identifying poor models, as poor in-sample and/or out-of-sample performance
+almost always implies that the model is failing to capture the causual structure of the problem at
+hand.
 
 ### Holdout Accuracy Test
 
@@ -61,9 +67,18 @@ The in-sample accuracy test evaluates model performance by fitting the model on 
 - **Higher R-squared**: Better explanatory power
 - **Comparison with holdout**: Helps identify overfitting (much better in-sample than holdout performance)
 
-## Cross-Validation Tests
+## Cross-Validated Holdout Accuracy Test
 
-Cross-validation tests assess how well the model generalizes to unseen data.
+A cross-validated version of the holdout accuracy test. The generalization performance of the
+model is tested more rigorously by splitting the data into multiple train/test "folds" and
+averaging over the results.
+
+We use the leave-future-out (LFO) cross validation strategy, which is widely used for
+out-of-sample testing of timeseries models. For a dataset with time indices `0, ..., T`,
+this involves fitting on `[0, ..., T-X]` and testing on 
+`[T-X+1, T-X+1+k]`, then incrementing `X` in order to increase the size of the training set
+while keeping the test set size `k` fixed. (N.B. `X` and `k` must be strictly positive 
+integers)
 
 ### Process
 
@@ -86,7 +101,12 @@ Cross-validation tests assess how well the model generalizes to unseen data.
 
 ## Refresh Stability Tests
 
-Refresh stability tests evaluate how model parameters change when new data is added.
+The refresh stability test evaluates how much media ROI estimates change as more data is
+added to the model.
+
+NOTE: we define ROI as `100 * (R/S - 1)`, where `R` is estimated revenue and `S` is paid
+media spend for a particular media channel. Under this convention, a ROI of 0% implies $1
+spend yields a $1 return, a ROI of 100% implies $1 spend yields a $2 return, and so on.
 
 ### Process
 
@@ -108,23 +128,58 @@ Refresh stability tests evaluate how model parameters change when new data is ad
 - **High percentage changes**: Unstable model (may need more data)
 - **Channel-specific stability**: Some channels more stable than others
 
-## Performance Tests
+## Robustness Tests
 
-Performance tests measure computational efficiency and resource usage.
+The robustness test evaluates how sensitive the model is to changes in the input data.
 
-### Metrics
+### Perturbation Test
 
-- **Training Time**: Time to fit the model
-- **Memory Usage**: Peak memory consumption
-- **Prediction Time**: Time to generate predictions
-- **Convergence**: Number of iterations to convergence
+The perturbation test evaluates how sensitive the model is to noise in the input data by adding Gaussian noise to media spend data and measuring the change in ROI estimates.
 
-### Interpretation
+#### Process
 
-- **Faster training**: More efficient model
-- **Lower memory**: Better resource utilization
-- **Faster predictions**: Better for real-time applications
-- **Fewer iterations**: Better convergence properties
+1. **Baseline Model**: Train on original data
+2. **Noise Addition**: Add Gaussian noise to primary regressor columns (usually spend or impressions, depending on the model spec)
+3. **Retrain Model**: Fit model on noisy data
+4. **Compare estimated impacts**: Compare ROI estimates across the two models
+5. **Sensitivity Metrics**: Calculate percentage changes
+
+#### Metrics
+
+- **Percentage Change**: Change in ROI estimates for each channel
+- **Channel Sensitivity**: Which channels are most sensitive to noise
+
+#### Interpretation
+
+- **Low percentage changes**: Robust model (good)
+- **High percentage changes**: Sensitive model (may need more data or regularization)
+- **Channel-specific sensitivity**: Some channels more stable than others
+
+### Placebo Test
+
+The placebo test (also known as a falsifiability test) evaluates whether the model can detect spurious correlations by introducing a randomly shuffled media channel and checking if the model assigns a low ROI to this spurious feature.
+
+#### Process
+
+1. **Channel Selection**: Randomly select an existing media channel
+2. **Data Shuffling**: Randomly permute the rows of the selected channel's data to break time correlation with the target variable
+3. **Model Training**: Fit the model with the shuffled channel added
+4. **ROI Assessment**: Record the estimated ROI for the shuffled channel
+5. **Validation**: Check if the shuffled channel ROI is appropriately low
+
+#### Metrics
+
+- **Shuffled Channel ROI**: Estimated ROI for the spurious channel
+
+#### Interpretation
+
+- **Low ROI (≤ -50%)**: Model correctly identifies spurious correlation (good)
+- **High ROI (> -50%)**: Model may be overfitting or detecting spurious patterns (concerning)
+- **Test Skipped**: Indicates reach and frequency regressor type not supported
+
+#### Purpose
+
+This test helps validate that the model is not simply memorizing patterns in the data or detecting spurious correlations. A well-performing model should assign a low ROI to a channel that has no meaningful relationship with the target variable.
 
 ## Running Tests
 
@@ -147,6 +202,7 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path con
 - `cross_validation`: Cross-validation tests only
 - `refresh_stability`: Refresh stability tests only
 - `perturbation`: Perturbation tests only
+- `placebo`: Placebo tests only
 
 ## Test Configuration
 
@@ -162,6 +218,7 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 - **Cross-Validation**: Out-of-sample MAPE/SMAPE similar to in-sample
 - **Refresh Stability**: Parameter changes < 10%
 - **Perturbation**: ROI changes < 5%
+- **Placebo**: Shuffled channel ROI ≤ -50%
 
 ### Warning Signs
 
@@ -178,7 +235,7 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 - **Add in-sample accuracy**: To assess model fit and identify overfitting
 - **Include cross-validation**: For generalization assessment
 - **Add stability tests**: For production models
-- **Monitor performance**: For computational constraints
+- **Include robustness tests**: To evaluate model sensitivity to data changes
 
 ### Result Analysis
 
