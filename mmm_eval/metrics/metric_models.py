@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from pydantic import BaseModel, ConfigDict
 from sklearn.metrics import mean_absolute_percentage_error, r2_score
@@ -10,8 +11,45 @@ from mmm_eval.metrics.threshold_constants import (
     AccuracyThresholdConstants,
     CrossValidationThresholdConstants,
     PerturbationThresholdConstants,
+    PlaceboThresholdConstants,
     RefreshStabilityThresholdConstants,
 )
+
+
+def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
+    """Calculate Symmetric Mean Absolute Percentage Error (SMAPE).
+
+    SMAPE is calculated as: 100 * (2 * |actual - predicted|) / (|actual| + |predicted|)
+
+    Args:
+        actual: Actual values
+        predicted: Predicted values
+
+    Returns:
+        SMAPE value as float (percentage)
+
+    Raises:
+        ValueError: If series are empty or have different lengths
+
+    """
+    # Validate inputs
+    if len(actual) == 0 or len(predicted) == 0:
+        raise ValueError("Cannot calculate SMAPE on empty series")
+
+    if len(actual) != len(predicted):
+        raise ValueError("Actual and predicted series must have the same length")
+
+    # Handle NaN values
+    if actual.isna().any() or predicted.isna().any():
+        raise ValueError("Actual and predicted series must be free of NaN values")
+
+    numerator = 2 * np.abs(predicted - actual)
+    denominator = np.abs(actual) + np.abs(predicted)
+    # avoid division by zero edge case if both numerator and denominator are zero
+    mask = denominator != 0
+    smape_terms = np.where(mask, numerator / denominator, 0)
+    smape = 100 * np.mean(smape_terms)
+    return float(smape)
 
 
 class MetricNamesBase(Enum):
@@ -27,6 +65,7 @@ class AccuracyMetricNames(MetricNamesBase):
     """Define the names of the accuracy metrics."""
 
     MAPE = "mape"
+    SMAPE = "smape"
     R_SQUARED = "r_squared"
 
 
@@ -35,6 +74,8 @@ class CrossValidationMetricNames(MetricNamesBase):
 
     MEAN_MAPE = "mean_mape"
     STD_MAPE = "std_mape"
+    MEAN_SMAPE = "mean_smape"
+    STD_SMAPE = "std_smape"
     MEAN_R_SQUARED = "mean_r_squared"
 
 
@@ -50,6 +91,12 @@ class PerturbationMetricNames(MetricNamesBase):
     """Define the names of the perturbation metrics."""
 
     PERCENTAGE_CHANGE = "percentage_change"
+
+
+class PlaceboMetricNames(MetricNamesBase):
+    """Define the names of the placebo test metrics."""
+
+    SHUFFLED_CHANNEL_ROI = "shuffled_channel_roi"
 
 
 class TestResultDFAttributes(MetricNamesBase):
@@ -132,12 +179,15 @@ class AccuracyMetricResults(MetricResults):
     """Define the results of the accuracy metrics."""
 
     mape: float
+    smape: float
     r_squared: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific accuracy metric passes its threshold."""
         if metric_name == AccuracyMetricNames.MAPE.value:
             return bool(metric_value <= AccuracyThresholdConstants.MAPE)
+        elif metric_name == AccuracyMetricNames.SMAPE.value:
+            return bool(metric_value <= AccuracyThresholdConstants.SMAPE)
         elif metric_name == AccuracyMetricNames.R_SQUARED.value:
             return bool(metric_value >= AccuracyThresholdConstants.R_SQUARED)
         else:
@@ -154,6 +204,11 @@ class AccuracyMetricResults(MetricResults):
                     general_metric_name=AccuracyMetricNames.MAPE.value,
                     specific_metric_name=AccuracyMetricNames.MAPE.value,
                     metric_value=self.mape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=AccuracyMetricNames.SMAPE.value,
+                    specific_metric_name=AccuracyMetricNames.SMAPE.value,
+                    metric_value=self.smape,
                 ),
                 self._create_single_metric_dataframe_row(
                     general_metric_name=AccuracyMetricNames.R_SQUARED.value,
@@ -177,7 +232,8 @@ class AccuracyMetricResults(MetricResults):
 
         """
         return cls(
-            mape=mean_absolute_percentage_error(actual, predicted),
+            mape=mean_absolute_percentage_error(actual, predicted) * 100,
+            smape=calculate_smape(actual, predicted),
             r_squared=r2_score(actual, predicted),
         )
 
@@ -187,6 +243,8 @@ class CrossValidationMetricResults(MetricResults):
 
     mean_mape: float
     std_mape: float
+    mean_smape: float
+    std_smape: float
     mean_r_squared: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
@@ -195,6 +253,10 @@ class CrossValidationMetricResults(MetricResults):
             return bool(metric_value <= CrossValidationThresholdConstants.MEAN_MAPE)
         elif metric_name == CrossValidationMetricNames.STD_MAPE.value:
             return bool(metric_value <= CrossValidationThresholdConstants.STD_MAPE)
+        elif metric_name == CrossValidationMetricNames.MEAN_SMAPE.value:
+            return bool(metric_value <= CrossValidationThresholdConstants.MEAN_SMAPE)
+        elif metric_name == CrossValidationMetricNames.STD_SMAPE.value:
+            return bool(metric_value <= CrossValidationThresholdConstants.STD_SMAPE)
         elif metric_name == CrossValidationMetricNames.MEAN_R_SQUARED.value:
             return bool(metric_value >= CrossValidationThresholdConstants.MEAN_R_SQUARED)
         else:
@@ -216,6 +278,16 @@ class CrossValidationMetricResults(MetricResults):
                     general_metric_name=CrossValidationMetricNames.STD_MAPE.value,
                     specific_metric_name=CrossValidationMetricNames.STD_MAPE.value,
                     metric_value=self.std_mape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.MEAN_SMAPE.value,
+                    specific_metric_name=CrossValidationMetricNames.MEAN_SMAPE.value,
+                    metric_value=self.mean_smape,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.STD_SMAPE.value,
+                    specific_metric_name=CrossValidationMetricNames.STD_SMAPE.value,
+                    metric_value=self.std_smape,
                 ),
                 self._create_single_metric_dataframe_row(
                     general_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
@@ -293,5 +365,35 @@ class PerturbationMetricResults(MetricResults):
                 channel_series=self.percentage_change_for_each_channel,
                 metric_name=PerturbationMetricNames.PERCENTAGE_CHANGE,
             )
+        )
+        return self.add_pass_fail_column(df)
+
+
+class PlaceboMetricResults(MetricResults):
+    """Define the results of the placebo test metrics."""
+
+    shuffled_channel_roi: float
+    shuffled_channel_name: str
+
+    def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
+        """Check if a specific placebo test metric passes its threshold."""
+        if metric_name == PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value:
+            return bool(metric_value <= PlaceboThresholdConstants.ROI_THRESHOLD)
+        else:
+            valid_metric_names = PlaceboMetricNames.to_list()
+            raise InvalidMetricNameException(
+                f"Invalid metric name: {metric_name}. Valid metric names are: {valid_metric_names}"
+            )
+
+    def to_df(self) -> pd.DataFrame:
+        """Convert the placebo test metric results to a long DataFrame format."""
+        df = pd.DataFrame(
+            [
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value,
+                    specific_metric_name=f"{PlaceboMetricNames.SHUFFLED_CHANNEL_ROI.value}_{self.shuffled_channel_name}",
+                    metric_value=self.shuffled_channel_roi,
+                ),
+            ]
         )
         return self.add_pass_fail_column(df)

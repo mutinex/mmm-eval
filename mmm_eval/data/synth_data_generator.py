@@ -119,25 +119,21 @@ def generate_pymc_data():
 def generate_meridian_data():
     """Load and process a Meridian-compatible dataset for E2E testing.
 
-    The Excel file should be placed at: mmm_eval/data/sample_data/geo_media.xlsx
-
     Returns
         DataFrame containing Meridian-compatible data with media channels, controls, and
         response variables
 
     """
-    # Path to the local Excel file
-    excel_path = Path(__file__).parent / "sample_data" / "geo_media.xlsx"
+    # Path to the local parquet file
+    parquet_path = Path(__file__).parent / "sample_data" / "meridian_geo_media.parquet"
 
-    if not excel_path.exists():
+    if not parquet_path.exists():
         raise FileNotFoundError(
-            f"Meridian sample data file not found at {excel_path}. "
-            "Please download the file from "
-            "https://github.com/google/meridian/raw/main/meridian/data/simulated_data/xlsx/geo_media.xlsx"
-            f"and save it to {excel_path}."
+            f"Meridian sample data file not found at {parquet_path}. "
+            "Please ensure the meridian_geo_media.parquet file is present in the sample_data directory."
         )
 
-    df = pd.read_excel(excel_path, engine="openpyxl")
+    df = pd.read_parquet(parquet_path)
     df_mod = df.copy()
     df_mod["revenue"] = df_mod["revenue_per_conversion"] * df_mod["conversions"]
 

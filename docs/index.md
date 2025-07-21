@@ -1,6 +1,6 @@
 # Welcome to mmm-eval
 
-A comprehensive evaluation framework for Marketing Mix Modeling (MMM) frameworks.
+An evaluation framework for Marketing Mix Modeling (MMM) frameworks.
 
 ## Quick Start
 
@@ -82,11 +82,13 @@ mmm-eval --input-data-path data.csv --config-path config.json --output-path ./ou
 - **Google Meridian**: Google's MMM framework
 - **Extensible**: Easy to add new frameworks
 
-### Comprehensive Testing
-- **Accuracy Tests**: MAPE, RMSE, R-squared metrics
+### Extensive Testing
+- **Holdout Accuracy Tests**: Out-of-sample prediction accuracy
+- **In-Sample Accuracy Tests**: Model fit and overfitting detection
 - **Cross-Validation**: Time series cross-validation
 - **Refresh Stability**: Model stability over time
-- **Performance Tests**: Computational efficiency metrics
+- **Perturbation Tests**: Model robustness to data changes
+- **Placebo Tests**: Detection of spurious correlations
 
 ### Standardized Evaluation
 - Consistent metrics across frameworks

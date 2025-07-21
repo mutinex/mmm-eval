@@ -24,23 +24,26 @@ class TestValidationTestResult:
 
     def test_test_result_creation_and_to_df(self):
         """Test TestResult creation and to_df conversion."""
-        test_scores = AccuracyMetricResults(mape=0.1, r_squared=0.8)
+        test_scores = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8)
         metric_names = AccuracyMetricNames.to_list()
 
         result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=metric_names,
             test_scores=test_scores,
         )
 
         # Test basic properties
-        assert result.test_name == ValidationTestNames.ACCURACY
+        assert result.test_name == ValidationTestNames.HOLDOUT_ACCURACY
         assert isinstance(result.timestamp, datetime)
 
         # Test to_df conversion
         result_df = result.to_df()
         assert isinstance(result_df, pd.DataFrame)
-        assert result_df[ValidationTestAttributeNames.TEST_NAME.value].iloc[0] == ValidationTestNames.ACCURACY.value
+        assert (
+            result_df[ValidationTestAttributeNames.TEST_NAME.value].iloc[0]
+            == ValidationTestNames.HOLDOUT_ACCURACY.value
+        )
         assert ValidationTestAttributeNames.TIMESTAMP.value in result_df.columns
 
         # Check that we have the expected long-format structure
@@ -101,14 +104,14 @@ class TestValidationResults:
         """Test ValidationResults creation and basic operations."""
         # Create test results
         accuracy_result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
-            test_scores=AccuracyMetricResults(mape=0.1, r_squared=0.8),
+            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
         )
 
         # Create stability result with new field names
-        mean_series = pd.Series({"channel_1": 0.1, "channel_2": 0.05})
-        std_series = pd.Series({"channel_1": 0.02, "channel_2": 0.01})
+        mean_series = pd.Series({"channel_1": 10.0, "channel_2": 5.0})
+        std_series = pd.Series({"channel_1": 2.0, "channel_2": 1.0})
         stability_result = ValidationTestResult(
             test_name=ValidationTestNames.REFRESH_STABILITY,
             metric_names=RefreshStabilityMetricNames.to_list(),
@@ -119,7 +122,7 @@ class TestValidationResults:
         )
 
         test_results = {
-            ValidationTestNames.ACCURACY: accuracy_result,
+            ValidationTestNames.HOLDOUT_ACCURACY: accuracy_result,
             ValidationTestNames.REFRESH_STABILITY: stability_result,
         }
 
@@ -129,18 +132,18 @@ class TestValidationResults:
         assert validation_result.test_results == test_results
 
         # Test get_test_result
-        retrieved_result = validation_result.get_test_result(ValidationTestNames.ACCURACY)
+        retrieved_result = validation_result.get_test_result(ValidationTestNames.HOLDOUT_ACCURACY)
         assert retrieved_result == accuracy_result
 
     def test_validation_result_to_df(self):
         """Test ValidationResults to_df conversion."""
         accuracy_result = ValidationTestResult(
-            test_name=ValidationTestNames.ACCURACY,
+            test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
-            test_scores=AccuracyMetricResults(mape=0.1, r_squared=0.8),
+            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
         )
 
-        test_results = {ValidationTestNames.ACCURACY: accuracy_result}
+        test_results = {ValidationTestNames.HOLDOUT_ACCURACY: accuracy_result}
         validation_result = ValidationResults(test_results)
 
         result_df = validation_result.to_df()
@@ -148,13 +151,13 @@ class TestValidationResults:
         assert isinstance(result_df, pd.DataFrame)
         assert ValidationTestAttributeNames.TEST_NAME.value in result_df.columns
         assert ValidationTestAttributeNames.TIMESTAMP.value in result_df.columns
-        # Should have 2 rows: one for each accuracy metric (mape and r_squared)
-        assert len(result_df) == 2
+        # Should have 3 rows: one for each accuracy metric (mape, smape, and r_squared)
+        assert len(result_df) == 3
 
     def test_validation_result_to_df_with_series_metrics(self):
         """Test ValidationResults to_df conversion with Series-based metrics."""
         # Create test result with Series-based metrics
-        percentage_change_series = pd.Series({"TV": 0.03, "Radio": 0.07})
+        percentage_change_series = pd.Series({"TV": 3.0, "Radio": 7.0})
         perturbation_result = ValidationTestResult(
             test_name=ValidationTestNames.PERTURBATION,
             metric_names=["percentage_change_for_each_channel"],

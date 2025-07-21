@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from unittest.mock import MagicMock, patch
 
@@ -6,9 +7,14 @@ import numpy as np
 import pandas as pd
 from click.testing import CliRunner
 
+from mmm_eval.adapters.meridian import MeridianAdapter
 from mmm_eval.cli.evaluate import main
 from mmm_eval.data.synth_data_generator import generate_meridian_data, generate_pymc_data
 from tests.test_configs.test_configs import SAMPLE_CONFIG_JSON
+
+# Set up logging to see debug output
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Meridian config JSON for e2e testing
 SAMPLE_MERIDIAN_CONFIG_JSON = {
@@ -100,34 +106,101 @@ def test_cli_e2e_meridian(tmp_path):
 
     runner = CliRunner()
 
-    # Patch the Meridian model's sample_posterior method to avoid actual training
+    # Create a mock adapter class that inherits from MeridianAdapter
+    class MockMeridianAdapter(MeridianAdapter):
+        def __init__(self, config):
+            super().__init__(config)
+            # Set up mock methods
+            self.is_fitted = False
+
+        def fit(self, data, max_train_date=None):
+            # Completely override the fit method to avoid calling real Meridian
+            self.is_fitted = True
+            # Set up mock attributes that other methods expect
+            self.training_data = MagicMock()
+            self.model = MagicMock()
+            self.trace = MagicMock()
+            self.analyzer = MagicMock()
+            return None
+
+        def fit_and_predict(self, train, test):
+            # Return predictions matching the number of unique dates in test data
+            # The data pipeline renames 'conversions' to 'response', so we need to use the processed column name
+            unique_dates = test["date"].nunique()
+            return np.ones(unique_dates) * 100.0
+
+        def fit_and_predict_in_sample(self, data):
+            # Return predictions matching the number of unique dates in full data
+            # The data pipeline renames 'conversions' to 'response'
+            unique_dates = data["date"].nunique()
+            return np.ones(unique_dates) * 100.0
+
+        def get_channel_roi(self, start_date=None, end_date=None):
+            # Dynamically create ROI results based on current media channels
+            roi_dict = {}
+            for channel in self.media_channels:
+                if channel.endswith("_shuffled"):
+                    # Give shuffled channels a low ROI (should pass threshold of -50%)
+                    roi_dict[channel] = -60.0
+                else:
+                    # Give original channels normal ROI
+                    roi_dict[channel] = 1.5 if channel == "Channel0" else 2.0
+            return pd.Series(roi_dict)
+
+        @property
+        def primary_media_regressor_type(self):
+            """Return the type of primary media regressors."""
+            from mmm_eval.adapters.base import PrimaryMediaRegressor
+
+            return PrimaryMediaRegressor.SPEND
+
+        @property
+        def primary_media_regressor_columns(self) -> list[str]:
+            """Return the primary media regressor columns."""
+            return self.channel_spend_columns
+
+        def get_channel_names(self) -> list[str]:
+            """Get the channel names that would be used as the index in get_channel_roi results."""
+            return self.media_channels
+
+        def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+            """Get the original column names for a channel."""
+            # For mock adapter, map channel names to their actual column names
+            # The data has columns like "Channel0_spend", "Channel1_spend"
+            return {"spend": f"{channel_name}_spend"}
+
+        def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
+            """Get the name for a shuffled column based on the mock adapter's naming convention."""
+            # For mock adapter, use the same convention as Meridian (with suffix)
+            return f"{shuffled_channel_name}_{column_type}"
+
+        def _create_adapter_with_placebo_channel(
+            self,
+            shuffled_channel: str,
+        ) -> "MockMeridianAdapter":
+            """Create a new adapter instance configured to use the placebo channel."""
+            new_adapter = MockMeridianAdapter(self.config)
+            new_adapter.channel_spend_columns = self.channel_spend_columns + [f"{shuffled_channel}_spend"]
+            # Add to the underlying schema instead of trying to set the property
+            new_adapter.input_data_builder_schema.media_channels.append(shuffled_channel)
+            return new_adapter
+
+    # Mock the adapter factory to return our mock adapter
+    def mock_get_adapter(framework, config):
+        if framework == "meridian":
+            return MockMeridianAdapter(config)
+        else:
+            # For other frameworks, use the original logic
+            from mmm_eval.adapters import get_adapter as original_get_adapter
+
+            return original_get_adapter(framework, config)
+
+    # Apply patches
     with (
         patch("mmm_eval.adapters.meridian.Meridian.sample_posterior", return_value=MagicMock(name="FakeTrace")),
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.fit", return_value=None),
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.fit_and_predict") as mock_fit_and_predict,
-        patch("mmm_eval.adapters.meridian.MeridianAdapter.get_channel_roi") as mock_get_channel_roi,
+        patch("mmm_eval.core.evaluator.get_adapter", side_effect=mock_get_adapter),
         patch("mmm_eval.adapters.meridian.Analyzer.expected_outcome", return_value=MagicMock()),
     ):
-
-        # Create a simple mock that returns predictions matching the test data length
-        def mock_fit_and_predict_side_effect(*args, **kwargs):
-            # The test data should be the last argument
-            test_data = args[-1] if args else kwargs.get("test")
-            if test_data is not None:
-                # The actual data is grouped by date, so we need to count unique dates
-                unique_dates = test_data["date"].nunique()
-                return np.ones(unique_dates) * 100.0
-            else:
-                # Fallback to a reasonable default
-                return np.ones(10) * 100.0
-
-        # Mock get_channel_roi to return a simple Series
-        def mock_get_channel_roi_side_effect(*args, **kwargs):
-            return pd.Series({"Channel0": 1.5, "Channel1": 2.0})
-
-        mock_fit_and_predict.side_effect = mock_fit_and_predict_side_effect
-        mock_get_channel_roi.side_effect = mock_get_channel_roi_side_effect
-
         result = runner.invoke(
             main,
             [

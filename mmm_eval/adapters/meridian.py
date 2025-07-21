@@ -2,6 +2,7 @@
 
 import gc
 import logging
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -248,7 +249,7 @@ class MeridianAdapter(BaseAdapter):
         self.input_data_builder_schema = config.input_data_builder_config
 
         self.date_column = config.date_column
-        self.channel_spend_columns = self.input_data_builder_schema.channel_spend_columns
+        self.channel_spend_columns = copy(self.input_data_builder_schema.channel_spend_columns)
 
         # Initialize stateful attributes to None/False
         self._reset_state()
@@ -303,6 +304,156 @@ class MeridianAdapter(BaseAdapter):
             return self.input_data_builder_schema.channel_impressions_columns
         return self.channel_spend_columns
 
+    def get_channel_names(self) -> list[str]:
+        """Get the channel names that would be used as the index in get_channel_roi results.
+
+        For Meridian, this returns the media_channels which are the human-readable
+        channel names used in the ROI results.
+
+        Returns
+            List of channel names
+
+        """
+        return self.media_channels
+
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel.
+
+        For Meridian, this returns the actual column names in the data for the given
+        channel. The mapping depends on the regressor type (spend-only, impressions, or
+        reach/frequency).
+
+        Args:
+            channel_name: Name of the channel to get columns for
+
+        Returns:
+            Dictionary mapping column types to actual column names in the data
+
+        """
+        # Find the index of the channel in the media_channels list
+        if channel_name not in self.media_channels:
+            raise ValueError(f"Channel '{channel_name}' not found in media_channels: {self.media_channels}")
+        # the integer location of the channel in the media_channels list, assumed to be consistent
+        # across all regressors
+        channel_index = self.media_channels.index(channel_name)
+
+        # Build the column mapping based on the regressor type
+        columns = {}
+
+        # Always include spend column
+        if channel_index < len(self.input_data_builder_schema.channel_spend_columns):
+            columns[PrimaryMediaRegressor.SPEND.value] = self.input_data_builder_schema.channel_spend_columns[
+                channel_index
+            ]
+
+        # Include impressions column if using impressions regressors
+        if (
+            self.primary_media_regressor_type == PrimaryMediaRegressor.IMPRESSIONS
+            and self.input_data_builder_schema.channel_impressions_columns
+            and channel_index < len(self.input_data_builder_schema.channel_impressions_columns)
+        ):
+            columns[PrimaryMediaRegressor.IMPRESSIONS.value] = (
+                self.input_data_builder_schema.channel_impressions_columns[channel_index]
+            )
+
+        # Include reach and frequency columns if using reach/frequency regressors
+        if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
+            if self.input_data_builder_schema.channel_reach_columns and channel_index < len(
+                self.input_data_builder_schema.channel_reach_columns
+            ):
+                columns["reach"] = self.input_data_builder_schema.channel_reach_columns[channel_index]
+            if self.input_data_builder_schema.channel_frequency_columns and channel_index < len(
+                self.input_data_builder_schema.channel_frequency_columns
+            ):
+                columns["frequency"] = self.input_data_builder_schema.channel_frequency_columns[channel_index]
+
+        return columns
+
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
+        """Get the name for a shuffled column based on Meridian's naming convention.
+
+        For Meridian, column names include the column type suffix (e.g., "tv_spend", "tv_impressions").
+
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions")
+
+        Returns:
+            Name for the shuffled column
+
+        """
+        return f"{shuffled_channel_name}_{column_type}"
+
+    def _create_adapter_with_placebo_channel(
+        self,
+        shuffled_channel: str,
+    ) -> "MeridianAdapter":
+        """Create a new adapter instance configured to use the placebo channel.
+
+        For Meridian, this creates a new adapter with the shuffled channel added to the
+        appropriate column lists in the input data builder schema.
+
+        Args:
+            shuffled_channel: Name of the new shuffled channel
+
+        Returns:
+            New MeridianAdapter instance configured to use the placebo channel
+
+        """
+        # Create a deep copy of the input data builder schema
+        new_input_data_builder_schema = MeridianInputDataBuilderSchema(
+            date_column=self.date_column,
+            response_column=InputDataframeConstants.RESPONSE_COL,
+            media_channels=self.input_data_builder_schema.media_channels + [shuffled_channel],
+            channel_spend_columns=self.input_data_builder_schema.channel_spend_columns + [f"{shuffled_channel}_spend"],
+            channel_impressions_columns=(
+                self.input_data_builder_schema.channel_impressions_columns + [f"{shuffled_channel}_impressions"]
+                if self.input_data_builder_schema.channel_impressions_columns
+                else None
+            ),
+            channel_reach_columns=(
+                self.input_data_builder_schema.channel_reach_columns + [f"{shuffled_channel}_reach"]
+                if self.input_data_builder_schema.channel_reach_columns
+                else None
+            ),
+            channel_frequency_columns=(
+                self.input_data_builder_schema.channel_frequency_columns + [f"{shuffled_channel}_frequency"]
+                if self.input_data_builder_schema.channel_frequency_columns
+                else None
+            ),
+            control_columns=(
+                self.input_data_builder_schema.control_columns.copy()
+                if self.input_data_builder_schema.control_columns
+                else None
+            ),
+            organic_media_columns=(
+                self.input_data_builder_schema.organic_media_columns.copy()
+                if self.input_data_builder_schema.organic_media_columns
+                else None
+            ),
+            organic_media_channels=(
+                self.input_data_builder_schema.organic_media_channels.copy()
+                if self.input_data_builder_schema.organic_media_channels
+                else None
+            ),
+            non_media_treatment_columns=(
+                self.input_data_builder_schema.non_media_treatment_columns.copy()
+                if self.input_data_builder_schema.non_media_treatment_columns
+                else None
+            ),
+        )
+
+        # Create a new config
+        new_config = MeridianConfig(
+            date_column=self.date_column,
+            revenue_column=self.config.revenue_column,
+            input_data_builder_config=new_input_data_builder_schema,
+            model_spec_config=self.config.model_spec_config,
+            sample_posterior_config=self.config.sample_posterior_config,
+        )
+
+        return MeridianAdapter(new_config)
+
     def _reset_state(self) -> None:
         """Reset all stateful attributes to their initial values.
 
@@ -350,9 +501,7 @@ class MeridianAdapter(BaseAdapter):
         if self.max_train_date:
             self.holdout_mask = construct_holdout_mask(self.max_train_date, self.training_data.kpi.time)
             # model expects a 2D array of shape (n_geos, n_times) so have to duplicate the values across each geo
-            holdout_id = np.repeat(
-                self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0
-            )
+            holdout_id = np.repeat(self.holdout_mask[None, :], repeats=len(self.training_data.kpi.geo), axis=0)
             # if only a single geo, convert to 1D array
             if holdout_id.shape[0] == 1:
                 holdout_id = holdout_id[0, :]
@@ -369,6 +518,21 @@ class MeridianAdapter(BaseAdapter):
         # used to compute channel contributions for ROI calculations
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
+
+    def _predict_on_all_data(self) -> np.ndarray:
+        """Make predictions on all data provided to fit().
+
+        Returns
+            predicted values on data provided to fit().
+
+        """
+        if not self.is_fitted or self.analyzer is None:
+            raise RuntimeError("Model must be fit before prediction")
+
+        # shape (n_chains, n_draws, n_times)
+        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
+        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        return posterior_mean
 
     def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
         """Make predictions using the fitted model.
@@ -390,13 +554,7 @@ class MeridianAdapter(BaseAdapter):
             RuntimeError: If model is not fitted
 
         """
-        if not self.is_fitted or self.analyzer is None:
-            raise RuntimeError("Model must be fit before prediction")
-
-        # shape (n_chains, n_draws, n_times)
-        preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False,
-                                                      use_kpi=True)
-        posterior_mean = np.mean(preds_tensor, axis=(0, 1))
+        posterior_mean = self._predict_on_all_data()
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
         # holdout period
@@ -424,6 +582,20 @@ class MeridianAdapter(BaseAdapter):
         max_train_date = train[self.date_column].squeeze().max()
         self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
+
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Fit the model on data and return predictions for the same data.
+
+        Args:
+            data: dataset to train model on and make predictions for
+
+        Returns:
+            Predicted values for the training data.
+
+        """
+        # no max train date specified, so predictions are all in-sample
+        self.fit(data)
+        return self._predict_on_all_data()
 
     def get_channel_roi(
         self,
@@ -459,17 +631,6 @@ class MeridianAdapter(BaseAdapter):
 
         rois = {}
         for channel, roi in zip(self.media_channels, rois_per_channel, strict=False):
-            rois[channel] = float(roi)
+            # return as a percentage, such that 0% means that the $1 spend -> $1 return
+            rois[channel] = 100 * float(roi - 1)
         return pd.Series(rois)
-
-    def get_channel_names(self) -> list[str]:
-        """Get the channel names that would be used as the index in get_channel_roi results.
-
-        For Meridian, this returns the media_channels which are the human-readable
-        channel names used in the ROI results.
-
-        Returns
-            List of channel names
-
-        """
-        return self.media_channels

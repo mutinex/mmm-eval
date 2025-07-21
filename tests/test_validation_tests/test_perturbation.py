@@ -64,6 +64,10 @@ class MockAdapter(BaseAdapter):
         """Mock fit_and_predict method."""
         return np.array([1.0, 2.0])
 
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+        """Mock fit_and_predict_in_sample method."""
+        return np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
     def get_channel_roi(self, start_date=None, end_date=None) -> pd.Series:
         """Mock get_channel_roi method."""
         if not self.is_fitted or self._force_not_fitted_error:
@@ -76,6 +80,31 @@ class MockAdapter(BaseAdapter):
     def get_channel_names(self) -> list[str]:
         """Get the channel names that would be used as the index in get_channel_roi results."""
         return self.media_channels
+
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel."""
+        # For mock adapter, assume channel names are the same as column names
+        return {"spend": channel_name}
+
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
+        """Get the name for a shuffled column based on the mock adapter's naming convention."""
+        # For mock adapter, use the same convention as Meridian (with suffix)
+        return f"{shuffled_channel_name}_{column_type}"
+
+    def _create_adapter_with_placebo_channel(
+        self,
+        shuffled_channel: str,
+    ) -> "MockAdapter":
+        """Create a new adapter instance configured to use the placebo channel."""
+        new_adapter = MockAdapter(
+            primary_media_regressor_type=self._primary_media_regressor_type,
+            primary_media_regressor_columns=self._primary_media_regressor_columns.copy(),
+            channel_spend_columns=(
+                self.channel_spend_columns + [f"{shuffled_channel}_spend"] if self.channel_spend_columns else None
+            ),
+            media_channels=self._media_channels + [shuffled_channel] if self._media_channels else None,
+        )
+        return new_adapter
 
 
 @pytest.fixture

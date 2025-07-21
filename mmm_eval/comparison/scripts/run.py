@@ -56,83 +56,83 @@ def load_data(dataset_path: str) -> pd.DataFrame:
         raise
 
 
-# def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
-#     """Get column mapping for the specified framework.
+def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
+    """Get column mapping for the specified framework.
 
-#     Args:
-#         df: Input DataFrame
-#         framework: Framework name ('pymc' or 'meridian')
+    Args:
+        df: Input DataFrame
+        framework: Framework name ('pymc' or 'meridian')
 
-#     Returns:
-#         Dictionary with column mappings
-#     """
-#     all_columns = set(df.columns)
+    Returns:
+        Dictionary with column mappings
+    """
+    all_columns = set(df.columns)
 
-#     if framework == "pymc":
-#         # Response column is "quantity"
-#         response_columns = ["quantity"] if "quantity" in all_columns else []
+    if framework == "pymc":
+        # Response column is "quantity"
+        response_columns = ["quantity"] if "quantity" in all_columns else []
 
-#         # Revenue column is "revenue"
-#         revenue_columns = ["revenue"] if "revenue" in all_columns else []
+        # Revenue column is "revenue"
+        revenue_columns = ["revenue"] if "revenue" in all_columns else []
 
-#         # Channel columns have suffix "_brand", "_category", or "_product"
-#         channel_columns = [
-#             col for col in all_columns
-#             if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
-#         ]
+        # Channel columns have suffix "_brand", "_category", or "_product"
+        channel_columns = [
+            col for col in all_columns
+            if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
+        ]
 
-#         # Control columns are all other columns
-#         excluded_columns = set(response_columns + revenue_columns + channel_columns)
-#         control_columns = [col for col in all_columns if col not in excluded_columns]
+        # Control columns are all other columns
+        excluded_columns = set(response_columns + revenue_columns + channel_columns)
+        control_columns = [col for col in all_columns if col not in excluded_columns]
 
-#         return {
-#             "response": response_columns,
-#             "revenue": revenue_columns,
-#             "channel_columns": channel_columns,
-#             "control_columns": control_columns,
-#         }
+        return {
+            "response": response_columns,
+            "revenue": revenue_columns,
+            "channel_columns": channel_columns,
+            "control_columns": control_columns,
+        }
 
-#     elif framework == "meridian":
-#         # Media channels are columns suffixed with "_brand", "_category", or "_product"
-#         media_channels = [
-#             col for col in all_columns
-#             if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
-#         ]
+    elif framework == "meridian":
+        # Media channels are columns suffixed with "_brand", "_category", or "_product"
+        media_channels = [
+            col for col in all_columns
+            if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
+        ]
 
-#         # All binary columns are control_columns
-#         binary_columns = []
-#         for col in all_columns:
-#             if col in df.columns:
-#                 unique_values = df[col].dropna().unique().tolist()
-#                 # Handle both integer/boolean and float binary columns
-#                 if len(unique_values) <= 2 and (
-#                     set(unique_values).issubset({0, 1, True, False}) or
-#                     set(unique_values).issubset({0.0, 1.0}) or
-#                     set(unique_values).issubset({0, 1.0}) or
-#                     set(unique_values).issubset({0.0, 1})
-#                 ):
-#                     binary_columns.append(col)
+        # All binary columns are control_columns
+        binary_columns = []
+        for col in all_columns:
+            if col in df.columns:
+                unique_values = df[col].dropna().unique().tolist()
+                # Handle both integer/boolean and float binary columns
+                if len(unique_values) <= 2 and (
+                    set(unique_values).issubset({0, 1, True, False}) or
+                    set(unique_values).issubset({0.0, 1.0}) or
+                    set(unique_values).issubset({0, 1.0}) or
+                    set(unique_values).issubset({0.0, 1})
+                ):
+                    binary_columns.append(col)
 
-#         # Non-binary columns with "price", "offer", or "discount" in the name are non_media_treatment_columns
-#         non_media_treatment_columns = [
-#             col for col in all_columns
-#             if col not in binary_columns and any(keyword in col.lower() for keyword in ["price", "offer", "discount"])
-#         ]
+        # Non-binary columns with "price", "offer", or "discount" in the name are non_media_treatment_columns
+        non_media_treatment_columns = [
+            col for col in all_columns
+            if col not in binary_columns and any(keyword in col.lower() for keyword in ["price", "offer", "discount"])
+        ]
 
-#         # Exclude columns that are already categorized
-#         excluded_columns = set(media_channels + binary_columns + non_media_treatment_columns + ["date", "quantity", "revenue"])
+        # Exclude columns that are already categorized
+        excluded_columns = set(media_channels + binary_columns + non_media_treatment_columns + ["date", "quantity", "revenue"])
 
-#         # Remaining columns are control_columns
-#         control_columns = binary_columns + [col for col in all_columns if col not in excluded_columns]
+        # Remaining columns are control_columns
+        control_columns = binary_columns + [col for col in all_columns if col not in excluded_columns]
 
-#         return {
-#             "media_channels": media_channels,
-#             "control_columns": control_columns,
-#             "non_media_treatment_columns": non_media_treatment_columns,
-#         }
+        return {
+            "media_channels": media_channels,
+            "control_columns": control_columns,
+            "non_media_treatment_columns": non_media_treatment_columns,
+        }
 
-#     else:
-#         raise ValueError(f"Unsupported framework: {framework}")
+    else:
+        raise ValueError(f"Unsupported framework: {framework}")
 
 
 def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:

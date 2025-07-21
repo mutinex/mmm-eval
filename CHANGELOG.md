@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1] ; 2025-07-21
+
+### Fixed
+
+- Package versioning logic when installing via `pip`
+
+## [0.11.0] ; 2025-07-21
+
+### Added
+
+- Placebo/falsification test
+
+## [0.10.0] ; 2025-07-17
+
+### Added
+
+- New in-sample accuracy validation test, using same metrics as those used for holdout accuracy
+
+## [0.9.1] ; 2025-07-17
+
+### Changed
+
+- Track Meridian testing file in repository instead of requiring user to track it
+
+## [0.9.0] ; 2025-07-17
+
+### Added
+
+- SMAPE metric to accuracy and CV accuracy tests
+
+### Changed
+
+- All metrics with "percentage" in the name to be actual percentages, e.g. 15 instead of 0.15
+
+## [0.8.0] ; 2025-07-17
+
+### Changed
+
+- Changed holdout split strategy for accuracy test to fixed test set size
+
+## [0.7.1] ; 2025-07-15
+
+### Fixed
+
+- Minor bugs in Meridian adapter supporting national model
+
 ## [0.7.0] ; 2025-07-10
 
 ### Changed

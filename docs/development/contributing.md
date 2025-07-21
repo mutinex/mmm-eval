@@ -139,9 +139,6 @@ def calculate_mape(actual: List[float], predicted: List[float]) -> float:
         
     Returns:
         MAPE value as a float
-        
-    Raises:
-        ValueError: If inputs are empty or have different lengths
     """
     pass
 ```

@@ -64,14 +64,16 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path config.json \
   --output-path ./results/ \
-  --test-names accuracy cross_validation
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation placebo
 ```
 
 Available tests:
-- `accuracy` - Model accuracy using holdout validation
+- `holdout_accuracy` - Model accuracy using holdout validation
+- `in_sample_accuracy` - Model accuracy using in-sample validation
 - `cross_validation` - Time series cross-validation
 - `refresh_stability` - Model stability over time
 - `perturbation` - Sensitivity to data changes
+- `placebo` - Detection of spurious correlations
 
 ## Example 4: Verbose Output
 
@@ -123,7 +125,7 @@ mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path advanced_config.json \
-  --test-names accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation placebo \
   --output-path ./advanced_results/ \
   --verbose
 ```
@@ -170,16 +172,21 @@ results/
 
 ```csv
 test_name,metric_name,metric_value,metric_pass
-accuracy,mape,0.15,True
-accuracy,r_squared,0.85,True
-cross_validation,mape,0.18,True
+holdout_accuracy,mape,15.0,True
+holdout_accuracy,smape,14.5,True
+holdout_accuracy,r_squared,0.85,True
+in_sample_accuracy,mape,8.5,True
+in_sample_accuracy,smape,8.2,True
+in_sample_accuracy,r_squared,0.92,True
+cross_validation,mape,18.0,True
+cross_validation,smape,17.5,True
 cross_validation,r_squared,0.82,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_1,0.05,True
-refresh_stability,mean_percentage_change_for_each_channel:channel_2,0.03,True
-refresh_stability,std_percentage_change_for_each_channel:channel_1,0.02,True
-refresh_stability,std_percentage_change_for_each_channel:channel_2,0.01,True
-perturbation,percentage_change_for_each_channel:channel_1,0.02,True
-perturbation,percentage_change_for_each_channel:channel_2,0.01,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_1,5.0,True
+refresh_stability,mean_percentage_change_for_each_channel:channel_2,3.0,True
+refresh_stability,std_percentage_change_for_each_channel:channel_1,2.0,True
+refresh_stability,std_percentage_change_for_each_channel:channel_2,1.0,True
+perturbation,percentage_change_for_each_channel:channel_1,2.0,True
+perturbation,percentage_change_for_each_channel:channel_2,1.0,True
 ```
 
 ## Performance Examples
@@ -194,7 +201,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path test_config.json \
   --output-path ./test_results/ \
-  --test-names accuracy
+  --test-names holdout_accuracy
 ```
 
 Use minimal sampling parameters in your config:
@@ -218,7 +225,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path production_config.json \
   --output-path ./production_results/ \
-  --test-names accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy in_sample_accuracy cross_validation refresh_stability perturbation placebo \
   --verbose
 ```
 
