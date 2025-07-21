@@ -105,7 +105,7 @@ The refresh stability test evaluates how much media ROI estimates change as more
 added to the model.
 
 NOTE: we define ROI as `100 * (R/S - 1)`, where `R` is estimated revenue and `S` is paid
-media spend for a particular media channel. Under this convntion, a ROI of 0% implies $1
+media spend for a particular media channel. Under this convention, a ROI of 0% implies $1
 spend yields a $1 return, a ROI of 100% implies $1 spend yields a $2 return, and so on.
 
 ### Process
