@@ -104,9 +104,12 @@ Metrics calculated on in-sample predictions using the full dataset.
 
 ### Placebo Metrics
 
-- **Shuffled Channel ROI**: Estimated ROI for the spurious (shuffled) channel
-- **Shuffled Channel Name**: Name of the channel that was shuffled for the test
-- **Falsifiability Assessment**: Whether the model correctly identifies spurious correlations
+- **Shuffled Channel ROI**: Estimated ROI for the spurious (shuffled) channel, ideally close
+as possible to -100% (indicating the model learned that the feature had no impact).
+
+Note that the result of this test will be heavily impacted by the choice of media prior.
+Consider using relatively uninformative media priors in order to reduce the chance of the
+model picking up spurious correlations.
 
 ## Interpreting Results
 
@@ -116,11 +119,15 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
 - **Low perturbation sensitivity**: Robust to input noise
-- **Low placebo ROI (≤ -50%)**: Correctly identifies spurious correlations
+- **Low placebo ROI (≤ -50%)**: Correctly identifies spurious features and assigns them low effect sizes
 
 ## Thresholds and Benchmarks
 
 ### Rough Benchmarks
+
+The below is only intended to be an approximate guide, as performance depends on multiple factors
+including the quality and quantity of the training data, as well as the suitability of the
+model specification to the problem at hand.
 
 | Metric | Excellent | Good | Acceptable | Poor |
 |--------|-----------|------|------------|------|

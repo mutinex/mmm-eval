@@ -145,7 +145,7 @@ result = run_evaluation(framework="meridian", config=config, data=data_preproc)
 
 ## What's in `result`?
 
-The evaluation suite runs 6 tests, each of which answers a distinct question about the quality of your model: 
+The evaluation suite runs six tests, each of which answers a distinct question about the quality of your model: 
 
 * **Holdout Accuracy Test**: "How well does my model predict on unseen data?"
 * **In-Sample Accuracy Test**: "How well does my model fit to the training data?"

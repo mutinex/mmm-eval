@@ -1,6 +1,6 @@
 # Tests
 
-mmm-eval provides a comprehensive suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
+mmm-eval provides a wide-ranging suite of validation tests to evaluate MMM performance. This guide explains each test and how to interpret the results.
 
 ## Overview
 
@@ -9,15 +9,14 @@ mmm-eval includes six main types of validation tests:
 1. **Accuracy Tests**: Measure how well the model fits the data
 2. **Cross-Validation Accuracy Test**: Assess model generalization
 3. **Refresh Stability Tests**: Evaluate model stability over time
-4. **Performance Tests**: Measure computational efficiency
-5. **Robustness Tests**: Evaluate model sensitivity to data changes
+4. **Robustness Tests**: Evaluate model sensitivity to data changes
 
 ## Accuracy Tests
 
 Accuracy tests evaluate how well the model fits the data using different validation approaches.
 
 Accuracy can be considered a necessary, but not sufficient indicator of a good model - a model
-can have high predictive performance but still get the causal relationships in the data wrong. However,
+can perform well on accuracy tests but still get the causal relationships in the data wrong. However,
 it is very effective for identifying poor models, as poor in-sample and/or out-of-sample performance
 almost always implies that the model is failing to capture the causual structure of the problem at
 hand.
@@ -106,8 +105,8 @@ The refresh stability test evaluates how much media ROI estimates change as more
 added to the model.
 
 NOTE: we define ROI as `100 * (R/S - 1)`, where `R` is estimated revenue and `S` is paid
-media spend. Under this convntion, a ROI of 0% implies $1 spend yields a $1 return, a ROI
-of 100% implies $1 spend yields a $2 return, and so on.
+media spend for a particular media channel. Under this convntion, a ROI of 0% implies $1
+spend yields a $1 return, a ROI of 100% implies $1 spend yields a $2 return, and so on.
 
 ### Process
 
@@ -140,16 +139,15 @@ The perturbation test evaluates how sensitive the model is to noise in the input
 #### Process
 
 1. **Baseline Model**: Train on original data
-2. **Noise Addition**: Add Gaussian noise to media spend columns
+2. **Noise Addition**: Add Gaussian noise to primary regressor columns (usually spend or impressions, depending on the model spec)
 3. **Retrain Model**: Fit model on noisy data
-4. **Parameter Comparison**: Compare ROI estimates
+4. **Compare estimated impacts**: Compare ROI estimates across the two models
 5. **Sensitivity Metrics**: Calculate percentage changes
 
 #### Metrics
 
 - **Percentage Change**: Change in ROI estimates for each channel
 - **Channel Sensitivity**: Which channels are most sensitive to noise
-- **Model Robustness**: Overall stability to input perturbations
 
 #### Interpretation
 
@@ -172,7 +170,6 @@ The placebo test (also known as a falsifiability test) evaluates whether the mod
 #### Metrics
 
 - **Shuffled Channel ROI**: Estimated ROI for the spurious channel
-- **Shuffled Channel Name**: Name of the channel that was shuffled
 
 #### Interpretation
 
