@@ -4,12 +4,13 @@ mmm-eval provides a comprehensive suite of validation tests to evaluate MMM perf
 
 ## Overview
 
-mmm-eval includes four main types of validation tests:
+mmm-eval includes six main types of validation tests:
 
 1. **Accuracy Tests**: Measure how well the model fits the data
 2. **Cross-Validation Accuracy Test**: Assess model generalization
 3. **Refresh Stability Tests**: Evaluate model stability over time
 4. **Performance Tests**: Measure computational efficiency
+5. **Robustness Tests**: Evaluate model sensitivity to data changes
 
 ## Accuracy Tests
 
@@ -128,6 +129,61 @@ of 100% implies $1 spend yields a $2 return, and so on.
 - **High percentage changes**: Unstable model (may need more data)
 - **Channel-specific stability**: Some channels more stable than others
 
+## Robustness Tests
+
+The robustness test evaluates how sensitive the model is to changes in the input data.
+
+### Perturbation Test
+
+The perturbation test evaluates how sensitive the model is to noise in the input data by adding Gaussian noise to media spend data and measuring the change in ROI estimates.
+
+#### Process
+
+1. **Baseline Model**: Train on original data
+2. **Noise Addition**: Add Gaussian noise to media spend columns
+3. **Retrain Model**: Fit model on noisy data
+4. **Parameter Comparison**: Compare ROI estimates
+5. **Sensitivity Metrics**: Calculate percentage changes
+
+#### Metrics
+
+- **Percentage Change**: Change in ROI estimates for each channel
+- **Channel Sensitivity**: Which channels are most sensitive to noise
+- **Model Robustness**: Overall stability to input perturbations
+
+#### Interpretation
+
+- **Low percentage changes**: Robust model (good)
+- **High percentage changes**: Sensitive model (may need more data or regularization)
+- **Channel-specific sensitivity**: Some channels more stable than others
+
+### Placebo Test
+
+The placebo test (also known as a falsifiability test) evaluates whether the model can detect spurious correlations by introducing a randomly shuffled media channel and checking if the model assigns a low ROI to this spurious feature.
+
+#### Process
+
+1. **Channel Selection**: Randomly select an existing media channel
+2. **Data Shuffling**: Randomly permute the rows of the selected channel's data to break time correlation with the target variable
+3. **Model Training**: Fit the model with the shuffled channel added
+4. **ROI Assessment**: Record the estimated ROI for the shuffled channel
+5. **Validation**: Check if the shuffled channel ROI is appropriately low
+
+#### Metrics
+
+- **Shuffled Channel ROI**: Estimated ROI for the spurious channel
+- **Shuffled Channel Name**: Name of the channel that was shuffled
+
+#### Interpretation
+
+- **Low ROI (≤ -50%)**: Model correctly identifies spurious correlation (good)
+- **High ROI (> -50%)**: Model may be overfitting or detecting spurious patterns (concerning)
+- **Test Skipped**: Indicates reach and frequency regressor type not supported
+
+#### Purpose
+
+This test helps validate that the model is not simply memorizing patterns in the data or detecting spurious correlations. A well-performing model should assign a low ROI to a channel that has no meaningful relationship with the target variable.
+
 ## Running Tests
 
 ### All Tests (Default)
@@ -149,6 +205,7 @@ mmm-eval --input-data-path data.csv --framework pymc-marketing --config-path con
 - `cross_validation`: Cross-validation tests only
 - `refresh_stability`: Refresh stability tests only
 - `perturbation`: Perturbation tests only
+- `placebo`: Placebo tests only
 
 ## Test Configuration
 
@@ -164,6 +221,7 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 - **Cross-Validation**: Out-of-sample MAPE/SMAPE similar to in-sample
 - **Refresh Stability**: Parameter changes < 10%
 - **Perturbation**: ROI changes < 5%
+- **Placebo**: Shuffled channel ROI ≤ -50%
 
 ### Warning Signs
 
@@ -180,6 +238,7 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 - **Add in-sample accuracy**: To assess model fit and identify overfitting
 - **Include cross-validation**: For generalization assessment
 - **Add stability tests**: For production models
+- **Include robustness tests**: To evaluate model sensitivity to data changes
 
 ### Result Analysis
 

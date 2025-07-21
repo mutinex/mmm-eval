@@ -102,6 +102,12 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **Channel-specific Sensitivity**: Sensitivity of each media channel to data perturbations
 - **Model Robustness**: Overall model stability to input noise
 
+### Placebo Metrics
+
+- **Shuffled Channel ROI**: Estimated ROI for the spurious (shuffled) channel
+- **Shuffled Channel Name**: Name of the channel that was shuffled for the test
+- **Falsifiability Assessment**: Whether the model correctly identifies spurious correlations
+
 ## Interpreting Results
 
 ### Good Performance Indicators
@@ -110,6 +116,7 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
 - **Low perturbation sensitivity**: Robust to input noise
+- **Low placebo ROI (≤ -50%)**: Correctly identifies spurious correlations
 
 ## Thresholds and Benchmarks
 
@@ -122,6 +129,7 @@ Metrics calculated on in-sample predictions using the full dataset.
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
 | Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
+| Placebo ROI | ≤ -50% | -50% to -25% | -25% to 0% | > 0% |
 
 ## Customizing Metrics
 

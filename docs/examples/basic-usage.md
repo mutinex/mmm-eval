@@ -64,7 +64,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path config.json \
   --output-path ./results/ \
-  --test-names holdout_accuracy cross_validation refresh_stability perturbation
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation placebo
 ```
 
 Available tests:
@@ -73,6 +73,7 @@ Available tests:
 - `cross_validation` - Time series cross-validation
 - `refresh_stability` - Model stability over time
 - `perturbation` - Sensitivity to data changes
+- `placebo` - Detection of spurious correlations
 
 ## Example 4: Verbose Output
 
@@ -124,7 +125,7 @@ mmm-eval \
   --input-data-path marketing_data.csv \
   --framework pymc-marketing \
   --config-path advanced_config.json \
-  --test-names holdout_accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy cross_validation refresh_stability perturbation placebo \
   --output-path ./advanced_results/ \
   --verbose
 ```
@@ -224,7 +225,7 @@ mmm-eval \
   --framework pymc-marketing \
   --config-path production_config.json \
   --output-path ./production_results/ \
-  --test-names holdout_accuracy in_sample_accuracy cross_validation refresh_stability perturbation \
+  --test-names holdout_accuracy in_sample_accuracy cross_validation refresh_stability perturbation placebo \
   --verbose
 ```
 

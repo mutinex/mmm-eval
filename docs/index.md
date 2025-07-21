@@ -88,6 +88,7 @@ mmm-eval --input-data-path data.csv --config-path config.json --output-path ./ou
 - **Cross-Validation**: Time series cross-validation
 - **Refresh Stability**: Model stability over time
 - **Perturbation Tests**: Model robustness to data changes
+- **Placebo Tests**: Detection of spurious correlations
 
 ### Standardized Evaluation
 - Consistent metrics across frameworks

@@ -145,13 +145,14 @@ result = run_evaluation(framework="meridian", config=config, data=data_preproc)
 
 ## What's in `result`?
 
-The evaluation suite runs 5 tests, each of which answers a distinct question about the quality of your model: 
+The evaluation suite runs 6 tests, each of which answers a distinct question about the quality of your model: 
 
 * **Holdout Accuracy Test**: "How well does my model predict on unseen data?"
 * **In-Sample Accuracy Test**: "How well does my model fit to the training data?"
 * **Cross-Validation**: "How *consistent* are my model's predictions across different splits of unseen data?"
 * **Refresh Stability**: "How much does marketing attribution change when I add new data to my model?"
 * **Perturbation**: "How sensitive is my model is to noise in the marketing inputs?"
+* **Placebo**: "Can my model detect spurious correlations in the data?"
 
 Details on the implementation of the tests can be found in [Tests](../user-guide/tests.md). For each test, we compute multiple metrics to give as much insight into the test result as possible. These can be viewed in detail in [Metrics](../user-guide/metrics.md). For example:
 
@@ -187,6 +188,7 @@ If we look at the evaluation output ```display(results)```, we'll see something 
 | refresh_stability | std_percentage_change_for_each_channel:radio  | 39.7         | False       |
 | perturbation      | percentage_change_for_each_channel:TV         | 0.5          | False       |
 | perturbation      | percentage_change_for_each_channel:radio      | 11.2         | False       |
+| placebo           | shuffled_channel_roi:TV_shuffled              | -60.0        | True        |
 
 
 Notice that our model is failing every test. Seems we have some work to do!

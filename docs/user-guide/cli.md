@@ -40,7 +40,7 @@ mmm-eval --input-data-path data.csv --framework meridian --config-path config.js
 
 - `--output-path`: Directory for output files (required)
 - `--test-names`: Specific tests to run (optional)
-  - Options: `holdout_accuracy`, `in_sample_accuracy`, `cross_validation`, `refresh_stability`, `perturbation`
+  - Options: `holdout_accuracy`, `in_sample_accuracy`, `cross_validation`, `refresh_stability`, `perturbation`, `placebo`
   - Default: All tests
 
 ### Advanced Options
