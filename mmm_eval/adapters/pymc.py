@@ -11,6 +11,7 @@ import pandas as pd
 from pymc_marketing.mmm import MMM
 
 from mmm_eval.adapters.base import BaseAdapter, PrimaryMediaRegressor
+from mmm_eval.adapters.schemas import PyMCFitSchema, PyMCModelSchema
 from mmm_eval.configs import PyMCConfig
 from mmm_eval.data.constants import InputDataframeConstants
 
@@ -25,6 +26,7 @@ class PyMCAdapter(BaseAdapter):
             config: PyMCConfig object
 
         """
+        super().__init__(config)
         self.model_kwargs = config.pymc_model_config_dict
         self.fit_kwargs = config.fit_config_dict
         self.predict_kwargs = config.predict_config_dict
@@ -91,6 +93,72 @@ class PyMCAdapter(BaseAdapter):
 
         """
         return self.channel_spend_columns
+
+    def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
+        """Get the original column names for a channel.
+
+        For PyMC, this is straightforward since channel names are the same as column names.
+        PyMC only uses spend as the primary regressor.
+
+        Args:
+            channel_name: Name of the channel to get columns for
+
+        Returns:
+            Dictionary mapping column types to actual column names in the data
+
+        """
+        # For PyMC, channel names are the same as column names
+        # PyMC only uses spend as the primary regressor
+        return {"spend": channel_name}
+
+    def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
+        """Get the name for a shuffled column based on PyMC's naming convention.
+
+        For PyMC, channel names are the same as column names, so we just use the shuffled channel name.
+
+        Args:
+            shuffled_channel_name: Name of the shuffled channel
+            column_type: Type of column (e.g., "spend", "impressions"). Unused for PyMC.
+
+        Returns:
+            Name for the shuffled column
+
+        """
+        return shuffled_channel_name
+
+    def _create_adapter_with_placebo_channel(
+        self,
+        shuffled_channel: str,
+    ) -> "PyMCAdapter":
+        """Create a new adapter instance configured to use the placebo channel.
+
+        For PyMC, this creates a new adapter with the shuffled channel added to the
+        channel_columns list.
+
+        Args:
+            shuffled_channel: Name of the new shuffled channel
+
+        Returns:
+            New PyMCAdapter instance configured to use the placebo channel
+
+        """
+        # Create updated model config with the new channel
+        updated_model_kwargs = self._original_model_kwargs.copy()
+        updated_model_kwargs["channel_columns"] = self._original_channel_spend_columns + [shuffled_channel]
+
+        # Create schema objects from the updated configuration
+        model_config = PyMCModelSchema(**updated_model_kwargs)
+        fit_config = PyMCFitSchema(**self.fit_kwargs)
+
+        # Create a new config with the shuffled channel added
+        new_config = PyMCConfig(
+            pymc_model_config=model_config,
+            fit_config=fit_config,
+            revenue_column=self.config.revenue_column,
+            response_column=self.config.response_column,
+        )
+
+        return PyMCAdapter(new_config)
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model and compute ROIs.

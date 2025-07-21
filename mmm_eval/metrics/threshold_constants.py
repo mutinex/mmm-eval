@@ -32,3 +32,10 @@ class PerturbationThresholdConstants:
     """Constants for the perturbation threshold."""
 
     PERCENTAGE_CHANGE = 8.0
+
+
+class PlaceboThresholdConstants:
+    """Constants for the placebo test threshold."""
+
+    # means $1 spend -> $0.50 return (50% loss)
+    ROI_THRESHOLD = -50.0

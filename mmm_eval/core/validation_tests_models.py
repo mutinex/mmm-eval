@@ -14,6 +14,7 @@ class ValidationTestNames(StrEnum):
     CROSS_VALIDATION = "cross_validation"
     REFRESH_STABILITY = "refresh_stability"
     PERTURBATION = "perturbation"
+    PLACEBO = "placebo"
 
     @classmethod
     def all_tests(cls) -> list["ValidationTestNames"]:

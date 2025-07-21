@@ -101,13 +101,6 @@ def test_cli_scenarios(tmp_path, cli_args, expected_exit_code, test_name):
     runner = CliRunner()
     result = runner.invoke(main, formatted_args)
 
-    # Print debug info
-    print(f"Test: {test_name}")
-    print(f"Exit code: {result.exit_code}")
-    print(f"Output: {result.output}")
-    if result.exception:
-        print(f"Exception: {result.exception}")
-
     # Check that the CLI command returned the expected exit code
     assert (
         result.exit_code == expected_exit_code

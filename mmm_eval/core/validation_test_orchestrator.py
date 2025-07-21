@@ -14,6 +14,7 @@ from mmm_eval.core.validation_tests import (
     HoldoutAccuracyTest,
     InSampleAccuracyTest,
     PerturbationTest,
+    PlaceboTest,
     RefreshStabilityTest,
 )
 from mmm_eval.core.validation_tests_models import ValidationTestNames
@@ -36,6 +37,7 @@ class ValidationTestOrchestrator:
             ValidationTestNames.CROSS_VALIDATION: CrossValidationTest,
             ValidationTestNames.REFRESH_STABILITY: RefreshStabilityTest,
             ValidationTestNames.PERTURBATION: PerturbationTest,
+            ValidationTestNames.PLACEBO: PlaceboTest,
         }
 
     def _get_all_test_names(self) -> list[ValidationTestNames]:
