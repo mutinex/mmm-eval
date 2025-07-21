@@ -385,8 +385,19 @@ class PlaceboTest(BaseValidationTest):
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
         """Run the placebo test."""
         if adapter.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
-            # FIXME: throw warning and return test result with null values
-            pass
+            logger.warning(
+                "Placebo test skipped: Reach and frequency regressor type not supported for placebo testing."
+            )
+            # Return NaN results indicating the test was not run
+            test_scores = PlaceboMetricResults(
+                shuffled_channel_roi=np.nan,
+                shuffled_channel_name="test_skipped",
+            )
+            return ValidationTestResult(
+                test_name=ValidationTestNames.PLACEBO,
+                metric_names=PlaceboMetricNames.to_list(),
+                test_scores=test_scores,
+            )
 
         # Select a random channel to shuffle
         original_channel = self.rng.choice(adapter.media_channels)
