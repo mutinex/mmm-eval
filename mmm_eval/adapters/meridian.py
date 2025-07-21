@@ -342,7 +342,9 @@ class MeridianAdapter(BaseAdapter):
 
         # Always include spend column
         if channel_index < len(self.input_data_builder_schema.channel_spend_columns):
-            columns[PrimaryMediaRegressor.SPEND.value] = self.input_data_builder_schema.channel_spend_columns[channel_index]
+            columns[PrimaryMediaRegressor.SPEND.value] = self.input_data_builder_schema.channel_spend_columns[
+                channel_index
+            ]
 
         # Include impressions column if using impressions regressors
         if (
@@ -350,7 +352,9 @@ class MeridianAdapter(BaseAdapter):
             and self.input_data_builder_schema.channel_impressions_columns
             and channel_index < len(self.input_data_builder_schema.channel_impressions_columns)
         ):
-            columns[PrimaryMediaRegressor.IMPRESSIONS.value] = self.input_data_builder_schema.channel_impressions_columns[channel_index]
+            columns[PrimaryMediaRegressor.IMPRESSIONS.value] = (
+                self.input_data_builder_schema.channel_impressions_columns[channel_index]
+            )
 
         # Include reach and frequency columns if using reach/frequency regressors
         if self.primary_media_regressor_type == PrimaryMediaRegressor.REACH_AND_FREQUENCY:
