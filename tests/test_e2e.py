@@ -163,10 +163,6 @@ def test_cli_e2e_meridian(tmp_path):
             """Get the channel names that would be used as the index in get_channel_roi results."""
             return self.media_channels
 
-        def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-            """Get the primary media regressor columns for specific channels."""
-            return channel_names
-
         def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
             """Get the original column names for a channel."""
             # For mock adapter, map channel names to their actual column names

@@ -160,24 +160,6 @@ class BaseAdapter(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-        """Get the primary media regressor columns for specific channels.
-
-        This method returns the column names that should be used as primary media
-        regressors for the given channels. This is useful for tests that need to perturb
-        specific channels.
-
-        Args:
-            channel_names: List of channel names to get regressor columns for
-
-        Returns:
-            List of column names that are used as primary media regressors for the given
-            channels
-
-        """
-        pass
-
     def add_placebo_channel(
         self, original_channel_name: str, data_to_shuffle: pd.DataFrame, shuffled_indices: np.ndarray
     ) -> tuple["BaseAdapter", pd.DataFrame]:
@@ -248,6 +230,8 @@ class BaseAdapter(ABC):
 
         return updated_data
 
+    # TODO: add media_channels attribute to PyMC adapter for consistency within Meridian,
+    # and remove the need for this method
     @abstractmethod
     def _get_shuffled_col_name(self, shuffled_channel_name: str, column_type: str) -> str:
         """Get the name for a shuffled column based on the adapter's naming convention.

@@ -94,20 +94,6 @@ class PyMCAdapter(BaseAdapter):
         """
         return self.channel_spend_columns
 
-    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-        """Get the primary media regressor columns for specific channels.
-
-        For PyMC, the primary media regressor columns are the same as the channel names.
-
-        Args:
-            channel_names: List of channel names to get regressor columns for
-
-        Returns:
-            List of column names that are used as primary media regressors for the given channels
-
-        """
-        return channel_names
-
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel.
 

@@ -71,10 +71,6 @@ class MockAdapter(BaseAdapter):
         """Return the primary media regressor columns."""
         return self.channel_spend_columns
 
-    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-        """Get the primary media regressor columns for specific channels."""
-        return channel_names
-
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel."""
         # For mock adapter, map channel names to their actual column names
@@ -209,9 +205,6 @@ class TestPlaceboTest:
 
             def get_channel_names(self) -> list[str]:
                 return self.media_channels
-
-            def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-                return [f"{channel.lower()}_impressions" for channel in channel_names]
 
             def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
                 """Get the original column names for a channel."""

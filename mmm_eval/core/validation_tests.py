@@ -400,7 +400,7 @@ class PlaceboTest(BaseValidationTest):
             )
 
         # Select a random channel to shuffle
-        original_channel = self.rng.choice(adapter.media_channels)
+        original_channel = str(self.rng.choice(adapter.media_channels))
 
         # Create shuffled indices for consistent shuffling across related columns
         shuffled_indices = np.arange(len(data))

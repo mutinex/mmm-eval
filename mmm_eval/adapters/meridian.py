@@ -316,38 +316,6 @@ class MeridianAdapter(BaseAdapter):
         """
         return self.media_channels
 
-    def get_primary_media_regressor_columns_for_channels(self, channel_names: list[str]) -> list[str]:
-        """Get the primary media regressor columns for specific channels.
-
-        This method returns the subset of primary_media_regressor_columns that correspond
-        to the requested channels.
-
-        Args:
-            channel_names: List of channel names to get regressor columns for
-
-        Returns:
-            List of column names that are used as primary media regressors for the given
-            channels
-
-        """
-        # Get the current primary media regressor columns
-        all_regressor_columns = self.primary_media_regressor_columns
-
-        # Find which columns correspond to the requested channels
-        # This assumes the order of channels matches the order of columns
-        channel_to_column_mapping = {}
-        for i, channel in enumerate(self.media_channels):
-            if i < len(all_regressor_columns):
-                channel_to_column_mapping[channel] = all_regressor_columns[i]
-
-        # Return the columns for the requested channels
-        result = []
-        for channel_name in channel_names:
-            if channel_name in channel_to_column_mapping:
-                result.append(channel_to_column_mapping[channel_name])
-
-        return result
-
     def _get_original_channel_columns(self, channel_name: str) -> dict[str, str]:
         """Get the original column names for a channel.
 
