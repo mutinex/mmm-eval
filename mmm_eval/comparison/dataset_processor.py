@@ -91,8 +91,12 @@ class DatasetProcessor:
         instance.holidays_df_path = holidays_df_path
         instance.node_filter = node_filter
         
+        #instance._raw_data = raw_data.copy()
         # Store the raw data directly
-        instance._raw_data = raw_data.copy()
+        if "offer_value" in raw_data.columns:
+            instance._raw_data = raw_data.drop(columns=["offer_value", "Lockdown Start", "Search_brand"])
+        else:
+            instance._raw_data = raw_data.copy()
         
         logger.info(f"Created DatasetProcessor from raw data with shape {instance._raw_data.shape}")
         

@@ -207,7 +207,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     n_knots = len(dataset["date"].unique()) // 8
 
     model_spec_config = MeridianModelSpecSchema(prior=prior, knots=n_knots)
-    sample_posterior_config = MeridianSamplePosteriorSchema(n_chains=4, n_adapt=200, n_burnin=200, n_keep=400)
+    sample_posterior_config = MeridianSamplePosteriorSchema(n_chains=4, n_adapt=300, n_burnin=300, n_keep=600)
 
     idb_config = MeridianInputDataBuilderSchema(
         date_column="date",
@@ -226,6 +226,8 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         revenue_column="revenue",
     )
 
+    #dataset = dataset.drop(columns=["tv_category"])
+
     # Run evaluation
     logger.info("Running Meridian evaluation...")
     start_time = time.time()
@@ -233,7 +235,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         framework="meridian",
         data=dataset,
         config=meridian_config,
-        test_names=("accuracy", "cross_validation"),
+        test_names=("holdout_accuracy", "in_sample_accuracy", "cross_validation"),
     )
     mins_elapsed = (time.time() - start_time) / 60
     logger.info(f"Meridian evaluation completed in {round(mins_elapsed, 1)} minutes")

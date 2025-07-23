@@ -45,6 +45,7 @@ EXCEPT_COLUMN_MAP = {
     "pricing_snapshot": ["legacy_convoy_metrics", "currency_code_original", "retail_price_original"],
     "pricing_auto_snapshot": [],
     "pricing_beverages_snapshot": [],
+    "pricing_energy_snapshot": [],
     "sales_snapshot": ["currency_code_original", "value_original"],
     "scan_data_snapshot": ["currency_code_original", "retail_value_original"],
     "sponsorship_snapshot": [

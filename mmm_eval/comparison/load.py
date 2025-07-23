@@ -112,7 +112,7 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
     datasets = {}
     for table in table_names:
         # we don't care about CLV
-        if table in ["clv_snapshot", "brand_snapshot", "sponsorship_snapshot", "competitor_spend_snapshot"]:
+        if table in ["clv_snapshot", "brand_snapshot", "sponsorship_snapshot", "competitor_spend_snapshot", "paid_media_snapshot"]:
             continue
         if "_datamart" in dataset_name:
             if data_version is None:
@@ -152,17 +152,28 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
         #     AND category {category_query}
         #     AND product {product_query}
         #     """
+
+        # FIXME: delete
+        #query += " LIMIT 5000000"
+
         df = bq_loader.load_data(query)
         df[date_col] = pd.to_datetime(df[date_col])
         df.loc[:, df.dtypes == "object"] = df.loc[:, df.dtypes == "object"].fillna("default")
         if set(const.BCP_COLS).issubset(set(df.columns)):
             df["node"] = df[["brand", "category", "product"]].agg("_".join, axis=1)
-        datasets[table] = df
-        logger.info(f"Loaded {table} with {df.shape[0]} rows")
 
         #(datasets[table]["node"].unique())
         if node_filter:
-            datasets[table] = datasets[table][datasets[table]["node"] == node_filter]
+            brand, category, product = node_filter.split(".")
+            # Build mask for each level, defaulting to True if value is None
+            brand_mask = (df["brand"] == brand) | (df["brand"] == "default") if brand else True
+            category_mask = (df["category"] == category) | (df["category"] == "default")
+            product_mask = (df["product"] == product) | (df["product"] == "default")
+
+            df = df[brand_mask & category_mask & product_mask]
+
+        datasets[table] = df
+        logger.info(f"Loaded {table} with {df.shape[0]} rows")
 
     return datasets
 

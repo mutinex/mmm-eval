@@ -13,9 +13,6 @@ logger.setLevel(logging.INFO)
 PROJECT_ID = "mtx-dataos-datalake-prod"
 
 
-# def filter_to_node(df: pd.DataFrame, brand: str, category: str, product: str) -> pd.DataFrame:
-#     return df.query(f"brand == '{brand}' and category == '{category}' and product == '{product}'")
-
 def _merge_left_on_index(left, right):
     return pd.merge(left, right, left_index=True, right_index=True, how="left")
 
@@ -34,37 +31,62 @@ def process_sales(sales_df):
     sales_proc = sales[["date", "quantity", "value"]].set_index("date").rename(columns={"value": "revenue"})
     return sales_proc
 
-def process_paid_media(paid_media_df):
-    drop_columns = [
-        "impressions",
-        "funnel_stage",
-        "tarp",
-        "fees",
-    ]
+# def process_paid_media(paid_media_df):
+#     drop_columns = [
+#         "impressions",
+#         "funnel_stage",
+#         "tarp",
+#         "fees",
+#     ]
 
-    if "impressions" in paid_media_df.columns:
-        paid_media_df.drop(columns=drop_columns, inplace=True)
+#     if "impressions" in paid_media_df.columns:
+#         paid_media_df.drop(columns=drop_columns, inplace=True)
 
-    # Convert to weekly then aggregate to node or lower level
-    paid_media_weekly = convert_df_to_weekly(
-        paid_media_df,
-        numerical_columns=["spend"],
+#     # Convert to weekly then aggregate to node or lower level
+#     paid_media_weekly = convert_df_to_weekly(
+#         paid_media_df,
+#         numerical_columns=["spend"],
+#         downsample_method_to_daily={
+#             "spend": utils.DownsampleMethod.UNIFORM,
+#         },
+#         agg_method_to_weekly={
+#             "spend": "sum",
+#         },
+#     )
+
+#     paid_media = aggregate_to_node_level(
+#         paid_media_weekly, extra_group_cols=["media_channel", "marketing_spend_impact"], agg_mapping={"spend": "sum"}
+#     )
+#     # pivot out by spend impact
+#     pivoted = paid_media.pivot_table(columns=["media_channel", "marketing_spend_impact"], values="spend", index="date", aggfunc="sum")
+#     pivoted.columns = ['_'.join(col).strip() for col in pivoted.columns.values]
+#     result = pivoted.fillna(0)
+#     return result
+
+def process_earned_media(earned_df):
+    earned_weekly = convert_df_to_weekly(
+        earned_df,
+        numerical_columns=["metric_value"],
         downsample_method_to_daily={
-            "spend": utils.DownsampleMethod.UNIFORM,
+            "metric_value": utils.DownsampleMethod.UNIFORM,
         },
         agg_method_to_weekly={
-            "spend": "sum",
+            "metric_value": "sum",
         },
     )
 
-    paid_media = aggregate_to_node_level(
-        paid_media_weekly, extra_group_cols=["media_channel", "marketing_spend_impact"], agg_mapping={"spend": "sum"}
+    earned = aggregate_to_node_level(
+        earned_weekly, agg_mapping={"metric_value": "sum"}
     )
-    # pivot out by spend impact
-    pivoted = paid_media.pivot(columns=["media_channel", "marketing_spend_impact"], values="spend", index="date")
-    pivoted.columns = ['_'.join(col).strip() for col in pivoted.columns.values]
-    result = pivoted.fillna(0)
-    return result
+    # alternative is to include competitor prices as separate cols
+    return earned.groupby("date")["metric_value"].sum().ffill().to_frame()
+
+
+def process_paid_media(df):
+    # already converted to weekly
+    df["channel_impact"] = df["media_channel"] + "_" + df["marketing_spend_impact"]
+    return df.pivot_table(index="date", columns="channel_impact", values="spend", aggfunc="sum")
+
 
 def process_pricing(pricing_df, company_name: str):
     pricing_weekly = convert_df_to_weekly(
@@ -82,7 +104,7 @@ def process_pricing(pricing_df, company_name: str):
         pricing_weekly, extra_group_cols=["company"], agg_mapping={"retail_price": "mean"}
     )
     # alternative is to include competitor prices as separate cols
-    pricing = pricing[pricing["company"].isin([company_name, "default"])]
+    pricing = pricing[pricing["company"].isin([company_name, "default", 'liquorland'])]
     return pricing[["date", "retail_price"]].set_index("date").ffill()
 
 def process_events(events_df, sales_date_index):
@@ -185,6 +207,28 @@ def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
             processed.append(pricing_processed)
             column_map["pricing"] = pricing_processed.columns.tolist()
 
+    if datasets.get("pricing_energy_snapshot") is not None:
+        if len(datasets["pricing_energy_snapshot"]) > 0:
+            pricing_df = datasets["pricing_energy_snapshot"]
+            pricing_df = pricing_df.rename(columns={'gas_consumed_price_dollars_per_mj': 'retail_price'})
+            pricing_processed = process_pricing(pricing_df, company_name=company_name)
+            processed.append(pricing_processed)
+            column_map["pricing"] = pricing_processed.columns.tolist()
+
+    if datasets.get("pricing_beverages_snapshot") is not None:
+        if len(datasets["pricing_beverages_snapshot"]) > 0:
+            pricing_df = datasets["pricing_beverages_snapshot"]
+            pricing_df = pricing_df[["date", "date_frequency", "brand", "category", "product", "node", "retail_price", "company"]]
+            pricing_processed = process_pricing(pricing_df, company_name=company_name)
+            processed.append(pricing_processed)
+            column_map["pricing"] = pricing_processed.columns.tolist()
+
+    if datasets.get("earned_media_snapshot") is not None:
+        if len(datasets["earned_media_snapshot"]) > 0:
+            earned_processed = process_earned_media(datasets["earned_media_snapshot"])
+            processed.append(earned_processed)
+            column_map["earned_media"] = earned_processed.columns.tolist()
+
     if datasets.get("events_snapshot") is not None:
         if len(datasets["events_snapshot"]) > 0:
             events_processed = process_events(datasets["events_snapshot"], sales_processed.index)
@@ -222,6 +266,8 @@ def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
         merged[column_map["offers"]] = merged[column_map["offers"]].fillna(0)
     if "discounts" in column_map:
         merged[column_map["discounts"]] = merged[column_map["discounts"]].fillna(0)
+    if "earned_media" in column_map:
+        merged[column_map["earned_media"]] = merged[column_map["earned_media"]].fillna(0)
     if "holidays" in column_map:
         merged[column_map["holidays"]] = merged[column_map["holidays"]].fillna(0)
     if "externals" in column_map:
@@ -236,6 +282,11 @@ def load_and_process_datasets(customer_id, data_version, pipeline_data_path: str
                               node_filter: str | None = None):
     logger.info(f"Loading datasets for customer {customer_id} with data version {data_version} and node filter {node_filter}")
     datasets = get_datasets(PROJECT_ID, customer_id + "_datamart", data_version, node_filter=node_filter)
+
+    # load paid media
+    paid_media = pd.read_parquet(pipeline_data_path + "/paid_media.parquet")
+    paid_media = paid_media[["period_start","media_channel", "marketing_spend_impact", "spend"]].rename(columns={"period_start": "date"})
+    datasets["paid_media_snapshot"] = paid_media
 
     # load holidays and filter to whitelist
     holidays = pd.read_parquet(pipeline_data_path + "/holidays.parquet")
