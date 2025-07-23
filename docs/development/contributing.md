@@ -6,7 +6,7 @@ We welcome contributions from the community! This guide will help you get starte
 
 ### Prerequisites
 
-1. **Python 3.11+** - Required for development
+1. **Python 3.11 or 3.12** - Required for development
 2. **Git** - For version control
 3. **Poetry** - For dependency management (recommended)
 

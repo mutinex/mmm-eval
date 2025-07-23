@@ -4,7 +4,7 @@ This guide will help you install mmm-eval on your system.
 
 ## Prerequisites
 
-mmm-eval requires Python 3.11 or higher. Make sure you have Python installed on your system.
+mmm-eval requires Python 3.11 or 3.12. Make sure you have Python installed on your system.
 
 ## Installation Methods
 
