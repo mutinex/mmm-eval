@@ -4,7 +4,8 @@ An evaluation framework for Marketing Mix Models (MMM).
 
 ## Overview
 
-mmm-eval provides a standardized approach for evaluation and comparison different MMM frameworks using a full suite of validation tests including holdout accuracy, in-sample accuracy, cross-validation, refresh stability, perturbation, and placebo metrics.
+mmm-eval provides a standardized approach for evaluation and comparison of different MMM frameworks using a full suite of validation tests including holdout accuracy, in-sample accuracy,
+cross-validated holdout accuracy, refresh stability, perturbation, and placebo metrics.
 
 ## Features
 
