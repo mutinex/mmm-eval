@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] ; 2025-07-23
+
+### Added
+
+- Loosened Python constraints to support both Python 3.11 and 3.12
+
 ## [0.11.1] ; 2025-07-21
 
 ### Fixed
