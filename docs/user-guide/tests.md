@@ -6,10 +6,12 @@ mmm-eval provides a wide-ranging suite of validation tests to evaluate MMM perfo
 
 mmm-eval includes six main types of validation tests:
 
-1. **Accuracy Tests**: Measure how well the model fits the data
-2. **Cross-Validation Accuracy Test**: Assess model generalization
-3. **Refresh Stability Tests**: Evaluate model stability over time
-4. **Robustness Tests**: Evaluate model sensitivity to data changes
+1. **In-sample Accuracy Test**: Measure how well the model fits the data it's been trained on
+2. **Out-of-Sample Accuracy Test**: Measure how well the model predicts new data
+3. **Cross-Validation Accuracy Test**: Assess out-of-sample accuracy across multiple data splits
+4. **Refresh Stability Test**: Evaluate model stability over time
+5. **Robustness Test**: Evaluate model sensitivity to data changes
+6. **Placebo Test**: Evaluate whether model can correctly identify unhelpful inputs
 
 ## Accuracy Tests
 
