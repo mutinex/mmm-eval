@@ -135,6 +135,7 @@ def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
         raise ValueError(f"Unsupported framework: {framework}")
 
 
+# TODO: make parameters configurable via a config file
 def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     """Run PyMC evaluation.
 
@@ -178,7 +179,7 @@ def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     logger.info(f"PyMC evaluation completed. Results shape: {results.shape}")
     return results
 
-
+# TODO: make parameters configurable via a config file
 def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     """Run Meridian evaluation.
 
@@ -226,16 +227,16 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         revenue_column="revenue",
     )
 
-    #dataset = dataset.drop(columns=["tv_category"])
-
     # Run evaluation
     logger.info("Running Meridian evaluation...")
     start_time = time.time()
+    # NOTE: it's highly recommended to only run one test at a time to avoid crashing your computer
+    # Meridian suffers from serious memory leak issues
     results = run_evaluation(
         framework="meridian",
         data=dataset,
         config=meridian_config,
-        test_names=["placebo"],
+        #test_names=["placebo"],
     )
     mins_elapsed = (time.time() - start_time) / 60
     logger.info(f"Meridian evaluation completed in {round(mins_elapsed, 1)} minutes")

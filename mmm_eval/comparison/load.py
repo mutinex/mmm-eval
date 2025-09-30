@@ -94,21 +94,6 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
 
     table_names = get_available_table_names(bq_loader, project_id, dataset_name)
 
-    # if node_filter is not None:
-    #     brand, category, product = node_filter.split(".")
-    #     if brand == "default":
-    #         brand_query = "IS NULL"
-    #     else:
-    #         brand_query = f"= '{brand}'"
-    #     if category == "default":
-    #         category_query = "IS NULL"
-    #     else:
-    #         category_query = f"= '{category}'"
-    #     if product == "default":
-    #         product_query = "IS NULL"
-    #     else:
-    #         product_query = f"= '{product}'"
-
     datasets = {}
     for table in table_names:
         # we don't care about CLV
@@ -146,23 +131,12 @@ def get_datasets(project_id: str, dataset_name: str, data_version: str | None = 
             date_col = "period_start"
         logger.info(f"Loading {table}")
 
-        # if node_filter:
-        #     query += f"""
-        #     AND brand {brand_query}
-        #     AND category {category_query}
-        #     AND product {product_query}
-        #     """
-
-        # FIXME: delete
-        #query += " LIMIT 5000000"
-
         df = bq_loader.load_data(query)
         df[date_col] = pd.to_datetime(df[date_col])
         df.loc[:, df.dtypes == "object"] = df.loc[:, df.dtypes == "object"].fillna("default")
         if set(const.BCP_COLS).issubset(set(df.columns)):
             df["node"] = df[["brand", "category", "product"]].agg("_".join, axis=1)
 
-        #(datasets[table]["node"].unique())
         if node_filter:
             brand, category, product = node_filter.split(".")
             # Build mask for each level, defaulting to True if value is None
@@ -205,6 +179,7 @@ def aggregate_to_node_level(
     df = df.groupby(group_cols, dropna=False).agg(agg_mapping).reset_index()
     return df
 
+# ------- COPIED FROM FEATURE STORE --------- #
 
 def convert_to_daily(
     df: pd.DataFrame,

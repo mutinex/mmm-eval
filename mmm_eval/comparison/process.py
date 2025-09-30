@@ -1,3 +1,5 @@
+"""Convert datasets into a dataframe format suitable for MMM evaluation."""
+
 import logging
 from functools import reduce
 
@@ -30,38 +32,6 @@ def process_sales(sales_df):
 
     sales_proc = sales[["date", "quantity", "value"]].set_index("date").rename(columns={"value": "revenue"})
     return sales_proc
-
-# def process_paid_media(paid_media_df):
-#     drop_columns = [
-#         "impressions",
-#         "funnel_stage",
-#         "tarp",
-#         "fees",
-#     ]
-
-#     if "impressions" in paid_media_df.columns:
-#         paid_media_df.drop(columns=drop_columns, inplace=True)
-
-#     # Convert to weekly then aggregate to node or lower level
-#     paid_media_weekly = convert_df_to_weekly(
-#         paid_media_df,
-#         numerical_columns=["spend"],
-#         downsample_method_to_daily={
-#             "spend": utils.DownsampleMethod.UNIFORM,
-#         },
-#         agg_method_to_weekly={
-#             "spend": "sum",
-#         },
-#     )
-
-#     paid_media = aggregate_to_node_level(
-#         paid_media_weekly, extra_group_cols=["media_channel", "marketing_spend_impact"], agg_mapping={"spend": "sum"}
-#     )
-#     # pivot out by spend impact
-#     pivoted = paid_media.pivot_table(columns=["media_channel", "marketing_spend_impact"], values="spend", index="date", aggfunc="sum")
-#     pivoted.columns = ['_'.join(col).strip() for col in pivoted.columns.values]
-#     result = pivoted.fillna(0)
-#     return result
 
 def process_earned_media(earned_df):
     earned_weekly = convert_df_to_weekly(
@@ -215,6 +185,7 @@ def process_datasets(datasets: dict, company_name: str, holidays: pd.DataFrame,
             processed.append(pricing_processed)
             column_map["pricing"] = pricing_processed.columns.tolist()
 
+    # TODO: add mappings for other pricing schemas
     if datasets.get("pricing_beverages_snapshot") is not None:
         if len(datasets["pricing_beverages_snapshot"]) > 0:
             pricing_df = datasets["pricing_beverages_snapshot"]
@@ -285,7 +256,7 @@ def load_and_process_datasets(customer_id, data_version, pipeline_data_path: str
 
     # load paid media
     paid_media = pd.read_parquet(pipeline_data_path + "/paid_media.parquet")
-    paid_media = paid_media[["period_start","media_channel", "marketing_spend_impact", "spend"]].rename(columns={"period_start": "date"})
+    paid_media = paid_media[["period_start", "media_channel", "marketing_spend_impact", "spend"]].rename(columns={"period_start": "date"})
     datasets["paid_media_snapshot"] = paid_media
 
     # load holidays and filter to whitelist

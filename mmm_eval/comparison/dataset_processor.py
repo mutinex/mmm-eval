@@ -1,8 +1,7 @@
 """Dataset processor for MMM evaluation frameworks.
 
-TODOs:
-- load in externals from pipeline run, use same approach as holidays
-- add suffixes to columns based on their dataset provenance
+Infers config fields from the dataset required to run the evaluation for
+each framework.
 """
 
 import logging
@@ -60,10 +59,10 @@ class DatasetProcessor:
     def from_raw_data(
         cls,
         raw_data: pd.DataFrame,
-        customer_id: str = "test_customer",
-        data_version: str = "test_version",
+        customer_id: str,
+        data_version: str,
+        holidays_df_path: str,
         holidays_whitelist: list[str] | None = None,
-        holidays_df_path: str = "test_path",
         node_filter: str | None = None,
     ) -> "DatasetProcessor":
         """Create a DatasetProcessor instance from already loaded raw data.
@@ -91,12 +90,8 @@ class DatasetProcessor:
         instance.holidays_df_path = holidays_df_path
         instance.node_filter = node_filter
         
-        #instance._raw_data = raw_data.copy()
         # Store the raw data directly
-        if "offer_value" in raw_data.columns:
-            instance._raw_data = raw_data.drop(columns=["offer_value", "Lockdown Start", "Search_brand"])
-        else:
-            instance._raw_data = raw_data.copy()
+        instance._raw_data = raw_data.copy()
         
         logger.info(f"Created DatasetProcessor from raw data with shape {instance._raw_data.shape}")
         
@@ -198,8 +193,7 @@ class DatasetProcessor:
         """
         df = self.raw_data.copy()
         
-        # Add dummy geography column for Meridian
-        # Since data is aggregated to node level, we create a single geography
+        # TODO: support running Meridian as a proper geo model
         df["geo"] = "national"
         logger.info(f"Transformed dataset for Meridian with shape {df.shape}")
         return df.reset_index()
