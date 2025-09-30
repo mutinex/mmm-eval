@@ -160,8 +160,8 @@ def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         control_columns=col_map["control_columns"],
         adstock=GeometricAdstock(l_max=8),
         saturation=LogisticSaturation(),
-        time_varying_intercept=False,
-        time_varying_media=False,
+        time_varying_intercept=True,
+        time_varying_media=True,
         yearly_seasonality=2,
     )
 
@@ -235,7 +235,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         framework="meridian",
         data=dataset,
         config=meridian_config,
-        test_names=("holdout_accuracy", "in_sample_accuracy", "cross_validation"),
+        test_names=["placebo"],
     )
     mins_elapsed = (time.time() - start_time) / 60
     logger.info(f"Meridian evaluation completed in {round(mins_elapsed, 1)} minutes")
