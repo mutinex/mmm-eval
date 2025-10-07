@@ -15,6 +15,7 @@ pip install git+https://github.com/mutinex/mmm-eval.git
 ### 2. Prepare your data
 
 Your data should include:
+
 - Date column
 - Target variable (e.g., sales, conversions)
 - Media spend columns
