@@ -25,11 +25,19 @@ mmm-eval --input-data-path data.csv --config-path config.json --framework meridi
 #### Configuration
 
 Meridian requires specific configuration for:
+
 - Input data builder settings
 - Model specification parameters
 - Sample posterior configuration
 
 See [Configuration](../getting-started/configuration.md) for detailed setup.
+
+!!! warning
+    Meridian suffers from known memory leak issues as documented [here](https://github.com/google/meridian/issues/534).
+    Running the full test suite even on a reasonably small dataset can lead to crashes. To avoid this issue,
+    we recommend you run the tests one at a time rather than back-to-back. This can be accomplished via the
+    `test-names` argument if using the CLI, or `test_names` if using the Python SDK. As a reminder, the list of
+    test names can be found in `mmm_eval/core/validation_tests_models.py`.
 
 ### PyMC-Marketing
 
