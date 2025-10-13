@@ -55,7 +55,8 @@ def main():
                 data.columns = ["quantity"]
                 all_data.append(data)
 
-        all_data = pd.concat(all_data, axis=1).reset_index()
+        all_data = pd.concat(all_data, axis=1)
+        all_data = all_data.reset_index()
         all_data.rename(columns={"period_start": "date"}, inplace=True)
         os.makedirs(args.output_path, exist_ok=True)
         all_data.to_parquet(os.path.join(args.output_path, f"{model}_data.parquet"))

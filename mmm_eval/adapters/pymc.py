@@ -227,7 +227,7 @@ class PyMCAdapter(BaseAdapter):
             data, extend_idata=False, include_last_observations=True, combined=True, **self.predict_kwargs
         )
         posterior_mean = posterior_prediction.mean(axis=1)
-        return posterior_mean, posterior_prediction
+        return posterior_mean, posterior_prediction.transpose()
 
     def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit on training data and make predictions on test data.

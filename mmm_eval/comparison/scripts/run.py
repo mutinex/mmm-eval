@@ -77,12 +77,11 @@ def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
 
         # Channel columns have suffix "_brand", "_category", or "_product"
         channel_columns = [
-            col for col in all_columns
-            if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
+            col for col in all_columns if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
         ]
 
         # Control columns are all other columns
-        excluded_columns = set(response_columns + revenue_columns + channel_columns)
+        excluded_columns = set(response_columns + revenue_columns + channel_columns + ["date"])
         control_columns = [col for col in all_columns if col not in excluded_columns]
 
         return {
@@ -95,8 +94,7 @@ def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
     elif framework == "meridian":
         # Media channels are columns suffixed with "_brand", "_category", or "_product"
         media_channels = [
-            col for col in all_columns
-            if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
+            col for col in all_columns if any(col.endswith(suffix) for suffix in ["_brand", "_category", "_product"])
         ]
 
         # All binary columns are control_columns
@@ -106,21 +104,24 @@ def get_column_map(df: pd.DataFrame, framework: str) -> dict[str, list[str]]:
                 unique_values = df[col].dropna().unique().tolist()
                 # Handle both integer/boolean and float binary columns
                 if len(unique_values) <= 2 and (
-                    set(unique_values).issubset({0, 1, True, False}) or
-                    set(unique_values).issubset({0.0, 1.0}) or
-                    set(unique_values).issubset({0, 1.0}) or
-                    set(unique_values).issubset({0.0, 1})
+                    set(unique_values).issubset({0, 1, True, False})
+                    or set(unique_values).issubset({0.0, 1.0})
+                    or set(unique_values).issubset({0, 1.0})
+                    or set(unique_values).issubset({0.0, 1})
                 ):
                     binary_columns.append(col)
 
         # Non-binary columns with "price", "offer", or "discount" in the name are non_media_treatment_columns
         non_media_treatment_columns = [
-            col for col in all_columns
+            col
+            for col in all_columns
             if col not in binary_columns and any(keyword in col.lower() for keyword in ["price", "offer", "discount"])
         ]
 
         # Exclude columns that are already categorized
-        excluded_columns = set(media_channels + binary_columns + non_media_treatment_columns + ["date", "quantity", "revenue"])
+        excluded_columns = set(
+            media_channels + binary_columns + non_media_treatment_columns + ["date", "quantity", "revenue"]
+        )
 
         # Remaining columns are control_columns
         control_columns = binary_columns + [col for col in all_columns if col not in excluded_columns]
@@ -144,7 +145,7 @@ def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
 
     Returns:
         Evaluation results DataFrame
-    
+
     """
     logger.info("Setting up PyMC evaluation...")
 
@@ -179,6 +180,7 @@ def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     logger.info(f"PyMC evaluation completed. Results shape: {results.shape}")
     return results
 
+
 # TODO: make parameters configurable via a config file
 def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     """Run Meridian evaluation.
@@ -188,7 +190,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
 
     Returns:
         Evaluation results DataFrame
-    
+
     """
     logger.info("Setting up Meridian evaluation...")
 
@@ -236,7 +238,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
         framework="meridian",
         data=dataset,
         config=meridian_config,
-        #test_names=["placebo"],
+        # test_names=["placebo"],
     )
     mins_elapsed = (time.time() - start_time) / 60
     logger.info(f"Meridian evaluation completed in {round(mins_elapsed, 1)} minutes")
@@ -275,9 +277,9 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("dataset_path", type=str, help="Path to the parquet dataset file")
+    parser.add_argument("--dataset_path", type=str, help="Path to the parquet dataset file")
 
-    parser.add_argument("framework", type=str, choices=["pymc", "meridian"], help="Framework to use for evaluation")
+    parser.add_argument("--framework", type=str, choices=["pymc", "meridian"], help="Framework to use for evaluation")
 
     parser.add_argument(
         "--output", type=str, default="results.csv", help="Output file path for results (default: results.csv)"
