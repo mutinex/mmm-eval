@@ -59,7 +59,7 @@ class HoldoutAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
-            distribution=distribution_to_dataframe(distribution, actual.index, "date"),
+            distribution=distribution_to_dataframe(distribution, actual.index),
         )
 
         print("\n\n Accuracy test scores:")
@@ -98,7 +98,7 @@ class InSampleAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
-            distribution=distribution_to_dataframe(distribution, actual.index, "date"),
+            distribution=distribution_to_dataframe(distribution, actual.index),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -155,7 +155,7 @@ class CrossValidationTest(BaseValidationTest):
                 AccuracyMetricResults.populate_object_with_metrics(
                     actual=pd.Series(actual),  # Ensure it's a Series
                     predicted=pd.Series(predictions, index=actual.index),
-                    distribution=distribution_to_dataframe(distribution, actual.index, "date"),
+                    distribution=distribution_to_dataframe(distribution, actual.index),
                 )
             )
 

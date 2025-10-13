@@ -2,18 +2,18 @@ import numpy as np
 import pandas as pd
 
 
-def distribution_to_dataframe(distribution: np.ndarray, index: pd.Index, name: str) -> pd.DataFrame:
+def distribution_to_dataframe(distribution: np.ndarray, index: pd.Index) -> pd.DataFrame:
     """Generate a DataFrame from a distribution array.
 
     Args:
         distribution (np.ndarray): The distribution array, shape (samples x time)
         index (pd.Index): The index of the actual values, shape (time,)
-        name (str): The name of the column that will contain the index
 
     Returns:
         A DataFrame
 
     """
+    name = index.name
     distribution_df = (
         pd.DataFrame(distribution, columns=index)
         .reset_index(names="sample_index")

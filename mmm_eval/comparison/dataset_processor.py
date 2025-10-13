@@ -122,7 +122,7 @@ class DatasetProcessor:
         ]
 
         # Control columns are all other columns
-        excluded_columns = set(response_columns + revenue_columns + channel_columns)
+        excluded_columns = set(response_columns + revenue_columns + channel_columns + ["date"])
         control_columns = [col for col in all_columns if col not in excluded_columns]
 
         return {

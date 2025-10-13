@@ -57,8 +57,9 @@ def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
 
     CRPS is a probabilistic generalisation of the mean absolute error,
     i.e, if the distribution is a repeat of a single value, CRPS is equal to the mean absolute error
-    We scale it by the actual value to make it comparable in the same way that MAPE is.
+    We scale it by 100 / actual value to make it in the same units as MAPE.
     """
+    actual.name = "response"
     distribution = distribution.merge(actual, on=actual.index.name)
 
     def crps_one_date(df):
@@ -70,7 +71,7 @@ def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
             # If an odd number of samples, drop the last one
             pred_sample_two = pred_sample_two[:-1]
 
-        return (
+        return 100 * (
             np.mean(np.abs(pred_sample_one - actual) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
             / actual
         )

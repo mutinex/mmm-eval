@@ -154,7 +154,7 @@ def run_pymc_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     logger.info(f"Column mapping: {col_map}")
 
     # Set up PyMC configurations
-    fast_fit_config = PyMCFitSchema(draws=500, tune=500, chains=4, target_accept=0.95, random_seed=42)
+    fast_fit_config = PyMCFitSchema(draws=200, tune=300, chains=1, target_accept=0.95, random_seed=42)
 
     model_config = PyMCModelSchema(
         date_column="date",
