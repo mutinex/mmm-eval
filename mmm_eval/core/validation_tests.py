@@ -50,7 +50,7 @@ class HoldoutAccuracyTest(BaseValidationTest):
         """Run the accuracy test."""
         # Split data into train/test sets
         train, test = self._split_data_holdout(data)
-        predictions = adapter.fit_and_predict(train, test)
+        predictions, distribution = adapter.fit_and_predict(train, test)
         actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
         assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
@@ -58,6 +58,11 @@ class HoldoutAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
+            distribution=(
+                pd.DataFrame(distribution, columns=actual.index)
+                .reset_index(names="sample_index")
+                .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
+            ),
         )
 
         print("\n\n Accuracy test scores:")
@@ -88,7 +93,7 @@ class InSampleAccuracyTest(BaseValidationTest):
     def run(self, adapter: BaseAdapter, data: pd.DataFrame) -> ValidationTestResult:
         """Run the in-sample accuracy test."""
         # Fit model on full dataset and get predictions
-        predictions = adapter.fit_and_predict_in_sample(data)
+        predictions, distribution = adapter.fit_and_predict_in_sample(data)
         actual = data.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
         assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
@@ -96,6 +101,11 @@ class InSampleAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
+            distribution=(
+                pd.DataFrame(distribution, columns=actual.index)
+                .reset_index(names="sample_index")
+                .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
+            ),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -143,7 +153,7 @@ class CrossValidationTest(BaseValidationTest):
             test = data.loc[test_idx]
 
             # Get predictions
-            predictions = adapter.fit_and_predict(train, test)
+            predictions, distribution = adapter.fit_and_predict(train, test)
             actual = test.groupby(self.date_column)[InputDataframeConstants.RESPONSE_COL].sum()
             assert len(actual) == len(predictions), "Actual and predicted lengths must match"
 
@@ -152,6 +162,11 @@ class CrossValidationTest(BaseValidationTest):
                 AccuracyMetricResults.populate_object_with_metrics(
                     actual=pd.Series(actual),  # Ensure it's a Series
                     predicted=pd.Series(predictions, index=actual.index),
+                    distribution=(
+                        pd.DataFrame(distribution, columns=actual.index)
+                        .reset_index(names="sample_index")
+                        .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
+                    ),
                 )
             )
 
@@ -171,6 +186,9 @@ class CrossValidationTest(BaseValidationTest):
             ),
             mean_r_squared=calculate_mean_for_singular_values_across_cross_validation_folds(
                 fold_metrics, AccuracyMetricNames.R_SQUARED
+            ),
+            mean_crps=calculate_mean_for_singular_values_across_cross_validation_folds(
+                fold_metrics, AccuracyMetricNames.CRPS
             ),
         )
 
