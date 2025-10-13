@@ -53,11 +53,16 @@ def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
 
 
 def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
-    """Calculate Mean Continuous Ranked Probability Score (CRPS)."""
-    distribution = distribution.merge(actual.reset_index(), by=actual.index.name)
+    """Calculate Mean Continuous Ranked Probability Score (CRPS).
+
+    CRPS is a probabilistic generalisation of the mean absolute error,
+    i.e, if the distribution is a repeat of a single value, CRPS is equal to the mean absolute error
+    We scale it by the actual value to make it comparable in the same way that MAPE is.
+    """
+    distribution = distribution.merge(actual, on=actual.index.name)
 
     def crps_one_date(df):
-        actual = df["actual"].values[0]
+        actual = df["response"].values[0]
         n_samples = df.shape[0]
         pred_sample_one = df.iloc[: n_samples // 2]["pred_distribution"].values
         pred_sample_two = df.iloc[n_samples // 2 :]["pred_distribution"].values
@@ -65,9 +70,12 @@ def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
             # If an odd number of samples, drop the last one
             pred_sample_two = pred_sample_two[:-1]
 
-        return np.mean(np.abs(pred_sample_one - actual) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
+        return (
+            np.mean(np.abs(pred_sample_one - actual) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
+            / actual
+        )
 
-    distribution.groupby(actual.index.name).apply(crps_one_date).mean()
+    return distribution.groupby(actual.index.name).apply(crps_one_date).mean()
 
 
 class MetricNamesBase(Enum):

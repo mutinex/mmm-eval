@@ -532,7 +532,9 @@ class MeridianAdapter(BaseAdapter):
         # shape (n_chains, n_draws, n_times)
         preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
-        return posterior_mean, preds_tensor.reshape(-1, preds_tensor.shape[-1])
+        # Flatten the chains and draws into a 2D array
+        posterior_distribution = np.array(preds_tensor).reshape(-1, preds_tensor.shape[-1])
+        return posterior_mean, posterior_distribution
 
     def predict(self, data: pd.DataFrame | None = None) -> tuple[np.ndarray, np.ndarray]:
         """Make predictions using the fitted model.
@@ -560,7 +562,7 @@ class MeridianAdapter(BaseAdapter):
         # holdout period
         if self.holdout_mask is not None:
             posterior_mean = posterior_mean[self.holdout_mask]
-            posterior_distribution = posterior_distribution[:, :, self.holdout_mask]
+            posterior_distribution = posterior_distribution[:, self.holdout_mask]
 
         return posterior_mean, posterior_distribution
 

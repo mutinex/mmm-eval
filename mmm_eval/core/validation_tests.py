@@ -30,6 +30,7 @@ from mmm_eval.metrics.metric_models import (
     RefreshStabilityMetricNames,
     RefreshStabilityMetricResults,
 )
+from mmm_eval.utils.validation_utils import distribution_to_dataframe
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +59,7 @@ class HoldoutAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
-            distribution=(
-                pd.DataFrame(distribution, columns=actual.index)
-                .reset_index(names="sample_index")
-                .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
-            ),
+            distribution=distribution_to_dataframe(distribution, actual.index, "date"),
         )
 
         print("\n\n Accuracy test scores:")
@@ -101,11 +98,7 @@ class InSampleAccuracyTest(BaseValidationTest):
         test_scores = AccuracyMetricResults.populate_object_with_metrics(
             actual=pd.Series(actual),  # Ensure it's a Series
             predicted=pd.Series(predictions, index=actual.index),
-            distribution=(
-                pd.DataFrame(distribution, columns=actual.index)
-                .reset_index(names="sample_index")
-                .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
-            ),
+            distribution=distribution_to_dataframe(distribution, actual.index, "date"),
         )
 
         logger.info(f"Saving the test results for {self.test_name} test")
@@ -162,11 +155,7 @@ class CrossValidationTest(BaseValidationTest):
                 AccuracyMetricResults.populate_object_with_metrics(
                     actual=pd.Series(actual),  # Ensure it's a Series
                     predicted=pd.Series(predictions, index=actual.index),
-                    distribution=(
-                        pd.DataFrame(distribution, columns=actual.index)
-                        .reset_index(names="sample_index")
-                        .melt(id_vars="sample_index", var_name=actual.index.name, value_name="pred_distribution")
-                    ),
+                    distribution=distribution_to_dataframe(distribution, actual.index, "date"),
                 )
             )
 
