@@ -308,7 +308,7 @@ class CrossValidationMetricResults(MetricResults):
         elif metric_name == CrossValidationMetricNames.MEAN_R_SQUARED.value:
             return bool(metric_value >= CrossValidationThresholdConstants.MEAN_R_SQUARED)
         elif metric_name == CrossValidationMetricNames.MEAN_CRPS.value:
-            return bool(metric_value >= CrossValidationThresholdConstants.MEAN_CRPS)
+            return bool(metric_value <= CrossValidationThresholdConstants.MEAN_CRPS)
         else:
             valid_metric_names = CrossValidationMetricNames.to_list()
             raise InvalidMetricNameException(
