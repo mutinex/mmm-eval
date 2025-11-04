@@ -80,7 +80,9 @@ def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFr
             pred_sample_two = pred_sample_two[:-1]
 
         crps = np.mean(np.abs(pred_sample_one - response) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
-        return 100 * crps / response
+
+        response_bounded = max(response, 1e-5)
+        return 100 * crps / response_bounded
 
     return predicted_distribution.groupby(response_series.index.name).apply(crps_one_date).mean()
 
