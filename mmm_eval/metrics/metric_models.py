@@ -57,11 +57,12 @@ def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFr
 
     CRPS is a probabilistic generalisation of the mean absolute error,
     i.e, if the distribution is a repeat of a single value, CRPS is equal to the mean absolute error
-    We scale it by 100 / actual value to make it in the same units as MAPE.
+    We scale it by 100 / response to make it in the same units as MAPE for ease of comparison and thresholding.
 
     Args:
         response_series: A series of the actual sales values
         predicted_distribution: A dataframe containing a sample of the prediction distribution for each date.
+            If there is only a single sample, the CRPS reduces to the mean absolute (percentage) error.
 
     Returns:
         Scaled CRPS value as float
@@ -73,13 +74,21 @@ def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFr
     def crps_one_date(df):
         response = df["response"].values[0]
         n_samples = df.shape[0]
-        pred_sample_one = df.iloc[: n_samples // 2]["pred_distribution"].values
-        pred_sample_two = df.iloc[n_samples // 2 :]["pred_distribution"].values
-        if len(pred_sample_two) != len(pred_sample_one):
-            # If an odd number of samples, drop the last one
-            pred_sample_two = pred_sample_two[:-1]
 
-        crps = np.mean(np.abs(pred_sample_one - response)) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two))
+        if n_samples == 1:
+            # CRPS reduces to absolute error for one sample
+            crps = np.abs(df["pred_distribution"].values[0] - response)
+        else:
+
+            pred_sample_one = df.iloc[: n_samples // 2]["pred_distribution"].values
+            pred_sample_two = df.iloc[n_samples // 2 :]["pred_distribution"].values
+            if len(pred_sample_two) != len(pred_sample_one):
+                # If an odd number of samples, drop the last one
+                pred_sample_two = pred_sample_two[:-1]
+
+            crps = np.mean(np.abs(pred_sample_one - response)) - 0.5 * np.mean(
+                np.abs(pred_sample_one - pred_sample_two)
+            )
 
         response_bounded = max(response, 1e-5)
         return 100 * crps / response_bounded
