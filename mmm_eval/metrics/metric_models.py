@@ -220,6 +220,8 @@ class AccuracyMetricResults(MetricResults):
             return bool(metric_value <= AccuracyThresholdConstants.SMAPE)
         elif metric_name == AccuracyMetricNames.R_SQUARED.value:
             return bool(metric_value >= AccuracyThresholdConstants.R_SQUARED)
+        elif metric_name == AccuracyMetricNames.CRPS.value:
+            return bool(metric_value >= AccuracyThresholdConstants.CRPS)
         else:
             valid_metric_names = AccuracyMetricNames.to_list()
             raise InvalidMetricNameException(
@@ -244,6 +246,11 @@ class AccuracyMetricResults(MetricResults):
                     general_metric_name=AccuracyMetricNames.R_SQUARED.value,
                     specific_metric_name=AccuracyMetricNames.R_SQUARED.value,
                     metric_value=self.r_squared,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=AccuracyMetricNames.CRPS.value,
+                    specific_metric_name=AccuracyMetricNames.CRPS.value,
+                    metric_value=self.crps,
                 ),
             ]
         )
@@ -280,6 +287,7 @@ class CrossValidationMetricResults(MetricResults):
     mean_smape: float
     std_smape: float
     mean_r_squared: float
+    mean_crps: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific cross-validation metric passes its threshold."""
@@ -293,6 +301,8 @@ class CrossValidationMetricResults(MetricResults):
             return bool(metric_value <= CrossValidationThresholdConstants.STD_SMAPE)
         elif metric_name == CrossValidationMetricNames.MEAN_R_SQUARED.value:
             return bool(metric_value >= CrossValidationThresholdConstants.MEAN_R_SQUARED)
+        elif metric_name == CrossValidationMetricNames.MEAN_CRPS.value:
+            return bool(metric_value >= CrossValidationThresholdConstants.MEAN_CRPS)
         else:
             valid_metric_names = CrossValidationMetricNames.to_list()
             raise InvalidMetricNameException(
@@ -327,6 +337,11 @@ class CrossValidationMetricResults(MetricResults):
                     general_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
                     specific_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
                     metric_value=self.mean_r_squared,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.MEAN_CRPS.value,
+                    specific_metric_name=CrossValidationMetricNames.MEAN_CRPS.value,
+                    metric_value=self.mean_crps,
                 ),
             ]
         )

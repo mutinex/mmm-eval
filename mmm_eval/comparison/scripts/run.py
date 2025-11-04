@@ -6,6 +6,7 @@ This script loads data from a parquet file and runs evaluation for either PyMC o
 
 import argparse
 import logging
+import os
 import sys
 import time
 from datetime import datetime
@@ -210,7 +211,7 @@ def run_meridian_evaluation(processor: DatasetProcessor) -> pd.DataFrame:
     n_knots = len(dataset["date"].unique()) // 8
 
     model_spec_config = MeridianModelSpecSchema(prior=prior, knots=n_knots)
-    sample_posterior_config = MeridianSamplePosteriorSchema(n_chains=4, n_adapt=300, n_burnin=300, n_keep=600)
+    sample_posterior_config = MeridianSamplePosteriorSchema(n_chains=1, n_adapt=200, n_burnin=200, n_keep=150)
 
     idb_config = MeridianInputDataBuilderSchema(
         date_column="date",
@@ -270,50 +271,51 @@ def generate_output_filename(base_output: str, framework: str) -> str:
     return new_filename
 
 
-def main():
+def main(dataset_path: str, framework: str, output: str):
     """Run the script as the main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Run MMM evaluation for different frameworks",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
+    # parser = argparse.ArgumentParser(
+    #    description="Run MMM evaluation for different frameworks",
+    #    formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    # )
 
-    parser.add_argument("--dataset_path", type=str, help="Path to the parquet dataset file")
+    # parser.add_argument("--dataset_path", type=str, help="Path to the parquet dataset file")
 
-    parser.add_argument("--framework", type=str, choices=["pymc", "meridian"], help="Framework to use for evaluation")
+    # parser.add_argument("--framework", type=str, choices=["pymc", "meridian"], help="Framework to use for evaluation")
 
-    parser.add_argument(
-        "--output", type=str, default="results.csv", help="Output file path for results (default: results.csv)"
-    )
+    # parser.add_argument(
+    #    "--output", type=str, default="results.csv", help="Output file path for results (default: results.csv)"
+    # )
 
-    parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
+    # parser.add_argument("--verbose", action="store_true", help="Enable verbose logging")
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
     # Set logging level
-    if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+    # if args.verbose:
+    #    logging.getLogger().setLevel(logging.DEBUG)
 
     # Validate input file exists
-    if not Path(args.dataset_path).exists():
-        logger.error(f"Dataset file not found: {args.dataset_path}")
+    if not Path(dataset_path).exists():
+        logger.error(f"Dataset file not found: {dataset_path}")
         sys.exit(1)
 
     # Load data
-    logger.info(f"Loading data from {args.dataset_path}")
-    df = load_data(args.dataset_path)
+    logger.info(f"Loading data from {dataset_path}")
+    df = load_data(dataset_path)
 
     processor = DatasetProcessor.from_raw_data(df)
 
     # Run evaluation based on framework
-    if args.framework == "pymc":
+    if framework == "pymc":
         results = run_pymc_evaluation(processor)
-    elif args.framework == "meridian":
+    elif framework == "meridian":
         results = run_meridian_evaluation(processor)
     else:
-        raise ValueError(f"Unsupported framework: {args.framework}")
+        raise ValueError(f"Unsupported framework: {framework}")
 
     # Generate output filename with framework name and timestamp
-    output_filename = generate_output_filename(args.output, args.framework)
+    output_filename = os.path.join(output, "results.csv")
+    os.makedirs(output, exist_ok=True)
 
     # Save results
     logger.info(f"Saving results to {output_filename}")

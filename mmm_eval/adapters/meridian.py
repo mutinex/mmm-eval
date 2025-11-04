@@ -532,7 +532,6 @@ class MeridianAdapter(BaseAdapter):
         # shape (n_chains, n_draws, n_times)
         preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
-        # Flatten the chains and draws into a 2D array
         posterior_distribution = np.array(preds_tensor).reshape(-1, preds_tensor.shape[-1])
         return posterior_mean, posterior_distribution
 
