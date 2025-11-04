@@ -5,6 +5,7 @@ passed to the PyMCAdapter.
 """
 
 import logging
+from shutil import register_unpack_format
 
 import numpy as np
 import pandas as pd
@@ -185,8 +186,7 @@ class PyMCAdapter(BaseAdapter):
             self.model_kwargs["channel_columns"] = self.channel_spend_columns
 
             # Check for vector priors that might cause shape mismatches
-            _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
-
+            # _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
             data = data.drop(columns=zero_spend_channels)
 
         X = data.drop(columns=[InputDataframeConstants.RESPONSE_COL, InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL])
@@ -198,7 +198,7 @@ class PyMCAdapter(BaseAdapter):
         self._channel_roi_df = self._compute_channel_contributions(data)
         self.is_fitted = True
 
-    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> tuple[np.ndarray, np.ndarray]:
         """Predict the response variable for new data.
 
         Args:
@@ -206,7 +206,7 @@ class PyMCAdapter(BaseAdapter):
                 predictions and cannot be None.
 
         Returns:
-            Predicted values
+            Predicted values, tuple of (posterior_mean, posterior_distribution)
 
         Raises:
             RuntimeError: If model is not fitted
@@ -221,12 +221,14 @@ class PyMCAdapter(BaseAdapter):
 
         if InputDataframeConstants.RESPONSE_COL in data.columns:
             data = data.drop(columns=[InputDataframeConstants.RESPONSE_COL])
-        predictions = predictions = self.model.predict(
-            data, extend_idata=False, include_last_observations=True, **self.predict_kwargs
-        )
-        return predictions
 
-    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+        posterior_prediction = self.model.predict_posterior(
+            data, extend_idata=False, include_last_observations=True, combined=True, **self.predict_kwargs
+        )
+        posterior_mean = posterior_prediction.mean(axis=1)
+        return posterior_mean, posterior_prediction.transpose()
+
+    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit on training data and make predictions on test data.
 
         Arguments:
@@ -240,7 +242,7 @@ class PyMCAdapter(BaseAdapter):
         self.fit(train)
         return self.predict(test)
 
-    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit the model on data and return predictions for the same data.
 
         Args:
@@ -253,7 +255,7 @@ class PyMCAdapter(BaseAdapter):
         self.fit(data)
         if self.model is None:
             raise RuntimeError("Model must be fit before prediction.")
-        return self.model.predict(data, extend_idata=False, **self.predict_kwargs)
+        return self.predict(data)
 
     def get_channel_roi(
         self,

@@ -9,6 +9,7 @@ class AccuracyThresholdConstants:
     MAPE = 15.0
     SMAPE = 15.0
     R_SQUARED = 0.8
+    CRPS = 15.0
 
 
 class CrossValidationThresholdConstants:
@@ -19,6 +20,7 @@ class CrossValidationThresholdConstants:
     MEAN_SMAPE = 15.0
     STD_SMAPE = 5.0
     MEAN_R_SQUARED = 0.8
+    MEAN_CRPS = 15.0
 
 
 class RefreshStabilityThresholdConstants:
