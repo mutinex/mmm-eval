@@ -52,18 +52,26 @@ def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
     return float(smape)
 
 
-def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
+def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFrame) -> float:
     """Calculate Mean Continuous Ranked Probability Score (CRPS).
 
     CRPS is a probabilistic generalisation of the mean absolute error,
     i.e, if the distribution is a repeat of a single value, CRPS is equal to the mean absolute error
     We scale it by 100 / actual value to make it in the same units as MAPE.
+
+    Args:
+        response_series: A series of the actual sales values
+        predicted_distribution: A dataframe containing a sample of the prediction distribution for each date.
+
+    Returns:
+        Scaled CRPS value as float
+
     """
-    actual.name = "response"
-    distribution = distribution.merge(actual, on=actual.index.name)
+    response_series.name = "response"
+    predicted_distribution = predicted_distribution.merge(response_series, on=response_series.index.name)
 
     def crps_one_date(df):
-        actual = df["response"].values[0]
+        response = df["response"].values[0]
         n_samples = df.shape[0]
         pred_sample_one = df.iloc[: n_samples // 2]["pred_distribution"].values
         pred_sample_two = df.iloc[n_samples // 2 :]["pred_distribution"].values
@@ -71,12 +79,10 @@ def calculate_crps(actual: pd.Series, distribution: pd.DataFrame) -> float:
             # If an odd number of samples, drop the last one
             pred_sample_two = pred_sample_two[:-1]
 
-        return 100 * (
-            np.mean(np.abs(pred_sample_one - actual) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
-            / actual
-        )
+        crps = np.mean(np.abs(pred_sample_one - response) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
+        return 100 * crps / response
 
-    return distribution.groupby(actual.index.name).apply(crps_one_date).mean()
+    return predicted_distribution.groupby(response_series.index.name).apply(crps_one_date).mean()
 
 
 class MetricNamesBase(Enum):
