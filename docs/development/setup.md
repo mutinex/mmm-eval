@@ -6,7 +6,7 @@ This guide will help you set up a development environment for contributing to mm
 
 Before setting up the development environment, ensure you have the following installed:
 
-- **Python 3.11+**: The minimum supported Python version
+- **Python 3.11 or 3.12**: The supported Python versions
 - **Poetry 2.x.x**: For dependency management and packaging
 - **Git**: For version control
 
