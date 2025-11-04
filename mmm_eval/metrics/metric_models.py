@@ -79,7 +79,7 @@ def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFr
             # If an odd number of samples, drop the last one
             pred_sample_two = pred_sample_two[:-1]
 
-        crps = np.mean(np.abs(pred_sample_one - response) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two)))
+        crps = np.mean(np.abs(pred_sample_one - response)) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two))
 
         response_bounded = max(response, 1e-5)
         return 100 * crps / response_bounded
