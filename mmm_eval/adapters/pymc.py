@@ -5,7 +5,6 @@ passed to the PyMCAdapter.
 """
 
 import logging
-from shutil import register_unpack_format
 
 import numpy as np
 import pandas as pd
@@ -186,7 +185,7 @@ class PyMCAdapter(BaseAdapter):
             self.model_kwargs["channel_columns"] = self.channel_spend_columns
 
             # Check for vector priors that might cause shape mismatches
-            # _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
+            _check_vector_priors_when_dropping_channels(self.model_kwargs["model_config"], zero_spend_channels)
             data = data.drop(columns=zero_spend_channels)
 
         X = data.drop(columns=[InputDataframeConstants.RESPONSE_COL, InputDataframeConstants.MEDIA_CHANNEL_REVENUE_COL])

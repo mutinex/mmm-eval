@@ -62,10 +62,6 @@ class HoldoutAccuracyTest(BaseValidationTest):
             distribution=distribution_to_dataframe(distribution, actual.index),
         )
 
-        print("\n\n Accuracy test scores:")
-        print(test_scores)
-        print("\n\n")
-
         logger.info(f"Saving the test results for {self.test_name} test")
 
         return ValidationTestResult(

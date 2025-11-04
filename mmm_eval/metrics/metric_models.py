@@ -227,7 +227,7 @@ class AccuracyMetricResults(MetricResults):
         elif metric_name == AccuracyMetricNames.R_SQUARED.value:
             return bool(metric_value >= AccuracyThresholdConstants.R_SQUARED)
         elif metric_name == AccuracyMetricNames.CRPS.value:
-            return bool(metric_value >= AccuracyThresholdConstants.CRPS)
+            return bool(metric_value <= AccuracyThresholdConstants.CRPS)
         else:
             valid_metric_names = AccuracyMetricNames.to_list()
             raise InvalidMetricNameException(
