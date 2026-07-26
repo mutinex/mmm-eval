@@ -51,6 +51,12 @@ The official hosted documentation can be found [here](https://mutinex.github.io/
 
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
+## Citation & Authors
+
+mmm-eval was created at [Mutinex](https://www.mutinex.co) by Joseph Kang, Phil Clark, Sam McCormick, and Benjamin Dobrin.
+
+If you use mmm-eval in your research or work, please cite it — citation metadata is available in [CITATION.cff](CITATION.cff).
+
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
