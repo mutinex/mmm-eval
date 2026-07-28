@@ -53,7 +53,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Citation & Authors
 
-mmm-eval was created at [Mutinex](https://www.mutinex.co) by Joseph Kang, Phil Clark, Sam McCormick, and Benjamin Dobrin.
+mmm-eval was created at [Mutinex](https://www.mutinex.co) by Joseph Kang, Sam McCormick, Benjamin Dobrin, and Phil Clark.
 
 If you use mmm-eval in your research or work, please cite it — citation metadata is available in [CITATION.cff](CITATION.cff).
 

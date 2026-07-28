@@ -6,12 +6,12 @@ type: software
 authors:
   - family-names: Kang
     given-names: Joseph
-  - family-names: Clark
-    given-names: Phil
   - family-names: McCormick
     given-names: Sam
   - family-names: Dobrin
     given-names: Benjamin
+  - family-names: Clark
+    given-names: Phil
 repository-code: "https://github.com/mutinex/mmm-eval"
 license: Apache-2.0
 version: 0.12.0
