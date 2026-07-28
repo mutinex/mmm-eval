@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] ; 2025-11-07
+
+- Add Scaled CRPS as an accuracy metric.
+
 ## [0.12.0] ; 2025-07-23
 
 ### Added

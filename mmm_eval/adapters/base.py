@@ -86,7 +86,7 @@ class BaseAdapter(ABC):
         pass
 
     @abstractmethod
-    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> tuple[np.ndarray, np.ndarray]:
         """Make predictions on new data.
 
         Args:
@@ -97,13 +97,13 @@ class BaseAdapter(ABC):
                   the fitted model state instead
 
         Returns:
-            Predicted values
+            Predicted values, tuple of (posterior_mean, posterior_distribution)
 
         """
         pass
 
     @abstractmethod
-    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit on training data and make predictions on test data.
 
         Args:
@@ -111,20 +111,20 @@ class BaseAdapter(ABC):
             test: dataset to make predictions using
 
         Returns:
-            Predicted values.
+            Predicted values, tuple of (posterior_mean, posterior_distribution)
 
         """
         pass
 
     @abstractmethod
-    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit the model on data and return predictions for the same data.
 
         Args:
             data: dataset to train model on and make predictions for
 
         Returns:
-            Predicted values for the training data.
+            Predicted values for the training data, tuple of (posterior_mean, posterior_distribution)
 
         """
         pass

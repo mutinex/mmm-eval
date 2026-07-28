@@ -16,6 +16,7 @@ mmm-eval calculates several key metrics across different validation tests:
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error between predictions and actual values
 - **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE that treats over and underestimation equally
 - **R-squared**: Proportion of variance explained by the model
+- **CRPS (Continuous Ranked Probability Score)**: Distributional accuracy metric
 
 ### Stability Metrics
 
@@ -63,6 +64,19 @@ R² = 1 - (Σ(y_i - ŷ_i)² / Σ(y_i - ȳ)²)
 - **Scale**: 1 = perfect fit, 0 = no predictive power
 - **Benchmark**: > 0.8 is generally good
 
+### CRPS (Continuous Ranked Probability Score)
+
+```python
+CRPS = ((1/n) * Σ|y_i - ŷ| - (0.5/n) * Σ|y_i - x_i|) / y_i)
+```
+where `x_i` and `y_i` are samples from the posterior predictive distribution
+
+
+**Interpretation**:
+- **Lower is better**: 0% = perfect predictions, no uncertainty
+- **Scale**: Expressed as a percentage, e.g. 15.0 rather than 0.15
+
+
 ## Test-Specific Metrics
 
 ### Holdout Accuracy Test Metrics
@@ -72,6 +86,7 @@ Metrics calculated on out-of-sample predictions using train/test splits.
 - **MAPE**: Overall prediction accuracy
 - **SMAPE**: Symmetric prediction accuracy
 - **R-squared**: Model fit quality
+- **CRPS**: Distribution prediction accuracy
 
 ### In-Sample Accuracy Test Metrics
 
@@ -80,6 +95,8 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **MAPE**: Model fit accuracy
 - **SMAPE**: Symmetric model fit accuracy
 - **R-squared**: Model fit quality
+- **CRPS**: Distribution prediction accuracy
+
 
 ### Cross-Validation Metrics
 
@@ -89,6 +106,8 @@ Metrics calculated on in-sample predictions using the full dataset.
 - **Std SMAPE**: Consistency of symmetric accuracy across folds
 - **Mean R-squared**: Average out-of-sample fit
 - **Std R-squared**: Consistency of fit across folds
+- **Mean CRPS**: Average distribution prediction accuracy
+
 
 ### Refresh Stability Metrics
 
@@ -118,6 +137,7 @@ model picking up spurious correlations.
 - **MAPE < 15%**: Good prediction accuracy
 - **SMAPE < 15%**: Good symmetric prediction accuracy
 - **R-squared > 0.8**: Strong model fit
+- **CRPS < 15%**: Good distributional accuracy
 - **Low perturbation sensitivity**: Robust to input noise
 - **Low placebo ROI (≤ -50%)**: Correctly identifies spurious features and assigns them low effect sizes
 
@@ -134,6 +154,7 @@ model specification to the problem at hand.
 | MAPE | < 5% | 5-10% | 10-15% | > 15% |
 | SMAPE | < 5% | 5-10% | 10-15% | > 15% |
 | R-squared | > 0.9 | 0.8-0.9 | 0.6-0.8 | < 0.6 |
+| CRPS | < 5% | 5-10% | 10-15% | > 15% |
 | Parameter Change | < 5% | 5-10% | 10-20% | > 20% |
 | Perturbation Change | < 5% | 5-10% | 10-15% | > 15% |
 | Placebo ROI | ≤ -50% | -50% to -25% | -25% to 0% | > 0% |
@@ -165,6 +186,7 @@ class CustomMetric(BaseMetric):
 - **Start with MAPE**: Most intuitive for business users
 - **Include SMAPE**: More robust alternative to MAPE for symmetric evaluation
 - **Include R-squared**: Technical measure of fit quality
+- **Add CRPS**: Measure the uncertainty of the predictions
 - **Monitor stability**: Critical for production models
 - **Track performance**: Important for scalability
 

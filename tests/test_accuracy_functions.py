@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.metrics import mean_absolute_percentage_error
 
 from mmm_eval.metrics.accuracy_functions import (
     calculate_absolute_percentage_change,
@@ -15,6 +16,7 @@ from mmm_eval.metrics.metric_models import (
     AccuracyMetricNames,
     AccuracyMetricResults,
     calculate_smape,
+    crps_one_date,
 )
 
 
@@ -61,9 +63,9 @@ class TestCrossValidationFoldCalculations:
     def test_calculate_mean_for_singular_values_across_cross_validation_folds(self):
         """Test mean calculation across folds for single values."""
         fold_metrics = [
-            AccuracyMetricResults(mape=0.1, smape=0.095, r_squared=0.8),
-            AccuracyMetricResults(mape=0.2, smape=0.105, r_squared=0.7),
-            AccuracyMetricResults(mape=0.3, smape=0.115, r_squared=0.9),
+            AccuracyMetricResults(mape=0.1, smape=0.095, r_squared=0.8, crps=0.1),
+            AccuracyMetricResults(mape=0.2, smape=0.105, r_squared=0.7, crps=0.2),
+            AccuracyMetricResults(mape=0.3, smape=0.115, r_squared=0.9, crps=0.3),
         ]
 
         result = calculate_mean_for_singular_values_across_cross_validation_folds(
@@ -77,9 +79,9 @@ class TestCrossValidationFoldCalculations:
     def test_calculate_std_for_singular_values_across_cross_validation_folds(self):
         """Test standard deviation calculation across folds for single values."""
         fold_metrics = [
-            AccuracyMetricResults(mape=0.1, smape=0.095, r_squared=0.8),
-            AccuracyMetricResults(mape=0.2, smape=0.105, r_squared=0.7),
-            AccuracyMetricResults(mape=0.3, smape=0.115, r_squared=0.9),
+            AccuracyMetricResults(mape=0.1, smape=0.095, r_squared=0.8, crps=0.1),
+            AccuracyMetricResults(mape=0.2, smape=0.105, r_squared=0.7, crps=0.2),
+            AccuracyMetricResults(mape=0.3, smape=0.115, r_squared=0.9, crps=0.3),
         ]
 
         result = calculate_std_for_singular_values_across_cross_validation_folds(fold_metrics, AccuracyMetricNames.MAPE)
@@ -270,3 +272,20 @@ class TestCalculateSMAPE:
 
         with pytest.raises(ValueError, match="Actual and predicted series must be free of NaN values"):
             calculate_smape(actual, predicted)
+
+
+class TestCalculateCRPS:
+    """Test cases for CRPS."""
+
+    def test_crps(self):
+        """Test crps for one value."""
+        input_df = pd.DataFrame({"response": [1.0, 1.0, 1.0, 1.0], "pred_distribution": [0.5, 1.5, 1.5, 2.0]})
+        crps = crps_one_date(input_df)
+
+        assert crps == 100 * (0.25 * (0.5 + 0.5 + 0.5 + 1.0) - 0.25 * (1.0 + 0.5)) / 1.0
+
+    def test_crps_point_estimate(self):
+        """Test crps reduces to mape for a single value."""
+        input_df = pd.DataFrame({"response": [1.0], "pred_distribution": [2.0]})
+        crps = crps_one_date(input_df)
+        assert crps == 100 * mean_absolute_percentage_error(np.array([1.0]), np.array([2.0]))

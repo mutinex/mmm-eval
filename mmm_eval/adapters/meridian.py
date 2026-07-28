@@ -519,11 +519,11 @@ class MeridianAdapter(BaseAdapter):
         self.analyzer = Analyzer(self.model)
         self.is_fitted = True
 
-    def _predict_on_all_data(self) -> np.ndarray:
+    def _predict_on_all_data(self) -> tuple[np.ndarray, np.ndarray]:
         """Make predictions on all data provided to fit().
 
         Returns
-            predicted values on data provided to fit().
+            predicted values on data provided to fit(), tuple of (posterior_mean, posterior_distribution)
 
         """
         if not self.is_fitted or self.analyzer is None:
@@ -532,9 +532,11 @@ class MeridianAdapter(BaseAdapter):
         # shape (n_chains, n_draws, n_times)
         preds_tensor = self.analyzer.expected_outcome(aggregate_geos=True, aggregate_times=False, use_kpi=True)
         posterior_mean = np.mean(preds_tensor, axis=(0, 1))
-        return posterior_mean
+        # A (n sample x n_chain) by n_time matrix
+        posterior_distribution = np.array(preds_tensor).reshape(-1, preds_tensor.shape[-1])
+        return posterior_mean, posterior_distribution
 
-    def predict(self, data: pd.DataFrame | None = None) -> np.ndarray:
+    def predict(self, data: pd.DataFrame | None = None) -> tuple[np.ndarray, np.ndarray]:
         """Make predictions using the fitted model.
 
         This returns predictions for the entirety of the dataset passed to fit() unless
@@ -548,22 +550,22 @@ class MeridianAdapter(BaseAdapter):
             data: Ignored - Meridian uses the fitted model state for predictions.
 
         Returns:
-            Predicted values
+            Predicted values, tuple of (posterior_mean, posterior_distribution)
 
         Raises:
             RuntimeError: If model is not fitted
 
         """
-        posterior_mean = self._predict_on_all_data()
+        posterior_mean, posterior_distribution = self._predict_on_all_data()
 
         # if holdout mask is provided, use it to mask the predictions to restrict only to the
         # holdout period
         if self.holdout_mask is not None:
             posterior_mean = posterior_mean[self.holdout_mask]
+            posterior_distribution = posterior_distribution[:, self.holdout_mask]
+        return posterior_mean, posterior_distribution
 
-        return posterior_mean
-
-    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> np.ndarray:
+    def fit_and_predict(self, train: pd.DataFrame, test: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit the Meridian model and make predictions given new input data.
 
         The full dataset must be passed to `fit()`, since making out-of-sample predictions
@@ -575,7 +577,7 @@ class MeridianAdapter(BaseAdapter):
             test: Test data
 
         Returns:
-            Predicted values for the test period
+            Predicted values for the test period, tuple of (posterior_mean, posterior_distribution)
 
         """
         train_and_test = pd.concat([train, test])
@@ -583,19 +585,20 @@ class MeridianAdapter(BaseAdapter):
         self.fit(train_and_test, max_train_date=max_train_date)
         return self.predict()
 
-    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> np.ndarray:
+    def fit_and_predict_in_sample(self, data: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         """Fit the model on data and return predictions for the same data.
 
         Args:
             data: dataset to train model on and make predictions for
 
         Returns:
-            Predicted values for the training data.
+            Predicted values for the training data, tuple of (posterior_mean, posterior_distribution)
 
         """
         # no max train date specified, so predictions are all in-sample
         self.fit(data)
-        return self._predict_on_all_data()
+        posterior_mean, posterior_distribution = self._predict_on_all_data()
+        return posterior_mean, posterior_distribution
 
     def get_channel_roi(
         self,

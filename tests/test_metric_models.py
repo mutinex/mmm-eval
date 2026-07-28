@@ -22,29 +22,31 @@ class TestAccuracyMetricResults:
 
     def test_accuracy_metric_threshold_checking_good_metrics(self):
         """Test accuracy metric threshold checking with good metrics."""
-        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85)
+        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85, crps=14.0)
 
         # Test individual metric threshold checking
         assert results._check_metric_threshold(AccuracyMetricNames.MAPE.value, 10.0) is True
         assert results._check_metric_threshold(AccuracyMetricNames.R_SQUARED.value, 0.85) is True
+        assert results._check_metric_threshold(AccuracyMetricNames.CRPS.value, 14.0) is True
 
     def test_accuracy_metric_threshold_checking_bad_metrics(self):
         """Test accuracy metric threshold checking with bad metrics."""
-        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85)
+        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85, crps=16.0)
 
         # Test individual metric threshold checking
         assert results._check_metric_threshold(AccuracyMetricNames.MAPE.value, 20.0) is False
         assert results._check_metric_threshold(AccuracyMetricNames.R_SQUARED.value, 0.75) is False
+        assert results._check_metric_threshold(AccuracyMetricNames.CRPS.value, 16.0) is False
 
     def test_accuracy_metric_dataframe_output(self):
         """Test accuracy metric results DataFrame output."""
-        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85)
+        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85, crps=15.0)
         df = results.to_df()
 
         # Check DataFrame structure
         expected_columns = TestResultDFAttributes.to_list()
         assert list(df.columns) == expected_columns
-        assert len(df) == 3
+        assert len(df) == 4
 
         # Check metric values
         mape_row = df[df[TestResultDFAttributes.GENERAL_METRIC_NAME.value] == AccuracyMetricNames.MAPE.value].iloc[0]
@@ -59,7 +61,7 @@ class TestAccuracyMetricResults:
 
     def test_accuracy_metric_invalid_metric_name(self):
         """Test accuracy metric with invalid metric name."""
-        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85)
+        results = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.85, crps=14.0)
 
         with pytest.raises(InvalidMetricNameException):
             results._check_metric_threshold("invalid_metric", 0.1)
@@ -71,7 +73,7 @@ class TestCrossValidationMetricResults:
     def test_cross_validation_metric_threshold_checking_good_metrics(self):
         """Test cross-validation metric threshold checking with good metrics."""
         results = CrossValidationMetricResults(
-            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85, mean_crps=14.0
         )
 
         # Test individual metric threshold checking
@@ -82,7 +84,7 @@ class TestCrossValidationMetricResults:
     def test_cross_validation_metric_threshold_checking_bad_metrics(self):
         """Test cross-validation metric threshold checking with bad metrics."""
         results = CrossValidationMetricResults(
-            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85, mean_crps=14.0
         )
 
         # Test individual metric threshold checking
@@ -92,14 +94,14 @@ class TestCrossValidationMetricResults:
     def test_cross_validation_metric_dataframe_output(self):
         """Test cross-validation metric results DataFrame output."""
         results = CrossValidationMetricResults(
-            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85
+            mean_mape=12.0, std_mape=2.0, mean_smape=11.5, std_smape=1.5, mean_r_squared=0.85, mean_crps=14.0
         )
         df = results.to_df()
 
         # Check DataFrame structure
         expected_columns = TestResultDFAttributes.to_list()
         assert list(df.columns) == expected_columns
-        assert len(df) == 5
+        assert len(df) == 6
 
         # Check metric values
         mean_mape_row = df[df[TestResultDFAttributes.GENERAL_METRIC_NAME.value] == "mean_mape"].iloc[0]

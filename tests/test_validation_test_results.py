@@ -24,7 +24,7 @@ class TestValidationTestResult:
 
     def test_test_result_creation_and_to_df(self):
         """Test TestResult creation and to_df conversion."""
-        test_scores = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8)
+        test_scores = AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8, crps=10.0)
         metric_names = AccuracyMetricNames.to_list()
 
         result = ValidationTestResult(
@@ -106,7 +106,7 @@ class TestValidationResults:
         accuracy_result = ValidationTestResult(
             test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
-            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
+            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8, crps=15.0),
         )
 
         # Create stability result with new field names
@@ -140,7 +140,7 @@ class TestValidationResults:
         accuracy_result = ValidationTestResult(
             test_name=ValidationTestNames.HOLDOUT_ACCURACY,
             metric_names=AccuracyMetricNames.to_list(),
-            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8),
+            test_scores=AccuracyMetricResults(mape=10.0, smape=9.5, r_squared=0.8, crps=10.0),
         )
 
         test_results = {ValidationTestNames.HOLDOUT_ACCURACY: accuracy_result}
@@ -152,7 +152,7 @@ class TestValidationResults:
         assert ValidationTestAttributeNames.TEST_NAME.value in result_df.columns
         assert ValidationTestAttributeNames.TIMESTAMP.value in result_df.columns
         # Should have 3 rows: one for each accuracy metric (mape, smape, and r_squared)
-        assert len(result_df) == 3
+        assert len(result_df) == 4
 
     def test_validation_result_to_df_with_series_metrics(self):
         """Test ValidationResults to_df conversion with Series-based metrics."""

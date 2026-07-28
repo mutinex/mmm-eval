@@ -684,11 +684,13 @@ class TestMeridianAdapter:
         preds_tensor = np.ones((2, 2, 5)) * 10
         mock_analyzer_instance.expected_outcome.return_value = preds_tensor
         # No holdout mask
-        assert np.allclose(adapter.predict(), np.mean(preds_tensor, axis=(0, 1)))
+        predictions, _ = adapter.predict()
+        assert np.allclose(predictions, np.mean(preds_tensor, axis=(0, 1)))
         # With holdout mask
         adapter.holdout_mask = np.array([False, True, True, False, True])
         masked = np.mean(preds_tensor, axis=(0, 1))[adapter.holdout_mask]
-        assert np.allclose(adapter.predict(), masked)
+        predictions, _ = adapter.predict()
+        assert np.allclose(predictions, masked)
 
     def test_predict_raises_if_not_fitted(self):
         """Test that predict raises RuntimeError if model is not fitted."""
@@ -703,8 +705,8 @@ class TestMeridianAdapter:
         adapter = MeridianAdapter(self.config)
         train = self.df.iloc[:3]
         test = self.df.iloc[3:]
-        mock_predict.return_value = np.array([1, 2, 35])
-        result = adapter.fit_and_predict(train, test)
+        mock_predict.return_value = np.array([1, 2, 35]), np.array([1, 2, 35])
+        result, _ = adapter.fit_and_predict(train, test)
         mock_fit.assert_called_once()
         mock_predict.assert_called_once()
         assert np.all(result == np.array([1, 2, 35]))
@@ -714,8 +716,8 @@ class TestMeridianAdapter:
     def test_fit_and_predict_in_sample_calls_fit_and_predict_in_sample(self, mock_predict_on_all_data, mock_fit):
         """Test that fit_and_predict_in_sample calls fit and _predict_on_all_data methods."""
         adapter = MeridianAdapter(self.config)
-        mock_predict_on_all_data.return_value = np.array([1, 2, 3, 4, 5])
-        result = adapter.fit_and_predict_in_sample(self.df)
+        mock_predict_on_all_data.return_value = np.array([1, 2, 3, 4, 5]), np.array([1, 2, 3, 4, 5])
+        result, _ = adapter.fit_and_predict_in_sample(self.df)
         mock_fit.assert_called_once_with(self.df)
         mock_predict_on_all_data.assert_called_once()
         assert np.all(result == np.array([1, 2, 3, 4, 5]))

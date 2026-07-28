@@ -127,13 +127,13 @@ def test_cli_e2e_meridian(tmp_path):
             # Return predictions matching the number of unique dates in test data
             # The data pipeline renames 'conversions' to 'response', so we need to use the processed column name
             unique_dates = test["date"].nunique()
-            return np.ones(unique_dates) * 100.0
+            return np.ones(unique_dates) * 100.0, np.ones((unique_dates, unique_dates)) * 100.0
 
         def fit_and_predict_in_sample(self, data):
             # Return predictions matching the number of unique dates in full data
             # The data pipeline renames 'conversions' to 'response'
             unique_dates = data["date"].nunique()
-            return np.ones(unique_dates) * 100.0
+            return np.ones(unique_dates) * 100.0, np.ones((unique_dates, unique_dates)) * 100.0
 
         def get_channel_roi(self, start_date=None, end_date=None):
             # Dynamically create ROI results based on current media channels

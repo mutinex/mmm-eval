@@ -52,6 +52,58 @@ def calculate_smape(actual: pd.Series, predicted: pd.Series) -> float:
     return float(smape)
 
 
+def crps_one_date(df: pd.DataFrame) -> float:
+    """Calculate CRPS for a single date.
+
+    CRPS is a probabilistic generalisation of the mean absolute error,
+    i.e, if the distribution is a repeat of a single value, CRPS is equal to the mean absolute error
+    We scale it by 100 / response to make it in the same units as MAPE for ease of comparison and thresholding.
+
+    Args:
+        df: DataFrame containing the response and predicted distribution
+
+    Returns:
+        Scaled CRPS value as float
+
+    """
+    response = df["response"].values[0]
+    n_samples = df.shape[0]
+    if n_samples == 1:
+        # CRPS reduces to absolute error for one sample
+        crps = np.abs(df["pred_distribution"].values[0] - response)
+    else:
+        pred_samples = df["pred_distribution"].values
+        pred_sample_one = pred_samples[: n_samples // 2]
+        pred_sample_two = pred_samples[n_samples // 2 :]
+        if len(pred_sample_two) != len(pred_sample_one):
+            # If an odd number of samples, drop the last one
+            pred_sample_two = pred_sample_two[:-1]
+
+        crps = np.mean(np.abs(pred_samples - response)) - 0.5 * np.mean(np.abs(pred_sample_one - pred_sample_two))
+
+    response_bounded = max(response, 1e-5)
+    return 100 * crps / response_bounded
+
+
+def calculate_crps(response_series: pd.Series, predicted_distribution: pd.DataFrame, date_column: str) -> float:
+    """Calculate Mean Continuous Ranked Probability Score (CRPS).
+
+    Args:
+        response_series: A series of the actual sales values
+        predicted_distribution: A dataframe containing a sample of the prediction distribution for each date.
+            If there is only a single sample, the CRPS reduces to the mean absolute (percentage) error.
+        date_column: Name of the date index colume to merge inputs together.
+
+    Returns:
+        Scaled CRPS value as float
+
+    """
+    response_series.name = "response"
+    predicted_distribution = predicted_distribution.merge(response_series.reset_index(), on=date_column)
+
+    return predicted_distribution.groupby(date_column).apply(crps_one_date).mean()
+
+
 class MetricNamesBase(Enum):
     """Base class for metric name enums."""
 
@@ -67,6 +119,7 @@ class AccuracyMetricNames(MetricNamesBase):
     MAPE = "mape"
     SMAPE = "smape"
     R_SQUARED = "r_squared"
+    CRPS = "crps"
 
 
 class CrossValidationMetricNames(MetricNamesBase):
@@ -77,6 +130,7 @@ class CrossValidationMetricNames(MetricNamesBase):
     MEAN_SMAPE = "mean_smape"
     STD_SMAPE = "std_smape"
     MEAN_R_SQUARED = "mean_r_squared"
+    MEAN_CRPS = "mean_crps"
 
 
 class RefreshStabilityMetricNames(MetricNamesBase):
@@ -181,6 +235,7 @@ class AccuracyMetricResults(MetricResults):
     mape: float
     smape: float
     r_squared: float
+    crps: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific accuracy metric passes its threshold."""
@@ -190,6 +245,8 @@ class AccuracyMetricResults(MetricResults):
             return bool(metric_value <= AccuracyThresholdConstants.SMAPE)
         elif metric_name == AccuracyMetricNames.R_SQUARED.value:
             return bool(metric_value >= AccuracyThresholdConstants.R_SQUARED)
+        elif metric_name == AccuracyMetricNames.CRPS.value:
+            return bool(metric_value <= AccuracyThresholdConstants.CRPS)
         else:
             valid_metric_names = AccuracyMetricNames.to_list()
             raise InvalidMetricNameException(
@@ -215,17 +272,26 @@ class AccuracyMetricResults(MetricResults):
                     specific_metric_name=AccuracyMetricNames.R_SQUARED.value,
                     metric_value=self.r_squared,
                 ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=AccuracyMetricNames.CRPS.value,
+                    specific_metric_name=AccuracyMetricNames.CRPS.value,
+                    metric_value=self.crps,
+                ),
             ]
         )
         return self.add_pass_fail_column(df)
 
     @classmethod
-    def populate_object_with_metrics(cls, actual: pd.Series, predicted: pd.Series) -> "AccuracyMetricResults":
+    def populate_object_with_metrics(
+        cls, actual: pd.Series, predicted: pd.Series, distribution: pd.DataFrame, date_column: str
+    ) -> "AccuracyMetricResults":
         """Populate the object with the calculated metrics.
 
         Args:
             actual: The actual values
             predicted: The predicted values
+            distribution: The predicted distribution
+            date_column: The name of the date column
 
         Returns:
             AccuracyMetricResults object with the metrics
@@ -235,6 +301,7 @@ class AccuracyMetricResults(MetricResults):
             mape=mean_absolute_percentage_error(actual, predicted) * 100,
             smape=calculate_smape(actual, predicted),
             r_squared=r2_score(actual, predicted),
+            crps=calculate_crps(actual, distribution, date_column),
         )
 
 
@@ -246,6 +313,7 @@ class CrossValidationMetricResults(MetricResults):
     mean_smape: float
     std_smape: float
     mean_r_squared: float
+    mean_crps: float
 
     def _check_metric_threshold(self, metric_name: str, metric_value: float) -> bool:
         """Check if a specific cross-validation metric passes its threshold."""
@@ -259,6 +327,8 @@ class CrossValidationMetricResults(MetricResults):
             return bool(metric_value <= CrossValidationThresholdConstants.STD_SMAPE)
         elif metric_name == CrossValidationMetricNames.MEAN_R_SQUARED.value:
             return bool(metric_value >= CrossValidationThresholdConstants.MEAN_R_SQUARED)
+        elif metric_name == CrossValidationMetricNames.MEAN_CRPS.value:
+            return bool(metric_value <= CrossValidationThresholdConstants.MEAN_CRPS)
         else:
             valid_metric_names = CrossValidationMetricNames.to_list()
             raise InvalidMetricNameException(
@@ -293,6 +363,11 @@ class CrossValidationMetricResults(MetricResults):
                     general_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
                     specific_metric_name=CrossValidationMetricNames.MEAN_R_SQUARED.value,
                     metric_value=self.mean_r_squared,
+                ),
+                self._create_single_metric_dataframe_row(
+                    general_metric_name=CrossValidationMetricNames.MEAN_CRPS.value,
+                    specific_metric_name=CrossValidationMetricNames.MEAN_CRPS.value,
+                    metric_value=self.mean_crps,
                 ),
             ]
         )

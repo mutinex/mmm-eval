@@ -39,12 +39,14 @@ The holdout accuracy test evaluates model performance by splitting data into tra
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error
 - **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE
 - **R-squared**: Proportion of variance explained by the model
+- **CRPS (Continuous Ranked Probability Score)**: Distribution accuracy metric, scaled to sales levels.
 
 #### Interpretation
 
 - **Lower MAPE**: Better model performance
 - **Lower SMAPE**: Better symmetric model performance
 - **Higher R-squared**: Better model fit (0-1 scale)
+- **Lower CRPS**: Less uncertainty
 
 ### In-Sample Accuracy Test
 
@@ -61,12 +63,14 @@ The in-sample accuracy test evaluates model performance by fitting the model on 
 - **MAPE (Mean Absolute Percentage Error)**: Average percentage error
 - **SMAPE (Symmetric Mean Absolute Percentage Error)**: Symmetric version of MAPE
 - **R-squared**: Proportion of variance explained by the model
+- **CRPS (Continuous Ranked Probability Score)**: Distribution accuracy metric, scaled to sales levels.
 
 #### Interpretation
 
 - **Lower MAPE**: Better model fit to training data
 - **Lower SMAPE**: Better symmetric model fit
 - **Higher R-squared**: Better explanatory power
+- **Lower CRPS**: Less uncertainty
 - **Comparison with holdout**: Helps identify overfitting (much better in-sample than holdout performance)
 
 ## Cross-Validated Holdout Accuracy Test
@@ -94,6 +98,8 @@ integers)
 - **MAPE**: Out-of-sample prediction accuracy
 - **SMAPE**: Out-of-sample symmetric prediction accuracy
 - **R-squared**: Out-of-sample explanatory power
+- **CRPS**: Out-of-sample predictive distribution accuracy
+
 
 ### Interpretation
 
@@ -215,8 +221,8 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 
 ### Good Model Indicators
 
-- **Holdout Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8
-- **In-Sample Accuracy**: MAPE < 10%, SMAPE < 10%, R-squared > 0.9
+- **Holdout Accuracy**: MAPE < 15%, SMAPE < 15%, R-squared > 0.8, CRPS < 15%
+- **In-Sample Accuracy**: MAPE < 10%, SMAPE < 10%, R-squared > 0.9, CRPS < 10%
 - **Cross-Validation**: Out-of-sample MAPE/SMAPE similar to in-sample
 - **Refresh Stability**: Parameter changes < 10%
 - **Perturbation**: ROI changes < 5%
@@ -225,6 +231,7 @@ modify the thresholds in `mmm_eval/metrics/threshold_constants.py`.
 ### Warning Signs
 
 - **Poor Performance**: High MAPE/SMAPE or low R-squared
+- **High Uncertainty**: CRPS significantly higher than MAPE
 - **Overfitting**: Much better in-sample than holdout performance
 - **Unstable Model**: Large parameter changes
 - **Data Issues**: Missing values or extreme outliers

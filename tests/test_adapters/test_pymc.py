@@ -248,7 +248,7 @@ def test_predict_method_real_pymc(valid_pymc_config, realistic_test_data):
     adapter.fit(data)
 
     # Test prediction
-    result = adapter.predict(data)
+    result, _ = adapter.predict(data)
 
     # Verify prediction results
     assert isinstance(result, np.ndarray)
@@ -309,7 +309,7 @@ def test_adapter_integration_real_pymc(valid_pymc_config, realistic_test_data):
     adapter.fit(data)
     assert adapter.is_fitted is True
 
-    predictions = adapter.predict(data)
+    predictions, _ = adapter.predict(data)
     assert isinstance(predictions, np.ndarray)
     assert len(predictions) == len(data)
 
@@ -335,12 +335,13 @@ def test_fit_and_predict_in_sample_method_real_pymc(valid_pymc_config, realistic
     data = realistic_test_data
 
     # Test fit_and_predict_in_sample
-    result = adapter.fit_and_predict_in_sample(data)
+    result, dist = adapter.fit_and_predict_in_sample(data)
 
     # Verify prediction results
     assert isinstance(result, np.ndarray)
     assert len(result) == len(data)
     assert not np.all(np.isnan(result))  # Should have some non-NaN predictions
+    assert np.allclose(dist.mean(0), result)
 
     # Verify the model was fitted
     assert adapter.is_fitted is True
@@ -622,7 +623,7 @@ def test_fit_resets_to_original_channels_on_subsequent_fits(valid_pymc_config, r
     assert adapter.model_kwargs["channel_columns"] == ["channel_2"]
 
     # Test prediction with the fitted model (should work with reduced channels)
-    predictions = adapter.predict(data_with_zero_spend)
+    predictions, _ = adapter.predict(data_with_zero_spend)
     assert isinstance(predictions, np.ndarray)
     assert len(predictions) == len(data_with_zero_spend)
 
@@ -648,7 +649,7 @@ def test_fit_resets_to_original_channels_on_subsequent_fits(valid_pymc_config, r
     assert adapter.model_kwargs["channel_columns"] == ["channel_1", "channel_2"]
 
     # Test prediction with the re-fitted model (should work with all channels)
-    predictions = adapter.predict(data_without_zero_spend)
+    predictions, _ = adapter.predict(data_without_zero_spend)
     assert isinstance(predictions, np.ndarray)
     assert len(predictions) == len(data_without_zero_spend)
 
