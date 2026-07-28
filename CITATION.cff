@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use mmm-eval in your work, please cite it as below."
+title: "mmm-eval"
+abstract: "A comprehensive evaluation framework for Marketing Mix Models (MMM)."
+type: software
+authors:
+  - family-names: Kang
+    given-names: Joseph
+  - family-names: McCormick
+    given-names: Sam
+  - family-names: Dobrin
+    given-names: Benjamin
+  - family-names: Clark
+    given-names: Phil
+repository-code: "https://github.com/mutinex/mmm-eval"
+license: Apache-2.0
+version: 0.12.0
