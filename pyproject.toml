@@ -25,6 +25,8 @@ pandera = "^0.24.0"
 pydantic = "^2.5"
 click = "^8.1.7"
 pyarrow = "^20.0.0"
+openpyxl = "^3.1.5"
+google-cloud-bigquery = "^3.35.1"
 
 [tool.poetry.scripts]
 mmm-eval = "mmm_eval.cli.evaluate:main"
